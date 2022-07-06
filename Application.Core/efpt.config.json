@@ -1,0 +1,183 @@
+﻿{
+   "CodeGenerationMode": 2,
+   "ContextClassName": "GHP_POS_DBContext",
+   "ContextNamespace": null,
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": null,
+   "OutputContextPath": "Data",
+   "OutputPath": "Entities",
+   "ProjectRootNamespace": "Application.Core",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 0,
+   "SelectedToBeGenerated": 0,
+   "Tables": [
+      {
+         "Name": "[dbo].[AccountEntry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AccountHead]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AccountType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Branch]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Brand]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Category]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Company]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Country]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Customer]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CustomerPayment]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DamageLost]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Expense]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ExpenseType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FiscalYear]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[GenericName]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[GifItem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JournalEntry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JournalEntryLine]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MeasurementUnit]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PaymentMethod]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PayReceive]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Product]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Purchase]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PurchaseItem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PurchaseReturn]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PurchaseReturnItem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Role]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RoleClaims]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sale]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SaleItem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SaleReturn]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SaleReturnItem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[StockItem]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Supplier]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SupplierPayment]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TransferHistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[User]",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": "WIN-8UKQEU5IGCJ.ghp",
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDbContextSplitting": true,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoConstructor": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UseSchemaFolders": false,
+   "UseSpatial": false
+}

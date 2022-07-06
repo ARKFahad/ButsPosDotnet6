@@ -1,0 +1,5 @@
+﻿public virtual DbSet<PLModel> PLModels { get; set; }
+public virtual DbSet<SupplierLedgerReportLine> SupplierLedgerReportLines { get; set; }
+ public virtual DbSet<CustomerLedgerReportLine> CustomerLedgerReportLines { get; set; }
+  public virtual DbSet<BalanceReportLine> BalanceReportLines { get; set; }
+   public virtual DbSet<AccountHeadReportLine> AccountHeadReportLines { get; set; }
