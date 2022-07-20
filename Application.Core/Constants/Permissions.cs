@@ -250,6 +250,13 @@ namespace Application.Core.Constants
             public const string Update = "Permissions.DamageLosts.Update";
             public const string Remove = "Permissions.DamageLosts.Remove";
         }
+        [DisplayName("StockAdjustments")]
+        [Description("StockAdjustments Permissions")]
+        public static class StockAdjustments
+        {
+            public const string View = "Permissions.StockAdjustments.View";
+            public const string Add = "Permissions.StockAdjustments.Add";
+        }
 
         [DisplayName("Stocks")]
         [Description("Stocks Permissions")]

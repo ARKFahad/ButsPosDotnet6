@@ -53,6 +53,7 @@ namespace Application.Core.Data
         public virtual DbSet<SaleItem> SaleItems { get; set; }
         public virtual DbSet<SaleReturn> SaleReturns { get; set; }
         public virtual DbSet<SaleReturnItem> SaleReturnItems { get; set; }
+        public virtual DbSet<StockAdjustment> StockAdjustments { get; set; }
         public virtual DbSet<StockItem> StockItems { get; set; }
         public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<SupplierPayment> SupplierPayments { get; set; }
@@ -98,6 +99,7 @@ namespace Application.Core.Data
             modelBuilder.ApplyConfiguration(new Configurations.SaleItemConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.SaleReturnConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.SaleReturnItemConfiguration());
+            modelBuilder.ApplyConfiguration(new Configurations.StockAdjustmentConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.StockItemConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.SupplierConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.SupplierPaymentConfiguration());

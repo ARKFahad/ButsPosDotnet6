@@ -117,7 +117,10 @@ namespace Application.Api.Controllers
 
             try
             {
-                requestModel.FiscalYearId = _context.FiscalYears.FirstOrDefault(x => x.IsActive).Id;
+                var fiscalYear = _context.FiscalYears.FirstOrDefault(x => x.IsActive);
+                //balance sheet in a particar date from fiscal year start date
+                requestModel.FromDate = fiscalYear.StartDate;
+                requestModel.FiscalYearId = fiscalYear.Id;
                 var income = CalculateBalanceByAccountId(AccountHeadConstants.Income, AccType.Income, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
                 var expense = CalculateBalanceByAccountId(AccountHeadConstants.Expenditure, AccType.Expense, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
                 var accountHeadsQueryable = _context.AccountHeads.Where(x => new string[2] { AccType.Asset, AccType.Liability }.Contains(x.AccountTypeId));
@@ -461,7 +464,6 @@ namespace Application.Api.Controllers
                 transactions = transactions.Where(x => x.BranchId == branchId);
             if (fromDate.HasValue && toDate.HasValue)
                 transactions = transactions.Where(x => x.TransactionDate.Date >= fromDate.Value.Date && x.TransactionDate.Date <= toDate.Value.Date);
-
             if (type==AccType.Liability || type==AccType.Income) return transactions.Sum(x => x.Credit) - transactions.Sum(x => x.Debit);
             return transactions.Sum(x => x.Debit) - transactions.Sum(x => x.Credit);
         }

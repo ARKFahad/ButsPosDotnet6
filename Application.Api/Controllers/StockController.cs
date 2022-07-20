@@ -100,8 +100,8 @@ namespace Application.Api.Controllers
         {
             try
             {
-                request.IsAscending = true;
-
+                
+              
                 var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId, x.BranchId })
                          .Select(y => new
                          {
@@ -136,7 +136,7 @@ namespace Application.Api.Controllers
                 var count = queryable.Count();
                 var expression = request.GetExpression();
                 queryable = queryable.Where(expression);
-               
+                queryable = queryable.OrderBy(x => x.ProductName);
                 var list = await queryable.ToListAsync();
                 byte[] bytes;
                 using (var stream = new MemoryStream())
@@ -314,7 +314,7 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<StockModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
-        [HttpPost]
+            [HttpPost]
             [Route("outofstock/print")]
             public virtual  IActionResult OutOfStockPrint(StockRequestModel request)
             {
@@ -414,10 +414,55 @@ namespace Application.Api.Controllers
                 {
                 return Ok(exception.ToString());
             }
-       
+      
+         }
 
-        
-              }
+
+        [HttpGet]
+        [Route("pos-search")]
+        public virtual async Task<Result<Tuple<List<StockModel>, int>>> StockSearch(string branchId, string? productName="napa")
+        {
+            try
+            {
+                var query = _context.StockItems.Where(x=>x.BranchId==branchId).GroupBy(x => new { x.ProductId, x.SupplierId })
+                          .Select(y => new
+                          {
+                              ProductId = y.Key.ProductId,
+                              SupplierId = y.Key.SupplierId,
+                              Quantity = y.Sum(x => x.Quantity),
+                              Price = (y.Sum(x => x.PurchaseRate) - y.Sum(x => x.DiscountPerItem)) + y.Sum(x => x.AdditionalCostPerItem)
+                          });
+                var queryable = from stock in query
+                                join product in _context.Products on stock.ProductId equals product.Id
+                                join category in _context.Categories on product.CategoryId equals category.Id
+                                join supplier in _context.Suppliers on stock.SupplierId equals supplier.Id
+                                select new StockModel()
+                                {
+                                    ProductId = stock.ProductId,
+                                    ProductName = product.Name,
+                                    ProductPackSize = product.PackSize,
+                                    CategoryId = category.Id,
+                                    ProductCategory = category.Name,
+                                    ProductBarcode = product.Barcode,
+                                    Mrp = product.Mrp,
+                                    SupplierId = stock.SupplierId,
+                                    SupplierName = supplier.Name,
+                                    Quantity = stock.Quantity,
+                                    Value = stock.Price
+                                };
+                if(!string.IsNullOrWhiteSpace(productName))
+                    queryable = queryable.Where(x=>x.ProductName.StartsWith(productName)).Take(20);
+                else
+                    queryable = queryable.Take(20);
+                var list = await queryable.ToListAsync();
+                Tuple<List<StockModel>, int> content = new Tuple<List<StockModel>, int>(list, 0);
+                return await Result<Tuple<List<StockModel>, int>>.SuccessAsync(content, "Stock Found");
+            }
+            catch (Exception exception)
+            {
+                return await Result<Tuple<List<StockModel>, int>>.FailAsync(exception.ToString(), exception.Message);
+            }
+        }
     }
 }
 public class StockComparer : IEqualityComparer<StockModel>

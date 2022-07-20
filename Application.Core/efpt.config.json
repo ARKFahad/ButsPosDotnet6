@@ -142,6 +142,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[StockAdjustment]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[StockItem]",
          "ObjectType": 0
       },

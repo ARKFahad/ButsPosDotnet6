@@ -101,7 +101,6 @@ namespace Application.Api.Controllers
                 try
                 {
                     var saletableRow = _context.Sales.Find(model.Id);
-
                     foreach (var item in model.SaleItems)
                     {
                         var saleItem = _context.SaleItems.Find(item.Id);
@@ -112,24 +111,24 @@ namespace Application.Api.Controllers
                         var modifiedQuantity = saleItem.Quantity - item.ReturnQty;
                         if (modifiedQuantity < 0)
                             throw new Exception("Return Failed Due To Invalid Quantity");
-
                         saleItem.Quantity = saleItem.Quantity - item.ReturnQty;
                       //  saleItem.CogsPerItem = item.ItemCogs;
                        // saleItem.Price = item.Price;
                         saleItem.Amount = saleItem.Amount - (item.Price * item.ReturnQty);
                         saleItem.ReturnQuantity = item.ReturnQty;
-                        _context.Update(saleItem);
-                        StockItem stockitem = new StockItem();
+                        _context.SaleItems.Update(saleItem);
                         for (var i = 1; i <= item.ReturnQty; i++)
-                        {
-                            stockitem.Id = Guid.NewGuid().ToString();
-                            stockitem.ProductId = item.ProductId;
-                            stockitem.Quantity = 1;
-                            stockitem.PurchaseRate = item.ItemCogs;
-                            stockitem.BranchId = saletableRow.BranchId;
-                            stockitem.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
-                            stockitem.SupplierId = saleItem.SupplierId;
-                            await _context.AddAsync(stockitem);
+                        {  
+                            await _context.StockItems.AddAsync(new StockItem
+                            {
+                            Id = Guid.NewGuid().ToString(),
+                            ProductId = item.ProductId,
+                            Quantity = 1,
+                            PurchaseRate = item.ItemCogs,
+                            BranchId = saletableRow.BranchId,
+                            CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId(),
+                            SupplierId = saleItem.SupplierId
+                        });
                         }
 
                     }
@@ -149,8 +148,6 @@ namespace Application.Api.Controllers
                     salereturn.CreatedOn = DateTime.Now;
                     salereturn.UpdatedOn = DateTime.Now;
                     await _context.SaleReturns.AddAsync(salereturn);
-                 //   await _context.SaveChangesAsync();
-
                     foreach (var item in model.SaleItems)
                     {
                         if (item.ReturnQty > 0)
@@ -169,10 +166,8 @@ namespace Application.Api.Controllers
                             saleReturnItem.UpdatedOn = DateTime.Now;
 
                             await _context.SaleReturnItems.AddAsync(saleReturnItem);
-                          //  await _context.SaveChangesAsync();
-                        }
-                      
-
+                          
+                        }                     
                     }
 
                     saletableRow.Cogs -= totalCogsOfReturnItems;
@@ -189,9 +184,7 @@ namespace Application.Api.Controllers
                        // saletableRow.CustomerBalance -= totalValue;
                         saletableRow.DueAmount -= totalValueWithoutDiscount;
                     }
-                    saletableRow.TotalSaleReturnedAmount += totalValueWithoutDiscount;
-                   
-
+                    saletableRow.TotalSaleReturnedAmount += totalValueWithoutDiscount;                  
                     var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
                     if (isAccountsActive)
                     {

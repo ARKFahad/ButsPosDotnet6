@@ -12,6 +12,7 @@ namespace Application.Core.Entities
             Products = new HashSet<Product>();
             PurchaseReturns = new HashSet<PurchaseReturn>();
             Purchases = new HashSet<Purchase>();
+            StockAdjustments = new HashSet<StockAdjustment>();
             SupplierPayments = new HashSet<SupplierPayment>();
         }
 
@@ -34,6 +35,7 @@ namespace Application.Core.Entities
         public virtual ICollection<Product> Products { get; set; }
         public virtual ICollection<PurchaseReturn> PurchaseReturns { get; set; }
         public virtual ICollection<Purchase> Purchases { get; set; }
+        public virtual ICollection<StockAdjustment> StockAdjustments { get; set; }
         public virtual ICollection<SupplierPayment> SupplierPayments { get; set; }
     }
 }

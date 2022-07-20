@@ -23,13 +23,15 @@ namespace Application.Services
     {
         private readonly IBaseRepository<User> _userRepository;
         private readonly IBaseRepository<Role> _roleRepository;
-      
+        private readonly IBaseRepository<Company> _companyRepository;
+
         private readonly IBaseRepository<RoleClaim> _roleClaimRepository;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _contextAccessor;
         public AuthService(IConfiguration configuration, IHttpContextAccessor contextAccessor,
             IBaseRepository<User> userRepository, IBaseRepository<Role> roleRepository,
-            IBaseRepository<RoleClaim> roleClaimRepository
+            IBaseRepository<RoleClaim> roleClaimRepository,
+            IBaseRepository<Company> companyRepository
            )
         {
             _userRepository = userRepository;
@@ -37,7 +39,7 @@ namespace Application.Services
             _roleClaimRepository = roleClaimRepository;
             _configuration = configuration;
             _contextAccessor = contextAccessor;
-
+            _companyRepository = companyRepository;
         }
         public async Task<Result<string>> Login(string username, string password)
         {
@@ -182,11 +184,11 @@ namespace Application.Services
                 return true;
             }
         }
-        private string CreateToken(User user)
+        private  string CreateToken(User user)
         {
             var permissionClaims = new List<Claim>();
             var roleClaims = _roleClaimRepository.GetAll().Where(x => x.RoleId == user.RoleId);
-           
+            var company =  _companyRepository.GetAllAsNoTracking().FirstOrDefault();
             foreach (var roleClaim in roleClaims)
             {
                 permissionClaims.Add(new Claim(roleClaim.Type, roleClaim.Value));
@@ -197,6 +199,8 @@ namespace Application.Services
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim("branchId", user.BranchId),
+                new Claim("company",company.Name),
+                new Claim("logo",company.LogoPath),
                 new Claim(ClaimTypes.Role, _roleRepository.GetAll().FirstOrDefault(x=>x.Id==user.RoleId)?.Name)
             }.Union(permissionClaims);
 

@@ -97,7 +97,7 @@ namespace Application.Api.Controllers
                     {
                         Id = Guid.NewGuid().ToString(),
                         Code = _commonService.GetAccountCode(AccType.Liability),
-                        AccountTypeId = AccType.Liability,//liablility account id=2
+                        AccountTypeId = AccType.Liability,//liablility  id=2
                         Level = await _commonService.GetAccountLevel("15"),
                         Name = model.Name,
                         ParentId = "15",//parent Sundry Creditors from database "15"

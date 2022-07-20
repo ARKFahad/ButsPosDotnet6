@@ -1,6 +1,8 @@
 ﻿using Application.Core.Common;
 using Application.Core.Constants;
+using Application.Core.Data;
 using Application.Core.Entities;
+using Application.Core.Exceptions;
 using Application.Core.PermissionHelpers;
 using Application.RequestModel;
 using Application.ViewModel;
@@ -24,13 +26,16 @@ namespace Application.Api.Controllers
         private readonly IBaseQueryService<Product, ProductRequestModel, ProductViewModel> _productQueryService;
         private readonly IBaseCommandService<Product> _productCommandService;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly GHP_POS_DBContext _context;
         public ProductController(IBaseQueryService<Product, ProductRequestModel, ProductViewModel> productQueryService,
             IBaseCommandService<Product> productCommandService,
-            IHttpContextAccessor contextAccessor)
+            IHttpContextAccessor contextAccessor,
+            GHP_POS_DBContext context)
         {
             _productCommandService = productCommandService;
             _productQueryService = productQueryService;
             _contextAccessor = contextAccessor;
+            _context = context;
         }
         [AllowAnonymous]
         [Authorize(Policy = Permissions.Products.ViewAll)]
@@ -88,7 +93,8 @@ namespace Application.Api.Controllers
                 model.UpdatedOn = DateTime.Now;
                 model.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                 model.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
-                await _productCommandService.AddAsync(model);
+                await _context.Products.AddAsync(model);
+                await _context.SaveChangesAsync();
                 return await Result<string>.SuccessAsync(model.Id, "Product Added Successfully");
             }
             catch (Exception exception)
@@ -103,9 +109,27 @@ namespace Application.Api.Controllers
         {
             try
             {
-                model.UpdatedOn = DateTime.Now;
-                model.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
-                await _productCommandService.UpdateAsync(model);
+                Product dbProduct =await _context.Products.FindAsync(model.Id);
+                if (dbProduct == null) throw new NotFoundResultException("Not Found");
+                dbProduct.Barcode = model.Barcode;
+                dbProduct.Name = model.Name;
+                dbProduct.PackSize = model.PackSize;
+                dbProduct.CategoryId = model.CategoryId;
+                dbProduct.GenericNameId=model.GenericNameId;
+                dbProduct.SupplierId = model.SupplierId;
+                dbProduct.MeasurementUnitId = model.MeasurementUnitId;
+                dbProduct.CountryOfOriginId = model.CountryOfOriginId;
+                dbProduct.CartonSize = model.CartonSize;
+                dbProduct.PurchaseVat=model.PurchaseVat;
+                dbProduct.PurchasePrice = model.PurchasePrice;
+                dbProduct.Mrp = model.Mrp;
+                dbProduct.IsExpiryItem = model.IsExpiryItem;
+                dbProduct.IsVatIncludedInPurchasePrice=model.IsVatIncludedInPurchasePrice;
+                dbProduct.TempCode = model.TempCode;
+                dbProduct.UpdatedOn = DateTime.Now;
+                dbProduct.UpdatedBy= _contextAccessor.HttpContext?.User?.GetUserId();
+                 _context.Products.Update(dbProduct);
+                await _context.SaveChangesAsync();
                 return await Result<string>.SuccessAsync(model.Id, "Product Updated Successfully");
             }
             catch (Exception exception)

@@ -183,7 +183,7 @@ namespace Application.Api.Controllers
                             Id = Guid.NewGuid().ToString(),
                             PurchaseId = purchase.Id,
                             ProductId = item.ProductId,
-                            ExpireDate = isValidExpireDate ? expireDate : null,
+                            ExpireDate = isValidExpireDate ? expireDate : DateTime.Now.AddYears(2),
                             BatchNo = item.BatchNo,
                             PurchaseQuantity = item.PurchaseQuantity,
                             BonusQuantity = item.BonusQuantity,
