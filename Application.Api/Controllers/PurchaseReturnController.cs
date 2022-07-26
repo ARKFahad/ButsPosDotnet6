@@ -89,26 +89,16 @@ namespace Application.Api.Controllers
                         var modifiedQuantity = purchaseItem.PurchaseQuantity - item.ReturnQty;
                         if (modifiedQuantity < 0)
                             throw new Exception("Return Failed Due To Invalid Quantity");
-
                         purchaseItem.PurchaseQuantity = purchaseItem.PurchaseQuantity;
                         purchaseItem.ReturnQuantity += item.ReturnQty;
                         purchaseItem.PurchasePrice = item.PurchasePrice;
                         purchaseItem.Amount = purchaseItem.Amount - (item.PurchasePrice * item.ReturnQty);
                         purchasetableRow.Subtotal -= (item.PurchasePrice * item.ReturnQty);
                         purchasetableRow.NetAmount -= (item.PurchasePrice * item.ReturnQty);
-
                         _context.Update(purchaseItem);
-
-
                         var itemToremoveFromStock = _context.StockItems.Where(x => x.ProductId == item.ProductId&& x.BranchId==model.BranchId).OrderBy(x=>x.CreatedOn).Take(item.ReturnQty).ToList();
-
-
                         _context.RemoveRange(itemToremoveFromStock);
                        await _context.SaveChangesAsync();
-
-
-                    
-
                     }
                     _context.Update(purchasetableRow);
                     await _context.SaveChangesAsync();
@@ -138,25 +128,11 @@ namespace Application.Api.Controllers
                             purchaseReturnItem.Rate = item.PurchasePrice;
                             purchaseReturnItem.Amount = (item.PurchasePrice * item.ReturnQty);
                             purchaseReturnItem.Reason = model.Reason;
-                            
-
                             await _context.AddAsync(purchaseReturnItem);
                             await _context.SaveChangesAsync();
                         }
-                      
-
                     }
-                    //Supplier Balance Update
                     var dbSupplier = await _context.Suppliers.FindAsync(model.SupplierId);
-                    dbSupplier.Balance -= totalValue;
-                    _context.Update(dbSupplier);
-                    await _context.SaveChangesAsync();
-
-                    //adjust Supplier balance
-                    purchasetableRow.SupplierBalance -= totalValue;
-                    _context.Purchases.Update(purchasetableRow);
-                    
-
                     var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
                     if (isAccountsActive)
                     {
@@ -167,9 +143,16 @@ namespace Application.Api.Controllers
                         await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
                            AccountHeadConstants.InventoryAC, 0, purchasereturn.TotalValue, purchasereturn.CreatedOn);//inventory a/c id from database
                     }
+                    else
+                    {
+                        //adjust Supplier balance
+                        purchasetableRow.SupplierBalance -= totalValue;
+                        dbSupplier.Balance -= totalValue;
+                    }
+                    _context.Update(dbSupplier);
+                    _context.Purchases.Update(purchasetableRow);
                     await _context.SaveChangesAsync();
                     await dbContextTransaction.CommitAsync();
-
                     return Ok(new { Message = "Return Item Successfully", Succeeded = true });
                 }
                 catch (Exception e)

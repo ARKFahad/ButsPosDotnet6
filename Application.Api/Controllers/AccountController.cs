@@ -117,6 +117,7 @@ namespace Application.Api.Controllers
 
             try
             {
+                var fromDate = requestModel.FromDate;
                 var fiscalYear = _context.FiscalYears.FirstOrDefault(x => x.IsActive);
                 //balance sheet in a particar date from fiscal year start date
                 requestModel.FromDate = fiscalYear.StartDate;
@@ -129,7 +130,7 @@ namespace Application.Api.Controllers
                 using (var stream = new MemoryStream())
                 {
 
-                    _pdfService.PrintBalanceSheetReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Balance Sheet", requestModel.FromDate, requestModel.ToDate,income-expense);
+                    _pdfService.PrintBalanceSheetReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Balance Sheet", fromDate, requestModel.ToDate,income-expense);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
