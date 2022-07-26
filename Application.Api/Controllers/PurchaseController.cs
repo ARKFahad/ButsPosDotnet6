@@ -208,11 +208,10 @@ namespace Application.Api.Controllers
                             }
                         }
                         //saving stock item
-                        var totalPurchaseItem = model.PurchaseItems.Sum(x => x.PurchaseQuantity);
                         if (model.PurchaseType == (int)PurchaseType.Received)
                         {
-                            var discountPerItem = purchase.Discount / totalPurchaseItem;
-                            var additionalCostPerItem = purchase.AdditionalCost / totalPurchaseItem;
+                            var discountPerItem = (purchaseItem.PurchasePrice * purchase.Discount) / purchase.Subtotal;
+                            var additionalCostPerItem = (purchaseItem.PurchasePrice * purchase.AdditionalCost) / purchase.Subtotal;
                             for (int i = 0; i < purchaseItem.PurchaseQuantity; i++)
                             {
                                 await _context.StockItems.AddAsync(new StockItem
