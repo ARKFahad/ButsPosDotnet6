@@ -15,6 +15,8 @@ namespace Application.Core.Data.Configurations
         {
             entity.ToTable("Product");
 
+            entity.HasIndex(e => e.Name, "ix_products_name");
+
             entity.Property(e => e.Id).HasMaxLength(100);
 
             entity.Property(e => e.Barcode)

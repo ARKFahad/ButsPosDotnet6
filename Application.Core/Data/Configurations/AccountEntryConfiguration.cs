@@ -15,6 +15,18 @@ namespace Application.Core.Data.Configurations
         {
             entity.ToTable("AccountEntry");
 
+            entity.HasIndex(e => e.AccountId, "ix_accountentries_accountid");
+
+            entity.HasIndex(e => e.BranchId, "ix_accountentries_branchid");
+
+            entity.HasIndex(e => e.FiscalYearId, "ix_accountentries_fiscalyearid");
+
+            entity.HasIndex(e => e.IsOpeningBalance, "ix_accountentries_isopeningbalance");
+
+            entity.HasIndex(e => e.TransactionDate, "ix_accountentries_transactiondate");
+
+            entity.HasIndex(e => e.Vnumber, "ix_accountentries_vnumber");
+
             entity.Property(e => e.Id).HasMaxLength(100);
 
             entity.Property(e => e.AccountId)

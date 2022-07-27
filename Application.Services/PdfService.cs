@@ -3086,7 +3086,7 @@ namespace Application.Services
 
           
 
-            var doc = new Document(pageSize);
+            var doc = new Document(pageSize,20,20,25,100);
 
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
             doc.Open();

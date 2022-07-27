@@ -15,6 +15,14 @@ namespace Application.Core.Data.Configurations
         {
             entity.ToTable("StockItem");
 
+            entity.HasIndex(e => e.BranchId, "ix_stockitems_branchid");
+
+            entity.HasIndex(e => e.ExpiryDate, "ix_stockitems_expireydate");
+
+            entity.HasIndex(e => e.ProductId, "ix_stockitems_productid");
+
+            entity.HasIndex(e => e.SupplierId, "ix_stockitems_supplierid");
+
             entity.Property(e => e.Id).HasMaxLength(100);
 
             entity.Property(e => e.AdditionalCostPerItem).HasColumnType("decimal(18, 12)");

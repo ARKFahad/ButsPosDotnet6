@@ -8,6 +8,7 @@ namespace Application.Core.Constants
 {
    public static class AccountHeadConstants
     {
+        public const string RetainedEarnings = "C386a894-Fb2f-4e9f-937a-Ec5685482a74";
         public const string MASUDULHASAN = "19";
         public const string Sales = "22";
         public const string Income = "20";

@@ -62,18 +62,15 @@ namespace Application.Api.Controllers
         {
             try
             {
-               
                 var list = SubsidiaryLedger(accountId, fromDate, toDate, branchId);
                 var account = _context.AccountHeads.Find(accountId);
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-
                    _pdfService.PrintSubsidiaryLedgerReportToPdf(stream, _context.Branches.Find(branchId), list, "Subsidiary Ledger("+account?.Name+")", fromDate, toDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
-
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
             catch (Exception exception)
@@ -96,12 +93,10 @@ namespace Application.Api.Controllers
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-
                     _pdfService.PrintTrailBalanceReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Trial Balance ", requestModel.FromDate, requestModel.ToDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
-
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
             catch (Exception exception)
@@ -114,7 +109,6 @@ namespace Application.Api.Controllers
         [HttpPost("balance-sheet-print")]
         public IActionResult PrintBalanceSheetReport(AccountReportRequestModel requestModel)
         {
-
             try
             {
                 var fromDate = requestModel.FromDate;
@@ -129,12 +123,10 @@ namespace Application.Api.Controllers
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-
                     _pdfService.PrintBalanceSheetReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Balance Sheet", fromDate, requestModel.ToDate,income-expense);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
-
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
             catch (Exception exception)
@@ -158,7 +150,6 @@ namespace Application.Api.Controllers
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-
                     _pdfService.PrintIncomeStatementReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Income Statement ", requestModel.FromDate, requestModel.ToDate,income-expense);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
@@ -430,13 +421,12 @@ namespace Application.Api.Controllers
         private IList<AccountHead> GetAllSubAccountsByParentAccountId(string? parentAccountId,IQueryable<AccountHead> accountHeads,string? branchId=null)
            
         {
-            //debtors account id="7b6ab461-4a10-4bbc-94a6-13d73ddfd4d4"
             if (parentAccountId == AccountHeadConstants.Debtors && !string.IsNullOrWhiteSpace(branchId))
               return accountHeads.Where(x => x.BranchId == branchId && x.ParentId==parentAccountId).OrderBy(x => x.Name).ToList();
             if (parentAccountId == null || parentAccountId==AccountHeadConstants.LiabilitiesAndEquity) return accountHeads.Where(x => x.ParentId == parentAccountId).ToList();
               return accountHeads.Where(x => x.ParentId == parentAccountId).OrderBy(x=>x.Name).ToList();
         }
-        private IList<string?> GetAllLevelSubAccounts(string accountId,string? branchId)
+        private IList<string?> GetAllLevelSubAccounts(string accountId)
         {
             var param = new SqlParameter[] {
                       new SqlParameter() {
@@ -459,7 +449,7 @@ namespace Application.Api.Controllers
 
         private decimal CalculateBalanceByAccountId(string accountId,string type,string fiscalYearId, DateTime? fromDate, DateTime? toDate, string? branchId = null)
         {
-            var accountIds = GetAllLevelSubAccounts(accountId,branchId);
+            var accountIds = GetAllLevelSubAccounts(accountId);
             var transactions = _context.AccountEntries.Where(x => x.FiscalYearId == fiscalYearId).Where(x => accountIds.Contains(x.AccountId));
             if (!string.IsNullOrWhiteSpace(branchId))
                 transactions = transactions.Where(x => x.BranchId == branchId);
@@ -473,7 +463,7 @@ namespace Application.Api.Controllers
         private TrialBalanceViewModel PrepareTrialBalanceReportLine(AccountHead account, string fiscalYearId, DateTime? fromDate, DateTime? toDate,string? branchId=null)
         {
             var fiscalYear = _context.FiscalYears.Find(fiscalYearId);
-            var accountIds = GetAllLevelSubAccounts(account.Id,branchId);
+            var accountIds = GetAllLevelSubAccounts(account.Id);
             var allTransactions = _context.AccountEntries.Where(x => accountIds.Contains(x.AccountId))
                 .Where(x => x.FiscalYearId == fiscalYearId);
             if (!string.IsNullOrWhiteSpace(branchId))
@@ -524,6 +514,39 @@ namespace Application.Api.Controllers
                 BalanceDebit = ( thisPeriodDebit - thisPeriodCredit) + ( openingDebit - openingCredit),
                 BalanceCredit=0M
             };
+        }
+
+        private void PrepareNewFiscalYear(string newFiscalYearId, string branchId)
+        {
+            var previousFiscalYear = _context.FiscalYears.First(x => x.IsActive);
+            var income = CalculateBalanceByAccountId(AccountHeadConstants.Income, AccType.Income, previousFiscalYear.Id, null, null, branchId);
+            var expense = CalculateBalanceByAccountId(AccountHeadConstants.Expenditure, AccType.Expense, previousFiscalYear.Id, null, null, branchId);
+            var profitLoss = income - expense;
+            var accountHeads = _context.AccountHeads.Where(x =>!x.Deleted && new string[2] { AccType.Asset, AccType.Liability }.Contains(x.AccountTypeId)).ToList();
+            foreach (var account in accountHeads)
+            {
+                var accBalance = CalculateBalanceByAccountId(account.Id, account.AccountTypeId, previousFiscalYear.Id, null, null, branchId);
+                if (account.Id == AccountHeadConstants.RetainedEarnings)
+                {
+                    accBalance = profitLoss;
+                }
+                _context.AccountEntries.Add(new AccountEntry
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FiscalYearId = newFiscalYearId,
+                    BranchId = branchId,
+                    Vnumber = "OP",
+                    Description = "Opening Balance from previous Fiscal Year",
+                    AccountId = account.Id,
+                    Debit = account.AccountTypeId == AccType.Asset?accBalance:0M,
+                    Credit = account.AccountTypeId == AccType.Liability ? accBalance : 0M,
+                    TransactionDate = DateTime.Now,
+                    IsOpeningBalance = true,
+                    CreatedBy = "me"
+                });
+               
+            }
+            _context.SaveChanges();            
         }
     }
 }
