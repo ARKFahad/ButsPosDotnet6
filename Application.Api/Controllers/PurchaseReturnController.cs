@@ -2,6 +2,7 @@
 using Application.Core.Constants;
 using Application.Core.Data;
 using Application.Core.Entities;
+using Application.Core.PermissionHelpers;
 using Application.RequestModel;
 using Application.Services;
 using Application.ViewModel;
@@ -64,7 +65,7 @@ namespace Application.Api.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
         [Route("returnItem")]
-        public async Task<IActionResult> ReturnPurchaseItem(PurchaseReturnModel model)
+        public async Task<IActionResult> ReturnPurchaseItemInvoiceWise(PurchaseReturnModel model)
         {
             var referenceNo = "";
             var totalItem = 0;
@@ -74,34 +75,33 @@ namespace Application.Api.Controllers
             {
                 try
                 {
-                    var purchasetableRow =await _context.Purchases.Include(x=>x.PurchaseItems).Where(x=>x.Id==model.Id).FirstOrDefaultAsync();
-                    var totalPurchaseItem = purchasetableRow.PurchaseItems.Sum(x => x.PurchaseQuantity);
-                   
-                        var discountPerItem = purchasetableRow.Discount / totalPurchaseItem;
-                        var additionalCostPerItem = purchasetableRow.AdditionalCost / totalPurchaseItem;
+                    var purchase =await _context.Purchases.Where(x=>x.Id==model.Id).FirstOrDefaultAsync();
+                    var subtotal = purchase.Subtotal;
+                    var discount = purchase.Discount;
+                    var additionalCost = purchase.AdditionalCost;
                         foreach (var item in model.PurchaseItems)
+                        
                     {
+                        var purchaseItem = await _context.PurchaseItems.FindAsync(item.Id);
+                        var discountPerItem = (item.PurchasePrice * discount) / subtotal;
+                        var additionalCostPerItem = (item.PurchasePrice * additionalCost) /subtotal;
                         referenceNo = "Return-"+model.PurchaseNo;
                         totalItem += item.ReturnQty;
-                        totalValue += Math.Round(((item.PurchasePrice-discountPerItem+additionalCostPerItem) * item.ReturnQty),2);
-
-                        var purchaseItem = _context.PurchaseItems.Find(item.Id);
+                        totalValue += ((item.PurchasePrice-discountPerItem+additionalCostPerItem) * item.ReturnQty);
                         var modifiedQuantity = purchaseItem.PurchaseQuantity - item.ReturnQty;
                         if (modifiedQuantity < 0)
                             throw new Exception("Return Failed Due To Invalid Quantity");
-                        purchaseItem.PurchaseQuantity = purchaseItem.PurchaseQuantity;
                         purchaseItem.ReturnQuantity += item.ReturnQty;
-                        purchaseItem.PurchasePrice = item.PurchasePrice;
                         purchaseItem.Amount = purchaseItem.Amount - (item.PurchasePrice * item.ReturnQty);
-                        purchasetableRow.Subtotal -= (item.PurchasePrice * item.ReturnQty);
-                        purchasetableRow.NetAmount -= (item.PurchasePrice * item.ReturnQty);
-                        _context.Update(purchaseItem);
-                        var itemToremoveFromStock = _context.StockItems.Where(x => x.ProductId == item.ProductId&& x.BranchId==model.BranchId).OrderBy(x=>x.CreatedOn).Take(item.ReturnQty).ToList();
-                        _context.RemoveRange(itemToremoveFromStock);
+                        purchase.Subtotal -= (item.PurchasePrice * item.ReturnQty);
+                        purchase.Discount -= (discountPerItem * item.ReturnQty);
+                        purchase.AdditionalCost -= (additionalCostPerItem * item.ReturnQty);
+                        purchase.NetAmount -= ((item.PurchasePrice - discountPerItem + additionalCostPerItem) * item.ReturnQty);
+                        _context.PurchaseItems.Update(purchaseItem);
+                        var itemsToRemoveFromStock = _context.StockItems.Where(x => x.ProductId == item.ProductId&& x.BranchId==model.BranchId).OrderBy(x=>x.CreatedOn).Take(item.ReturnQty).ToList();
+                        _context.StockItems.RemoveRange(itemsToRemoveFromStock);
                        await _context.SaveChangesAsync();
                     }
-                    _context.Update(purchasetableRow);
-                    await _context.SaveChangesAsync();
                     PurchaseReturn purchasereturn = new PurchaseReturn();
                     purchasereturn.Id = Guid.NewGuid().ToString();
                     purchasereturn.SupplierId = model.SupplierId;
@@ -111,11 +111,83 @@ namespace Application.Api.Controllers
                     purchasereturn.TotalValue = totalValue;
                     purchasereturn.CreatedOn = DateTime.Now;
                     purchasereturn.UpdatedOn = DateTime.Now;
-                    purchasereturn.CreatedBy = purchasetableRow.CreatedBy;
-                    purchasereturn.UpdatedBy = purchasetableRow.UpdatedBy;
-                    await _context.AddAsync(purchasereturn);
+                    purchasereturn.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                    purchasereturn.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                    await _context.PurchaseReturns.AddAsync(purchasereturn);
                     await _context.SaveChangesAsync();
 
+                    foreach (var item in model.PurchaseItems)
+                    {
+                        var discountPerItem = (item.PurchasePrice * discount) / subtotal;
+                        var additionalCostPerItem = (item.PurchasePrice * additionalCost) / subtotal;
+                        if (item.ReturnQty > 0)
+                        {
+                            PurchaseReturnItem purchaseReturnItem = new PurchaseReturnItem();
+                            purchaseReturnItem.Id = Guid.NewGuid().ToString();
+                            purchaseReturnItem.PurchaseReturnId = purchasereturn.Id;
+                            purchaseReturnItem.ProductId = item.ProductId;
+                            purchaseReturnItem.ReturnQuantity = item.ReturnQty;
+                            purchaseReturnItem.Rate = (item.PurchasePrice - discountPerItem + additionalCostPerItem);
+                            purchaseReturnItem.Amount = ((item.PurchasePrice - discountPerItem + additionalCostPerItem) * item.ReturnQty);
+                            purchaseReturnItem.Reason = model.Reason;
+                            await _context.PurchaseReturnItems.AddAsync(purchaseReturnItem);
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    var dbSupplier = await _context.Suppliers.FindAsync(model.SupplierId);
+                    var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
+                    if (isAccountsActive)
+                    {
+                        //party a/c debit
+                        await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
+                            dbSupplier.AccountId,purchasereturn.TotalValue,0,purchasereturn.CreatedOn);
+                        //inventory a/c credit
+                        await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
+                           AccountHeadConstants.InventoryAC, 0, purchasereturn.TotalValue, purchasereturn.CreatedOn);//inventory a/c id from database
+                    }
+                    else
+                    {
+                        //adjust Supplier balance
+                        purchase.SupplierBalance -= totalValue;
+                        dbSupplier.Balance -= totalValue;
+                    }
+                    _context.Suppliers.Update(dbSupplier);
+                    _context.Purchases.Update(purchase);
+                    await _context.SaveChangesAsync();
+                    await dbContextTransaction.CommitAsync();
+                    return Ok(new { Message = "Return Item Successfully", Succeeded = true });
+                }
+                catch (Exception e)
+                {
+                    await dbContextTransaction.RollbackAsync();
+                    return Ok(new { PurchaseId = "", Message = e.Message, Succeeded = false });
+                }
+            }
+        }
+
+        [Authorize(Policy = Permissions.PurchaseReturns.Add)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost]
+        [Route("purchase-return")]
+        public async Task<IActionResult> ReturnPurchaseItemRandomly(PurchaseReturnModel model)
+        {
+            using (var dbContextTransaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    PurchaseReturn purchasereturn = new PurchaseReturn();
+                    purchasereturn.Id = Guid.NewGuid().ToString();
+                    purchasereturn.SupplierId = model.SupplierId;
+                    purchasereturn.ReferenceNo = model.ReferenceNo;
+                    purchasereturn.BranchId = model.BranchId;
+                    purchasereturn.TotalItem = model.PurchaseItems.Sum(x=>x.ReturnQty);
+                    purchasereturn.TotalValue = model.PurchaseItems.Sum(x=>x.ReturnQty*x.PurchasePrice);
+                    purchasereturn.CreatedOn = DateTime.Now;
+                    purchasereturn.UpdatedOn = DateTime.Now;
+                    purchasereturn.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                    purchasereturn.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                    await _context.AddAsync(purchasereturn);
+                    await _context.SaveChangesAsync();
                     foreach (var item in model.PurchaseItems)
                     {
                         if (item.ReturnQty > 0)
@@ -138,7 +210,7 @@ namespace Application.Api.Controllers
                     {
                         //party a/c debit
                         await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
-                            dbSupplier.AccountId,purchasereturn.TotalValue,0,purchasereturn.CreatedOn);
+                            dbSupplier.AccountId, purchasereturn.TotalValue, 0, purchasereturn.CreatedOn);
                         //inventory a/c credit
                         await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
                            AccountHeadConstants.InventoryAC, 0, purchasereturn.TotalValue, purchasereturn.CreatedOn);//inventory a/c id from database
@@ -146,11 +218,10 @@ namespace Application.Api.Controllers
                     else
                     {
                         //adjust Supplier balance
-                        purchasetableRow.SupplierBalance -= totalValue;
-                        dbSupplier.Balance -= totalValue;
+                        dbSupplier.Balance -= purchasereturn.TotalValue;
+                         _context.Update(dbSupplier);
                     }
-                    _context.Update(dbSupplier);
-                    _context.Purchases.Update(purchasetableRow);
+
                     await _context.SaveChangesAsync();
                     await dbContextTransaction.CommitAsync();
                     return Ok(new { Message = "Return Item Successfully", Succeeded = true });
@@ -163,5 +234,5 @@ namespace Application.Api.Controllers
             }
         }
 
-        }
+    }
 }

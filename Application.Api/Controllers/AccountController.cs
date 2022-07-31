@@ -522,7 +522,7 @@ namespace Application.Api.Controllers
             var income = CalculateBalanceByAccountId(AccountHeadConstants.Income, AccType.Income, previousFiscalYear.Id, null, null, branchId);
             var expense = CalculateBalanceByAccountId(AccountHeadConstants.Expenditure, AccType.Expense, previousFiscalYear.Id, null, null, branchId);
             var profitLoss = income - expense;
-            var accountHeads = _context.AccountHeads.Where(x =>!x.Deleted && new string[2] { AccType.Asset, AccType.Liability }.Contains(x.AccountTypeId)).ToList();
+            var accountHeads = _context.AccountHeads.Where(x =>!x.Deleted && new[] { AccType.Asset, AccType.Liability }.Contains(x.AccountTypeId)).ToList();
             foreach (var account in accountHeads)
             {
                 var accBalance = CalculateBalanceByAccountId(account.Id, account.AccountTypeId, previousFiscalYear.Id, null, null, branchId);

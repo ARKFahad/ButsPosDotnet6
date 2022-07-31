@@ -16,8 +16,6 @@ namespace Application.RequestModel
         public int ReturnQty { get; set; }
         public decimal PurchasePrice { get; set; }
         public decimal Amount { get; set; }
-     //   public decimal ItemCogs { get; set; }
-        public bool Deleted { get; set; }
 
     }
 }

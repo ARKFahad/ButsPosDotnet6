@@ -15,7 +15,7 @@ namespace Application.ViewModel
             PurchaseId = purchaseItem.PurchaseId;
             ProductId = purchaseItem.ProductId;
             ProductName = purchaseItem.Product?.Name;
-            Option = purchaseItem.Product?.Name + " " + purchaseItem.Product?.PackSize + " " + purchaseItem.Product?.Category.Name + " MRP : " + purchaseItem.Product.Mrp;
+            Option = purchaseItem.Product?.Name + " " + purchaseItem.Product?.PackSize + " " + purchaseItem.Product?.Category.Name;
             PurchasePrice = purchaseItem.PurchasePrice;
             ExpireDate = purchaseItem.ExpireDate;
             BatchNo = purchaseItem.BatchNo;
