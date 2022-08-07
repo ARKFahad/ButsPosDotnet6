@@ -148,5 +148,9 @@ namespace Application.Services
             };
             await context.AccountEntries.AddAsync(accountEntry);
         }
+        public FiscalYear GetCurrentFiscalYear()
+        {
+            return _fiscalYearRepository.GetAll().Where(x => x.IsActive)?.FirstOrDefault();
+        }
     }
 }

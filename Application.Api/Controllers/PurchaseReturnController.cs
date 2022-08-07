@@ -64,7 +64,7 @@ namespace Application.Api.Controllers
         [Authorize(Policy = Permissions.PurchaseReturns.Add)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
-        [Route("returnItem")]
+        [Route("return-item-invoice-wise")]
         public async Task<IActionResult> ReturnPurchaseItemInvoiceWise(PurchaseReturnModel model)
         {
             var referenceNo = "";
@@ -99,6 +99,9 @@ namespace Application.Api.Controllers
                         purchase.NetAmount -= ((item.PurchasePrice - discountPerItem + additionalCostPerItem) * item.ReturnQty);
                         _context.PurchaseItems.Update(purchaseItem);
                         var itemsToRemoveFromStock = _context.StockItems.Where(x => x.ProductId == item.ProductId&& x.BranchId==model.BranchId).OrderBy(x=>x.CreatedOn).Take(item.ReturnQty).ToList();
+                        //stock check
+                        var stockCount = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).Sum(x => x.Quantity);
+                        if (item.ReturnQty > stockCount) throw new Exception("Out of Stock");
                         _context.StockItems.RemoveRange(itemsToRemoveFromStock);
                        await _context.SaveChangesAsync();
                     }
@@ -169,7 +172,7 @@ namespace Application.Api.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
         [Route("purchase-return")]
-        public async Task<IActionResult> ReturnPurchaseItemRandomly(PurchaseReturnModel model)
+        public async Task<IActionResult> ReturnPurchaseItemWithoutInvoice(PurchaseReturnModel model)
         {
             using (var dbContextTransaction = await _context.Database.BeginTransactionAsync())
             {
@@ -188,8 +191,16 @@ namespace Application.Api.Controllers
                     purchasereturn.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     await _context.AddAsync(purchasereturn);
                     await _context.SaveChangesAsync();
+                    var stockValue = 0M;
                     foreach (var item in model.PurchaseItems)
                     {
+                        var itemsToRemoveFromStock = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).OrderBy(x => x.CreatedOn).Take(item.ReturnQty).ToList();
+                        stockValue+=itemsToRemoveFromStock.Sum(x=>((x.PurchaseRate - x.DiscountPerItem) + x.AdditionalCostPerItem));
+                        //stock check
+                        var stockCount = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).Sum(x => x.Quantity);
+                        if (item.ReturnQty > stockCount) throw new Exception("Out of Stock");
+                        _context.StockItems.RemoveRange(itemsToRemoveFromStock);
+                        await _context.SaveChangesAsync();
                         if (item.ReturnQty > 0)
                         {
                             PurchaseReturnItem purchaseReturnItem = new PurchaseReturnItem();
@@ -214,6 +225,14 @@ namespace Application.Api.Controllers
                         //inventory a/c credit
                         await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
                            AccountHeadConstants.InventoryAC, 0, purchasereturn.TotalValue, purchasereturn.CreatedOn);//inventory a/c id from database
+
+                        //damage lost when stock value is greater than purchase return value
+                        //inventory a/c credit 
+                        await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
+                           AccountHeadConstants.InventoryAC, 0, (stockValue - purchasereturn.TotalValue), purchasereturn.CreatedOn);
+                        //damage lost account debit
+                        await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
+                           AccountHeadConstants.DamageLostGoods, (stockValue-purchasereturn.TotalValue), 0, purchasereturn.CreatedOn);
                     }
                     else
                     {

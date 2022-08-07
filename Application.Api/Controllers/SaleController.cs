@@ -162,7 +162,7 @@ namespace Application.Api.Controllers
                     {
                         if (sale.DueAmount > 0)
                         {
-                            sale.CustomerBalance =  _accountService.GetAccountBalance(dbCustomer.AccountId, AccType.Asset, branchId) + model.DueAmount;
+                            sale.CustomerBalance =  _accountService.CalculateBalanceByAccountId(dbCustomer.AccountId, AccType.Asset,_context.FiscalYears.FirstOrDefault(x=>x.IsActive)?.Id,null,null, branchId) + model.DueAmount;
                             //sale a/c credit
                             await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Credit Sale",
                                 AccountHeadConstants.Sales, 0, sale.DueAmount,sale.CreatedOn);

@@ -1,4 +1,5 @@
-﻿using Application.Core.Data;
+﻿using Application.Core.Constants;
+using Application.Core.Data;
 using Application.RequestModel;
 using Application.Services;
 using Microsoft.AspNetCore.Http;
@@ -16,9 +17,11 @@ namespace Application.Api.Controllers
     {
       
         private readonly ICommonService _commonService;
-        public DashboardController(ICommonService commonService)
+        private readonly IAccountService _accountService;
+        public DashboardController(ICommonService commonService, IAccountService accountService)
         {
             _commonService = commonService;
+            _accountService = accountService;
            
         }
       
@@ -26,6 +29,7 @@ namespace Application.Api.Controllers
         [HttpPost("sales-statistics")]
         public IActionResult GetSalesStatistics(DashboardRequestModel dashboardRequestModel)
         {
+            var fiscalYear = _commonService.GetCurrentFiscalYear();
             var today = DateTime.Today;
             var firstDateOfThisMonth = new DateTime(today.Year, today.Month, 1);
             var firstDateOfLastMonth = firstDateOfThisMonth.AddMonths(-1);
@@ -37,7 +41,8 @@ namespace Application.Api.Controllers
                 ThisMonthsSale = _commonService.GetSalesTotal(firstDateOfThisMonth, DateTime.Now, dashboardRequestModel.BranchId),
                 LastMonthSale = _commonService.GetSalesTotal(firstDateOfLastMonth, lastDateOfLastMonth, dashboardRequestModel.BranchId),
                 //todays cash info
-
+                TodaysCashInHand = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.CashInHand, AccType.Asset,fiscalYear.Id, fiscalYear.StartDate, DateTime.Now.Date, dashboardRequestModel.BranchId),
+                TodaysCashInEximBank = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.CashAtEximBank, AccType.Asset, fiscalYear.Id, fiscalYear.StartDate, DateTime.Now.Date, dashboardRequestModel.BranchId)
             };
         
             return Ok(data);
