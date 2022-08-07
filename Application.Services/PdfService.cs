@@ -123,8 +123,6 @@ namespace Application.Services
             };
 
             headerTable.SetWidths(widths[numColumns]);
-
-
             //SL
             var company = _context.Companies.First();
 
@@ -141,130 +139,80 @@ namespace Application.Services
             logocell.AddElement(logo);
             logocell.Colspan = 2;
             headerTable.AddCell(logocell);
-
-            var cellPurchaseReportItem = GetPdfCell(company.Name, headerTitleFont);
-
-
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            cellPurchaseReportItem.Phrase.Add(new Phrase(Environment.NewLine));
-           
-            cellPurchaseReportItem.Border = Rectangle.NO_BORDER;
-             cellPurchaseReportItem.Colspan = 2;
-            headerTable.AddCell(cellPurchaseReportItem);
-
-            cellPurchaseReportItem = GetPdfCell(reportHeader, headerTitleFont);
-
-
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            cellPurchaseReportItem.Phrase.Add(new Phrase(Environment.NewLine));
-            cellPurchaseReportItem.Phrase.Add(new Phrase(Environment.NewLine));
-            
-            cellPurchaseReportItem.Border = Rectangle.NO_BORDER;
-            cellPurchaseReportItem.Colspan = 2;
-            headerTable.AddCell(cellPurchaseReportItem);
+            var cellCompanyName = GetPdfCell(company.Name, headerTitleFont);
+            cellCompanyName.HorizontalAlignment = Element.ALIGN_CENTER;
+            cellCompanyName.Phrase.Add(new Phrase(Environment.NewLine));
+            cellCompanyName.Border = Rectangle.NO_BORDER;
+            cellCompanyName.Colspan = 2;
+            headerTable.AddCell(cellCompanyName);
+           var cellReportName = GetPdfCell(reportHeader, headerTitleFont);
+            cellReportName.HorizontalAlignment = Element.ALIGN_CENTER;
+            cellReportName.Phrase.Add(new Phrase(Environment.NewLine));
+            cellReportName.Phrase.Add(new Phrase(Environment.NewLine));
+            cellReportName.Border = Rectangle.NO_BORDER;
+            cellReportName.Colspan = 2;
+            headerTable.AddCell(cellReportName);
+            var cellBranchName = GetPdfCell("Branch Name: " + branch.Name, font);
             if (branch != null)
             {
-
-                cellPurchaseReportItem = GetPdfCell("Branch Name: " + branch.Name, font);
-
-
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-
-
-                cellPurchaseReportItem.Border = Rectangle.NO_BORDER;
-
-                headerTable.AddCell(cellPurchaseReportItem);
+                cellBranchName.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellBranchName.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellBranchName);
             }
             else
             {
-                cellPurchaseReportItem = GetPdfCell("" , font);
-
-
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-
-
-                cellPurchaseReportItem.Border = Rectangle.NO_BORDER;
-
-                headerTable.AddCell(cellPurchaseReportItem);
+                cellBranchName = GetPdfCell("" , font);
+                cellBranchName.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellBranchName.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellBranchName);
             }
+          var  cellFromDate = GetPdfCell("From: " + fromDate?.ToString("dd/MM/yyyy"), font);
             if (fromDate.HasValue)
             {
-                cellPurchaseReportItem = GetPdfCell("From: " + fromDate?.ToString("dd/MM/yyyy"), font);
-
-
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                cellPurchaseReportItem.Phrase.Add(new Phrase(Environment.NewLine));
-
-
-                cellPurchaseReportItem.Border = Rectangle.NO_BORDER;
-
-                headerTable.AddCell(cellPurchaseReportItem);
+                cellFromDate.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellFromDate.Phrase.Add(new Phrase(Environment.NewLine));
+                cellFromDate.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellFromDate);
             }
             else
             {
-                cellPurchaseReportItem = GetPdfCell("", font);
-
-
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-
-
-                cellPurchaseReportItem.Border = Rectangle.NO_BORDER;
-
-                headerTable.AddCell(cellPurchaseReportItem);
+                cellFromDate = GetPdfCell("", font);
+                cellFromDate.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellFromDate.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellFromDate);
             }
-
+           var cellBranchCode = GetPdfCell("Branch Code : " + branch.Code, font);
             if (branch != null)
             {
-                cellPurchaseReportItem = GetPdfCell("Branch Code : "+branch.Code , font);
-
-
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-
-
-                cellPurchaseReportItem.Border = Rectangle.NO_BORDER;
-
-                headerTable.AddCell(cellPurchaseReportItem);
+                cellBranchCode = GetPdfCell("Branch Code : "+branch.Code , font);
+                cellBranchCode.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellBranchCode.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellBranchCode);
             }
             else
             {
-                cellPurchaseReportItem = GetPdfCell("", font);
-
-
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-
-
-                cellPurchaseReportItem.Border = Rectangle.NO_BORDER;
-
-                headerTable.AddCell(cellPurchaseReportItem);
+                cellBranchCode = GetPdfCell("", font);
+                cellBranchCode.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellBranchCode.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellBranchCode);
             }
+           var cellToDate = GetPdfCell("To: " + toDatde?.ToString("dd/MM/yyyy"), font);
             if (toDatde.HasValue)
             {
-                cellPurchaseReportItem = GetPdfCell("To: " + toDatde?.ToString("dd/MM/yyyy"), font);
-
-
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                cellPurchaseReportItem.Phrase.Add(new Phrase(Environment.NewLine));
-                cellPurchaseReportItem.Phrase.Add(new Phrase(Environment.NewLine));
-
-                cellPurchaseReportItem.Border = Rectangle.NO_BORDER;
-
-                headerTable.AddCell(cellPurchaseReportItem);
+                cellToDate = GetPdfCell("To: " + toDatde?.ToString("dd/MM/yyyy"), font);
+                cellToDate.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellToDate.Phrase.Add(new Phrase(Environment.NewLine));
+                cellToDate.Phrase.Add(new Phrase(Environment.NewLine));
+                cellToDate.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellToDate);
             }
             else
             {
-                cellPurchaseReportItem = GetPdfCell("", font);
-
-
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-
-
-                cellPurchaseReportItem.Border = Rectangle.NO_BORDER;
-
-                headerTable.AddCell(cellPurchaseReportItem);
+                cellToDate = GetPdfCell("", font);
+                cellToDate.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellToDate.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellToDate);
             }
-
-
-
             doc.Add(headerTable);
         }
         protected virtual void PrintSupplierLedgerReportHeader(PdfWriter pdfWriter, string reportHeader, Supplier supplier, Font headerTitleFont, Font addressFont, Font reportTitleFont, Document doc, DateTime? fromDate, DateTime? toDatde)
