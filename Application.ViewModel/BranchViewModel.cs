@@ -17,6 +17,7 @@ namespace Application.ViewModel
             Address = branch.Address;
             MobileNo = branch.MobileNo;
             VatRegNo = branch.VatRegNo;
+            SupplierAccountId=branch.SupplierAccountId;
             CreatedOn = branch.CreatedOn;
             UpdatedOn = branch.UpdatedOn;
             CreatedBy = branch.CreatedBy;
@@ -29,6 +30,7 @@ namespace Application.ViewModel
         public string Address { get; set; }
         public string MobileNo { get; set; }
         public string VatRegNo { get; set; }
+        public string SupplierAccountId { get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
         public string CreatedBy { get; set; }

@@ -35,6 +35,8 @@ namespace Application.Core.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(100);
 
+            entity.Property(e => e.TotalCogsOfReturnItems).HasColumnType("decimal(18, 12)");
+
             entity.Property(e => e.TotalValue).HasColumnType("decimal(18, 2)");
 
             entity.Property(e => e.UpdatedBy)

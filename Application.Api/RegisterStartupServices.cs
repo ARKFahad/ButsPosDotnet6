@@ -16,20 +16,21 @@ public static class RegisterStartupServices
     {
         public static WebApplicationBuilder RegisterServices(this WebApplicationBuilder builder)
         {
-         // builder.Services.AddDbContext<GHP_POS_DBContext>(options =>
-         // options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-         builder.Services.AddClientDbContext(builder.Configuration);
+          builder.Services.AddDbContext<GHP_POS_DBContext>(options =>
+          options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        // builder.Services.AddClientDbContext(builder.Configuration);
         builder.Services.AddControllers();
            //cors
         builder.Services.AddCors(opt =>
         {
             opt.AddPolicy("CorsPolicy", policy =>
             {
-            policy
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials()
-                  .WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Value.Split(","));
+                policy
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      //.AllowCredentials()
+                      .AllowAnyOrigin();
+                     //.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Value.Split(","));
             });
         });
         //....cors end

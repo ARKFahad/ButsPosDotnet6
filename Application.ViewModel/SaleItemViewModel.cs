@@ -17,7 +17,8 @@ namespace Application.ViewModel
             ProductName = saleItem?.Product?.Name;
             Option = saleItem?.Product?.Name + " " + saleItem?.Product?.PackSize + " " + saleItem?.Product?.Category?.Name;
             Price = saleItem.Price;
-            Quantity = saleItem.Quantity;  
+            Quantity = saleItem.Quantity;
+            ReturnQuantity = saleItem.ReturnQuantity;
             Amount = saleItem.Amount;
             ItemCogs = saleItem.CogsPerItem;
         }
@@ -28,6 +29,7 @@ namespace Application.ViewModel
         public string Option { get; set; }
         public decimal Price { get; set; }
         public int Quantity { get; set; }
+        public int ReturnQuantity { get; set; }
         public decimal ItemCogs { get; set; }
         public decimal Amount { get; set; }
         

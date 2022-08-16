@@ -100,7 +100,8 @@ namespace Application.Api.Controllers
             {
                 try
                 {
-                    var saletableRow = _context.Sales.Find(model.Id);
+                    var dbCustomer = await _context.Customers.FindAsync(model.CustomerId);
+                    var sale = _context.Sales.Find(model.Id);
                     foreach (var item in model.SaleItems)
                     {
                         var saleItem = _context.SaleItems.Find(item.Id);
@@ -111,10 +112,6 @@ namespace Application.Api.Controllers
                         var modifiedQuantity = saleItem.Quantity - item.ReturnQty;
                         if (modifiedQuantity < 0)
                             throw new Exception("Return Failed Due To Invalid Quantity");
-                        saleItem.Quantity = saleItem.Quantity - item.ReturnQty;
-                      //  saleItem.CogsPerItem = item.ItemCogs;
-                       // saleItem.Price = item.Price;
-                        saleItem.Amount = saleItem.Amount - (item.Price * item.ReturnQty);
                         saleItem.ReturnQuantity = item.ReturnQty;
                         _context.SaleItems.Update(saleItem);
                         for (var i = 1; i <= item.ReturnQty; i++)
@@ -125,36 +122,36 @@ namespace Application.Api.Controllers
                             ProductId = item.ProductId,
                             Quantity = 1,
                             PurchaseRate = item.ItemCogs,
-                            BranchId = saletableRow.BranchId,
+                            BranchId = sale.BranchId,
                             CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId(),
                             SupplierId = saleItem.SupplierId
                         });
                         }
-
                     }
-                    var discount = (totalValue * saletableRow.DiscountInPercentage) / 100;
+                    var discount = (totalValue * sale.DiscountInPercentage) / 100;
                     var totalValueWithoutDiscount = totalValue - discount;
-                    SaleReturn salereturn = new SaleReturn();
-                    salereturn.Id = Guid.NewGuid().ToString();
-                    salereturn.CustomerId = model.CustomerId;
-                    salereturn.ReferenceNo = referenceNo;
-                    salereturn.BranchId = model.BranchId;
-                    salereturn.TotalItem = totalItem;
-                    salereturn.Discount=discount;
-                    salereturn.TotalValue = totalValueWithoutDiscount;
-                    salereturn.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
-                    salereturn.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
-                    salereturn.SaleReturnDate = DateTime.Now;
-                    salereturn.CreatedOn = DateTime.Now;
-                    salereturn.UpdatedOn = DateTime.Now;
-                    await _context.SaleReturns.AddAsync(salereturn);
+                    SaleReturn saleReturn = new SaleReturn();
+                    saleReturn.Id = Guid.NewGuid().ToString();
+                    saleReturn.CustomerId = model.CustomerId;
+                    saleReturn.ReferenceNo = referenceNo;
+                    saleReturn.BranchId = model.BranchId;
+                    saleReturn.TotalItem = totalItem;
+                    saleReturn.Discount=discount;
+                    saleReturn.TotalValue = totalValueWithoutDiscount;
+                    saleReturn.TotalCogsOfReturnItems = totalCogsOfReturnItems;
+                    saleReturn.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                    saleReturn.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                    saleReturn.SaleReturnDate = DateTime.Now;
+                    saleReturn.CreatedOn = DateTime.Now;
+                    saleReturn.UpdatedOn = DateTime.Now;
+                    await _context.SaleReturns.AddAsync(saleReturn);
                     foreach (var item in model.SaleItems)
                     {
                         if (item.ReturnQty > 0)
                         {
                             SaleReturnItem saleReturnItem = new SaleReturnItem();
                             saleReturnItem.Id = Guid.NewGuid().ToString();
-                            saleReturnItem.SaleReturnId = salereturn.Id;
+                            saleReturnItem.SaleReturnId = saleReturn.Id;
                             saleReturnItem.ProductId = item.ProductId;
                             saleReturnItem.ReturnQuantity = item.ReturnQty;
                             saleReturnItem.Rate = item.Price;
@@ -164,45 +161,40 @@ namespace Application.Api.Controllers
                             saleReturnItem.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                             saleReturnItem.CreatedOn = DateTime.Now;
                             saleReturnItem.UpdatedOn = DateTime.Now;
-
                             await _context.SaleReturnItems.AddAsync(saleReturnItem);
                           
                         }                     
                     }
-
-                    saletableRow.Cogs -= totalCogsOfReturnItems;
-                    saletableRow.Subtotal -= totalValue;
-                    saletableRow.Discount -= discount;
-                    saletableRow.PayableAmount -= totalValueWithoutDiscount;
-                    //important!!!!!!!!
-                    if (saletableRow.PaidAmount > 0)
-                    {
-                        saletableRow.PaidAmount -= totalValueWithoutDiscount;
-                    }
-                    if (saletableRow.DueAmount > 0)
-                    {
-                       // saletableRow.CustomerBalance -= totalValue;
-                        saletableRow.DueAmount -= totalValueWithoutDiscount;
-                    }
-                    saletableRow.TotalSaleReturnedAmount += totalValueWithoutDiscount;                  
+                    sale.TotalSaleReturnedAmount += saleReturn.TotalValue;                  
                     var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
                     if (isAccountsActive)
                     {
-                            //sale a/c debit
-                            await _commonService.HitAccount(_context, salereturn.BranchId, salereturn.ReferenceNo, "Sale Return",
-                               AccountHeadConstants.Sales, salereturn.TotalValue,0,salereturn.CreatedOn);
+                      //  if (sale.DueAmount > 0)
+                      //  {
+                        //    sale.CustomerBalance -= totalValue;
+                            //customer a/c credit
+                          //  await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                            //  dbCustomer.AccountId, 0, saleReturn.TotalValue, saleReturn.CreatedOn);
+                      //  }
+                       // else
+                      //  {
                             //cash a/c credit
-                            await _commonService.HitAccount(_context, salereturn.BranchId, salereturn.ReferenceNo, "Sale Return",
-                               AccountHeadConstants.CashInHand, 0, salereturn.TotalValue, salereturn.CreatedOn);
+                            await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                               AccountHeadConstants.CashInHand, 0, saleReturn.TotalValue, saleReturn.CreatedOn);
+                       // }
+                            //sale a/c debit
+                            await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                               AccountHeadConstants.Sales, saleReturn.TotalValue,0,saleReturn.CreatedOn);
+                            
                             //inventory a/c debit
-                            await _commonService.HitAccount(_context, salereturn.BranchId, salereturn.ReferenceNo, "Sale Return",
-                                AccountHeadConstants.InventoryAC, totalCogsOfReturnItems, 0, salereturn.CreatedOn);
+                            await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                                AccountHeadConstants.InventoryAC, saleReturn.TotalCogsOfReturnItems, 0, saleReturn.CreatedOn);
                             //cogs a/c credit
-                            await _commonService.HitAccount(_context, salereturn.BranchId, salereturn.ReferenceNo, "Sale Return",
-                               AccountHeadConstants.COGS, 0, totalCogsOfReturnItems, salereturn.CreatedOn);                       
+                            await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                               AccountHeadConstants.COGS, 0, saleReturn.TotalCogsOfReturnItems, saleReturn.CreatedOn);                       
                     }
 
-                    _context.Sales.Update(saletableRow);
+                    _context.Sales.Update(sale);
                     await _context.SaveChangesAsync();
                     await dbContextTransaction.CommitAsync();
 

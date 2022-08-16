@@ -1152,7 +1152,7 @@ namespace Application.Services
           
 
 
-            var numColumns = 6;
+            var numColumns = 5;
             var stockReportTable = new PdfPTable(numColumns)
             {
               //  RunDirection = GetDirection(lang),
@@ -1161,7 +1161,7 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 10,15,35,10,10,15 } }
+                { numColumns, new[] { 10,15,40,15,15 } }
             };
 
             stockReportTable.SetWidths( widths[numColumns]);
@@ -1184,10 +1184,6 @@ namespace Application.Services
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             stockReportTable.AddCell(cellStockReportItem);
 
-            cellStockReportItem = GetPdfCell("Price", font);
-            cellStockReportItem.BackgroundColor = BaseColor.LightGray;
-            cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            stockReportTable.AddCell(cellStockReportItem);
             //Stock Quantity
             cellStockReportItem = GetPdfCell("Qty.", font);
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
@@ -1222,9 +1218,6 @@ namespace Application.Services
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 stockReportTable.AddCell(cellStockReportItem);
 
-                cellStockReportItem = GetPdfCell(pl.Mrp, font);
-                cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                stockReportTable.AddCell(cellStockReportItem);
 
                 //CurrentStock
                 cellStockReportItem = GetPdfCell(pl.Quantity, font);
@@ -1240,7 +1233,7 @@ namespace Application.Services
             //..................total..................................
             //SL
             cellStockReportItem = GetPdfCell("Total", font);
-            cellStockReportItem.Colspan = 4;
+            cellStockReportItem.Colspan = 3;
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             stockReportTable.AddCell(cellStockReportItem);
 

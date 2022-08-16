@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PbApp.Service;
 using System;
 using System.Collections.Generic;
@@ -92,7 +93,7 @@ namespace Application.Api.Controllers
             {
                 try
             {
-                    //save Account Head
+                    ////save Account Head
                     var accountHead = new AccountHead
                     {
                         Id = Guid.NewGuid().ToString(),
@@ -109,10 +110,27 @@ namespace Application.Api.Controllers
                     };
                     await _context.AccountHeads.AddAsync(accountHead);
                     await _context.SaveChangesAsync();
-                    //branch
-                    model.Id = Guid.NewGuid().ToString();
+                    //save supplier
+                    var count = _context.Suppliers.Count() + 1;
+                    Supplier supplier = new Supplier
+                    {
+                       Id = Guid.NewGuid().ToString(),
+                       Code = "S" + count.ToString().PadLeft(7, '0'),
+                       Name= model.Name,
+                       IsBranchSupplier = true,
+                       AccountId = accountHead.Id,
+                       CreatedOn = DateTime.Now,
+                       UpdatedOn = DateTime.Now,
+                       CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId(),
+                       UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId(),
+                  };
+                await _context.Suppliers.AddAsync(supplier);
+                await _context.SaveChangesAsync();
+
+                //branch
+                model.Id = Guid.NewGuid().ToString();
                 model.Code = _branchCommandService.GetReferanceId("B");
-                    model.SupplierAccountId = accountHead.Id;
+                model.SupplierAccountId = accountHead.Id;
                 model.CreatedOn = DateTime.Now;
                 model.UpdatedOn= DateTime.Now;
                 model.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
@@ -147,18 +165,24 @@ namespace Application.Api.Controllers
             using (var dbContextTransaction = await _context.Database.BeginTransactionAsync())
             {
                 try
-                {        //update Account Head
+                {
+                   //update Account Head
                     var accountHead = await _context.AccountHeads.FindAsync(model.SupplierAccountId);
                     accountHead.Name = model.Name;
                     _context.AccountHeads.Update(accountHead);
                     await _context.SaveChangesAsync();
-                    //branch
+                    //update supplier
+                    var supplier = await _context.Suppliers.FirstOrDefaultAsync(x => x.AccountId == model.SupplierAccountId);
+                     supplier.Name = model.Name;
+                    _context.Suppliers.Update(supplier);
+                    await _context.SaveChangesAsync();
+                    //update branch
                     model.UpdatedOn = DateTime.Now;
                     model.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     _context.Branches.Update(model);
                     await _context.SaveChangesAsync();
                     await dbContextTransaction.CommitAsync();
-                    return await Result<string>.SuccessAsync(model.Id, "Branch Added Successfully");
+                    return await Result<string>.SuccessAsync(model.Id, "Branch Updated Successfully");
                 }
                 catch (Exception exception)
                 {

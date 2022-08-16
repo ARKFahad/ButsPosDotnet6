@@ -25,6 +25,7 @@ namespace Application.Core.Entities
         public string UpdatedBy { get; set; }
         public bool Deleted { get; set; }
         public decimal Discount { get; set; }
+        public decimal TotalCogsOfReturnItems { get; set; }
 
         public virtual Branch Branch { get; set; }
         public virtual Customer Customer { get; set; }

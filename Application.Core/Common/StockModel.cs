@@ -18,6 +18,7 @@ namespace Application.Core.Common
         public string? CategoryId { get; set; }
         public string? ProductCategory { get; set; }
         public string? ProductBarcode { get; set; }
+        public decimal CostPrice { get; set; }
         public decimal Mrp { get; set; }
         public string? SupplierName { get; set; }
         public string? BranchName { get; set; }

@@ -23,6 +23,7 @@ namespace Application.ViewModel
             Discount = sale.Discount;
             DiscountInPercentage = sale.DiscountInPercentage;
             PayableAmount = sale.PayableAmount;
+            TotalSaleReturnedAmount = sale.TotalSaleReturnedAmount;
             PaidAmount = sale.PaidAmount;
             DueAmount = sale.DueAmount;
             CreatedOn = sale.CreatedOn;
@@ -48,6 +49,7 @@ namespace Application.ViewModel
         public string? BranchName { get; set; }
         public string? BranchCode { get; set; }
         public decimal PayableAmount { get; set; }
+        public decimal TotalSaleReturnedAmount { get; set; }
         public decimal PaidAmount { get; set; }
         public decimal DueAmount { get; set; }       
         public decimal Subtotal { get; set; }  

@@ -35,7 +35,8 @@ namespace Application.Core.Data.Configurations
 
             entity.Property(e => e.SupplierAccountId)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(100)
+                .HasDefaultValueSql("(N'd')");
 
             entity.Property(e => e.UpdatedBy)
                 .IsRequired()

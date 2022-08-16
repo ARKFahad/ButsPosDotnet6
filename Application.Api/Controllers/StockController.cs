@@ -131,6 +131,7 @@ namespace Application.Api.Controllers
                                     Code=supplier.Code,
                                     SupplierName = supplier.Name,
                                     Quantity = stock.Quantity,
+                                    CostPrice=stock.Price/stock.Quantity,
                                     Value = stock.Price
                                 };
                 var count = queryable.Count();
