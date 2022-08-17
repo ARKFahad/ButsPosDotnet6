@@ -16,16 +16,13 @@ public static class RegisterStartupServices
     {
         public static WebApplicationBuilder RegisterServices(this WebApplicationBuilder builder)
         {
-          builder.Services.AddDbContext<GHP_POS_DBContext>(options =>
-          options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-        // builder.Services.AddClientDbContext(builder.Configuration);
-        builder.Services.AddControllers();
+         builder.Services.AddClientDbContext(builder.Configuration);        builder.Services.AddControllers();
            //cors
         builder.Services.AddCors(opt =>
         {
             opt.AddPolicy("CorsPolicy", policy =>
             {
-                policy
+                            policy
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       //.AllowCredentials()
