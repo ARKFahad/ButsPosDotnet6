@@ -18,6 +18,9 @@ namespace Application.Services
     {
         private readonly IBaseRepository<Product> _productRepository;
         private readonly IBaseRepository<Sale> _saleRepository;
+        private readonly IBaseRepository<SaleReturn> _saleReturnRepository;
+        private readonly IBaseRepository<SupplierPayment> _supplierPaymentRepository;
+        private readonly IBaseRepository<CustomerPayment> _customerPaymentRepository;
         private readonly IBaseRepository<FiscalYear> _fiscalYearRepository;
         private readonly IBaseRepository<Category> _categoryRepository;
         private readonly IBaseRepository<AccountHead> _accountHeadRepository;
@@ -25,7 +28,9 @@ namespace Application.Services
         public CommonService(IBaseRepository<Product> productRepository, IBaseRepository<Category> categoryRepository, 
             IBaseRepository<Sale> saleRepository, IBaseRepository<AccountHead> accountHeadRepository,
             IBaseRepository<FiscalYear> fiscalYearRepository,
-           IHttpContextAccessor contextAccessor)
+           IHttpContextAccessor contextAccessor, IBaseRepository<SaleReturn> saleReturnRepository,
+           IBaseRepository<SupplierPayment> supplierPaymentRepository,
+           IBaseRepository<CustomerPayment> customerPaymentRepository)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
@@ -33,6 +38,10 @@ namespace Application.Services
             _accountHeadRepository = accountHeadRepository;
             _fiscalYearRepository = fiscalYearRepository;
             _contextAccessor = contextAccessor;
+            _saleReturnRepository = saleReturnRepository;
+            _saleReturnRepository = saleReturnRepository;
+            _supplierPaymentRepository = supplierPaymentRepository;
+            _customerPaymentRepository = customerPaymentRepository;
         }
 
         public  async Task<List<ProductAutocompleteViewModel>>  SearchProductAutocomplete(string supplierid)
@@ -71,6 +80,15 @@ namespace Application.Services
             return sales.Where(x => saleCreatedFrom <= x.CreatedOn && saleCreatedTo >= x.CreatedOn).Sum(x => x.PayableAmount);
 
         }
+        public decimal GetSaleReturnTotal(DateTime? createdFrom = null, DateTime? createdTo = null, string? branchId = "")
+        {
+            var saleReturnCreatedFrom = createdFrom.HasValue ? createdFrom.Value : new DateTime(1900, 1, 1);
+            var saleReturnCreatedTo = createdTo.HasValue ? createdTo.Value.AddDays(1) : saleReturnCreatedFrom.AddDays(1);
+            var saleReturns = _saleReturnRepository.GetAll().Where(x => !x.Deleted);
+            if (!string.IsNullOrWhiteSpace(branchId)) saleReturns = saleReturns.Where(x => x.BranchId == branchId);
+            return saleReturns.Where(x => saleReturnCreatedFrom <= x.CreatedOn && saleReturnCreatedTo >= x.CreatedOn).Sum(x => x.TotalValue);
+
+        }
         public decimal GetCashPaidSalesTotal(DateTime? createdFrom = null, DateTime? createdTo = null, string? branchId = "")
         {
             var saleCreatedFrom = createdFrom.HasValue ? createdFrom.Value : new DateTime(1900, 1, 1);
@@ -78,7 +96,6 @@ namespace Application.Services
             var sales = _saleRepository.GetAll().Where(x => !x.Deleted);
             if (!string.IsNullOrWhiteSpace(branchId)) sales = sales.Where(x => x.BranchId == branchId);
             return sales.Where(x => saleCreatedFrom <= x.CreatedOn && saleCreatedTo >= x.CreatedOn).Sum(x => x.PaidAmount);
-
         }
 
         public decimal GetCreditSalesTotal(DateTime? createdFrom = null, DateTime? createdTo = null, string? branchId = "")
@@ -90,13 +107,22 @@ namespace Application.Services
             return sales.Where(x => saleCreatedFrom <= x.CreatedOn && saleCreatedTo >= x.CreatedOn).Sum(x => x.DueAmount);
 
         }
+        public decimal GetSupplierPaymentTotal(DateTime? createdFrom = null, DateTime? createdTo = null, string? branchId = "")
+        {
+            var supplierPaymentCreatedFrom = createdFrom.HasValue ? createdFrom.Value : new DateTime(1900, 1, 1);
+            var supplierPaymentCreatedTo = createdTo.HasValue ? createdTo.Value : supplierPaymentCreatedFrom.AddDays(1);
+            var supplierPayments = _supplierPaymentRepository.GetAll().Where(x => !x.Deleted);
+            if (!string.IsNullOrWhiteSpace(branchId)) supplierPayments = supplierPayments.Where(x => x.BranchId == branchId);
+            return supplierPayments.Where(x => supplierPaymentCreatedFrom <= x.PaymentDate && supplierPaymentCreatedTo >= x.PaymentDate).Sum(x => x.PaymentAmount);
+
+        }
         public decimal GetCustomerDueCollectionTotal(DateTime? createdFrom = null, DateTime? createdTo = null, string? branchId = "")
         {
-            var saleCreatedFrom = createdFrom.HasValue ? createdFrom.Value : new DateTime(1900, 1, 1);
-            var saleCreatedTo = createdTo.HasValue ? createdTo.Value : saleCreatedFrom.AddDays(1);
-            var sales = _saleRepository.GetAll().Where(x => !x.Deleted);
-            if (!string.IsNullOrWhiteSpace(branchId)) sales = sales.Where(x => x.BranchId == branchId);
-            return sales.Where(x => saleCreatedFrom <= x.CreatedOn && saleCreatedTo >= x.CreatedOn).Sum(x => x.DueAmount);
+            var customerPaymentCreatedFrom = createdFrom.HasValue ? createdFrom.Value : new DateTime(1900, 1, 1);
+            var customerPaymentCreatedTo = createdTo.HasValue ? createdTo.Value : customerPaymentCreatedFrom.AddDays(1);
+            var customerPayments = _customerPaymentRepository.GetAll().Where(x => !x.Deleted);
+            if (!string.IsNullOrWhiteSpace(branchId)) customerPayments = customerPayments.Where(x => x.BranchId == branchId);
+            return customerPayments.Where(x => customerPaymentCreatedFrom <= x.PaymentDate && customerPaymentCreatedTo >= x.PaymentDate).Sum(x => x.PaymentAmount);
 
         }
         public string GetAccountCode(string accountTypeId)

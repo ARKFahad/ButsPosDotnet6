@@ -42,7 +42,12 @@ namespace Application.Api.Controllers
                 LastMonthSale = _commonService.GetSalesTotal(firstDateOfLastMonth, lastDateOfLastMonth, dashboardRequestModel.BranchId),
                 //todays cash info
                 TodaysCashInHand = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.CashInHand, AccType.Asset,fiscalYear.Id, fiscalYear.StartDate, DateTime.Now.Date, dashboardRequestModel.BranchId),
-                TodaysCashInEximBank = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.CashAtEximBank, AccType.Asset, fiscalYear.Id, fiscalYear.StartDate, DateTime.Now.Date, dashboardRequestModel.BranchId)
+                TodaysCashInEximBank = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.CashAtEximBank, AccType.Asset, fiscalYear.Id, fiscalYear.StartDate, DateTime.Now.Date, dashboardRequestModel.BranchId),
+                //todays cash details
+                TodaysCashSale= _commonService.GetCashPaidSalesTotal(DateTime.Now.Date, DateTime.Now, dashboardRequestModel.BranchId),
+                TodaysReturn = _commonService.GetSaleReturnTotal(DateTime.Now.Date, DateTime.Now, dashboardRequestModel.BranchId),
+                TodaysSupplierPayment = _commonService.GetSupplierPaymentTotal(DateTime.Now.Date, DateTime.Now, dashboardRequestModel.BranchId),
+                TodaysCustomerDueCollection = _commonService.GetCustomerDueCollectionTotal(DateTime.Now.Date, DateTime.Now, dashboardRequestModel.BranchId)
             };
         
             return Ok(data);

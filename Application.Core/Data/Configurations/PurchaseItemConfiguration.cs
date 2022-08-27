@@ -21,6 +21,13 @@ namespace Application.Core.Data.Configurations
 
             entity.Property(e => e.BatchNo).HasMaxLength(100);
 
+            entity.Property(e => e.BranchId)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValueSql("(N'me')");
+
+            entity.Property(e => e.DiscountOnAmount).HasColumnType("decimal(18, 6)");
+
             entity.Property(e => e.ProductId)
                 .IsRequired()
                 .HasMaxLength(100);

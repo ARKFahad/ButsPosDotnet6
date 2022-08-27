@@ -15,7 +15,6 @@ namespace Application.ViewModel
             SaleNo = saleReturn.ReferenceNo;
             CustomerId = saleReturn.CustomerId;
             CustomerName = saleReturn.Customer?.Name;
-            SaleDate = saleReturn.CreatedOn;
             SaleReturnDate = saleReturn.SaleReturnDate;
             BranchId = saleReturn.BranchId;
             BranchName = saleReturn.Branch?.Name;
@@ -41,7 +40,6 @@ namespace Application.ViewModel
         public string CustomerId { get; set; }
         public string? CustomerName { get; set; }
         public decimal Discount { get; set; }
-        public DateTime SaleDate { get; set; }
         public DateTime SaleReturnDate { get; set; }
         public string BranchId { get; set; }
         public string? BranchName { get; set; }

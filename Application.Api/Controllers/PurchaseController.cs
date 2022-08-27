@@ -189,7 +189,9 @@ namespace Application.Api.Controllers
                             BonusQuantity = item.BonusQuantity,
                             PurchasePrice = item.PurchasePrice,
                             Amount = item.PurchaseQuantity * item.PurchasePrice,
-                            CreatedOn = DateTime.Now
+                            CreatedOn = DateTime.Now,
+                            BranchId = purchase.BranchId,
+                            DiscountOnAmount = ((item.PurchaseQuantity * item.PurchasePrice) * purchase.Discount) / purchase.Subtotal
                         };
                        purchase.PurchaseItems.Add(purchaseItem);
                         //saving gift item

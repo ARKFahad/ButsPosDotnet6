@@ -138,7 +138,9 @@ namespace Application.Api.Controllers
                             Price = item.Price,
                             ReturnQuantity = 0,
                             Amount = item.Quantity * item.Price,
-                            CreatedOn=DateTime.Now
+                            CreatedOn = DateTime.Now,
+                            BranchId = branchId,
+                            DiscountOnAmount = (sale.DiscountInPercentage * (item.Quantity * item.Price)) / 100
                         };
                             var stockItems = await _context.StockItems.Where(x => x.ProductId == saleItem.ProductId && x.BranchId == branchId).OrderBy(x => x.CreatedOn).Take(saleItem.Quantity).ToListAsync();
                             decimal cogsItem = 0M;
@@ -246,6 +248,60 @@ namespace Application.Api.Controllers
                 throw;
             }
 
+        }
+
+      //  [Authorize(Policy = Permissions.Stocks.View)]
+       // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost]
+        [Route("item-wise-profit-loss")]
+        public virtual async Task<Result<Tuple<List<ItemProfitLossViewModel>, int>>> ItemWiseProfitLoss(ItemProfitLossRequestModel request)
+        {
+            try
+            {
+                var query = _context.SaleItems.AsQueryable();
+                if (!string.IsNullOrWhiteSpace(request.BranchId))
+                    query = query.Where(x => x.BranchId == request.BranchId);
+                query = query.Where(x => x.CreatedOn.Date >= request.FromDate.Value.Date && x.CreatedOn.Date <= request.ToDate.Value.Date);               
+                var queryable =query.GroupBy(x => new { x.ProductId, x.SupplierId })
+                          .Select(y => new
+                          {
+                              ProductId = y.Key.ProductId,
+                              SupplierId = y.Key.SupplierId,
+                              Quantity = y.Sum(x => x.Quantity),
+                              SalePrice=y.Sum(x => x.Amount)- y.Sum(x => x.DiscountOnAmount),
+                              COGS=y.Sum(x=>x.CogsPerItem*x.Quantity),
+                              ReturnQuantity=y.Sum(x=>x.ReturnQuantity)
+                          });
+                if (!string.IsNullOrWhiteSpace(request.SupplierId))
+                    queryable = queryable.Where(x => x.SupplierId == request.BranchId);
+                if (!string.IsNullOrWhiteSpace(request.ProductId))
+                    queryable = queryable.Where(x => x.ProductId == request.BranchId);
+
+               var plQueryable = from saleItem in queryable
+                              join product in _context.Products on saleItem.ProductId equals product.Id
+                              join category in _context.Categories on product.CategoryId equals category.Id
+                              join supplier in _context.Suppliers on saleItem.SupplierId equals supplier.Id
+                                select new ItemProfitLossViewModel()
+                                {
+                                    ProductName = product.Name+" "+product.PackSize+" "+product.Category,
+                                    SupplierName=supplier.Name,
+                                    Quantity=saleItem.Quantity,
+                                    Revenue=saleItem.SalePrice,
+                                    Cogs=saleItem.COGS,
+                                    ReturnQuantity=saleItem.ReturnQuantity
+                                };
+
+                var count = plQueryable.Count();
+                if (request.Page != -1)
+                    plQueryable = plQueryable.Skip(request.Page * request.RowsPerPage).Take(request.RowsPerPage);
+                var list = await plQueryable.ToListAsync();
+                Tuple<List<ItemProfitLossViewModel>, int> content = new Tuple<List<ItemProfitLossViewModel>, int>(list, count);
+                return await Result<Tuple<List<ItemProfitLossViewModel>, int>>.SuccessAsync(content, "Stock Found");
+            }
+            catch (Exception exception)
+            {
+                return await Result<Tuple<List<ItemProfitLossViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
+            }
         }
     }
 }

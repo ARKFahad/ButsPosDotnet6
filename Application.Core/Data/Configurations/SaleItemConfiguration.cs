@@ -19,7 +19,14 @@ namespace Application.Core.Data.Configurations
 
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 6)");
 
+            entity.Property(e => e.BranchId)
+                .IsRequired()
+                .HasMaxLength(100)
+                .HasDefaultValueSql("(N'me')");
+
             entity.Property(e => e.CogsPerItem).HasColumnType("decimal(18, 6)");
+
+            entity.Property(e => e.DiscountOnAmount).HasColumnType("decimal(18, 6)");
 
             entity.Property(e => e.Price).HasColumnType("decimal(18, 6)");
 

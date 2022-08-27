@@ -24,6 +24,8 @@ namespace Application.Core.Entities
         public bool Deleted { get; set; }
         public DateTime CreatedOn { get; set; }
         public int ReturnQuantity { get; set; }
+        public string BranchId { get; set; }
+        public decimal DiscountOnAmount { get; set; }
 
         public virtual Product Product { get; set; }
         public virtual Purchase Purchase { get; set; }

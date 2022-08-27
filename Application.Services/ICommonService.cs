@@ -17,6 +17,10 @@ namespace Application.Services
         Task<List<ProductAutocompleteViewModel>> SearchProductAutocomplete(string supplierid);
         decimal GetSalesTotal(int days, string? branchId = "");
         decimal GetSalesTotal(DateTime? createdFrom = null, DateTime? createdTo = null, string? branchId = "");
+        decimal GetCashPaidSalesTotal(DateTime? createdFrom = null, DateTime? createdTo = null, string? branchId = "");
+        decimal GetSaleReturnTotal(DateTime? createdFrom = null, DateTime? createdTo = null, string? branchId = "");
+        decimal GetSupplierPaymentTotal(DateTime? createdFrom = null, DateTime? createdTo = null, string? branchId = "");
+        decimal GetCustomerDueCollectionTotal(DateTime? createdFrom = null, DateTime? createdTo = null, string? branchId = "");
         FiscalYear GetCurrentFiscalYear();
     }
 }
