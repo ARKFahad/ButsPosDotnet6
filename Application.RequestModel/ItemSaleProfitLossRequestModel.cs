@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Application.RequestModel
 {
-    public class ItemProfitLossRequestModel
+    public class ItemSaleProfitLossRequestModel
     {
-        public ItemProfitLossRequestModel()
+        public ItemSaleProfitLossRequestModel()
         {
             Page = 0;
             RowsPerPage = 5;

@@ -250,57 +250,67 @@ namespace Application.Api.Controllers
 
         }
 
-      //  [Authorize(Policy = Permissions.Stocks.View)]
-       // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        //  [Authorize(Policy = Permissions.Stocks.View)]
+        // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+      
         [HttpPost]
-        [Route("item-wise-profit-loss")]
-        public virtual async Task<Result<Tuple<List<ItemProfitLossViewModel>, int>>> ItemWiseProfitLoss(ItemProfitLossRequestModel request)
+        [Route("item-wise-sale-profit-loss")]
+        public virtual async Task<Result<Tuple<List<ItemSaleProfitLossViewModel>, int>>> ItemWiseProfitLoss(ItemSaleProfitLossRequestModel request)
         {
             try
             {
                 var query = _context.SaleItems.AsQueryable();
                 if (!string.IsNullOrWhiteSpace(request.BranchId))
                     query = query.Where(x => x.BranchId == request.BranchId);
+                //hardcoded initial value
+                if (!request.FromDate.HasValue)
+                    request.FromDate = DateTime.Now.AddYears(-5);
+                if (!request.ToDate.HasValue)
+                    request.ToDate = DateTime.Now;
                 query = query.Where(x => x.CreatedOn.Date >= request.FromDate.Value.Date && x.CreatedOn.Date <= request.ToDate.Value.Date);               
                 var queryable =query.GroupBy(x => new { x.ProductId, x.SupplierId })
                           .Select(y => new
                           {
                               ProductId = y.Key.ProductId,
                               SupplierId = y.Key.SupplierId,
-                              Quantity = y.Sum(x => x.Quantity),
-                              SalePrice=y.Sum(x => x.Amount)- y.Sum(x => x.DiscountOnAmount),
-                              COGS=y.Sum(x=>x.CogsPerItem*x.Quantity),
-                              ReturnQuantity=y.Sum(x=>x.ReturnQuantity)
+                              SaleQuantity = y.Sum(x => x.Quantity),
+                              ReturnQuantity = y.Sum(x => x.ReturnQuantity),
+                              Subtotal= y.Sum(x => x.Amount),
+                              Discount= y.Sum(x => x.DiscountOnAmount),
+                              NetAmount =y.Sum(x => x.Amount)- y.Sum(x => x.DiscountOnAmount),
+                              COGS=y.Sum(x=>x.CogsPerItem*x.Quantity)
                           });
                 if (!string.IsNullOrWhiteSpace(request.SupplierId))
-                    queryable = queryable.Where(x => x.SupplierId == request.BranchId);
+                    queryable = queryable.Where(x => x.SupplierId == request.SupplierId);
                 if (!string.IsNullOrWhiteSpace(request.ProductId))
-                    queryable = queryable.Where(x => x.ProductId == request.BranchId);
+                    queryable = queryable.Where(x => x.ProductId == request.ProductId);
 
                var plQueryable = from saleItem in queryable
                               join product in _context.Products on saleItem.ProductId equals product.Id
                               join category in _context.Categories on product.CategoryId equals category.Id
                               join supplier in _context.Suppliers on saleItem.SupplierId equals supplier.Id
-                                select new ItemProfitLossViewModel()
+                                select new ItemSaleProfitLossViewModel()
                                 {
-                                    ProductName = product.Name+" "+product.PackSize+" "+product.Category,
+                                    ProductName = product.Name+" "+product.PackSize+" "+product.Category.Name,
                                     SupplierName=supplier.Name,
-                                    Quantity=saleItem.Quantity,
-                                    Revenue=saleItem.SalePrice,
-                                    Cogs=saleItem.COGS,
-                                    ReturnQuantity=saleItem.ReturnQuantity
+                                    SaleQuantity=saleItem.SaleQuantity,
+                                    ReturnQuantity = saleItem.ReturnQuantity,
+                                    Subtotal =saleItem.Subtotal,
+                                    Discount = saleItem.Discount,
+                                    NetAmount = saleItem.NetAmount,
+                                    Cogs =saleItem.COGS,
                                 };
 
                 var count = plQueryable.Count();
                 if (request.Page != -1)
                     plQueryable = plQueryable.Skip(request.Page * request.RowsPerPage).Take(request.RowsPerPage);
                 var list = await plQueryable.ToListAsync();
-                Tuple<List<ItemProfitLossViewModel>, int> content = new Tuple<List<ItemProfitLossViewModel>, int>(list, count);
-                return await Result<Tuple<List<ItemProfitLossViewModel>, int>>.SuccessAsync(content, "Stock Found");
+                Tuple<List<ItemSaleProfitLossViewModel>, int> content = new Tuple<List<ItemSaleProfitLossViewModel>, int>(list, count);
+                return await Result<Tuple<List<ItemSaleProfitLossViewModel>, int>>.SuccessAsync(content, "Item Wise Sale Found");
             }
             catch (Exception exception)
             {
-                return await Result<Tuple<List<ItemProfitLossViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
+                return await Result<Tuple<List<ItemSaleProfitLossViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
     }

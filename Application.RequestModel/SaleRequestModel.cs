@@ -23,16 +23,12 @@ namespace Application.RequestModel
         public override Expression<Func<Sale, bool>> GetExpression()
         {
 
-            ExpressionObject = x => !x.Deleted;
+          //  ExpressionObject = x => !x.Deleted;
             if (!string.IsNullOrWhiteSpace(Keyword))
             {
-                ExpressionObject = ExpressionObject.And(x =>
-                     x.SaleNo.ToLower().Contains(Keyword)
-                     || x.Branch.Name.ToLower().Contains(Keyword)
-                     || x.Customer.Name.ToLower().Contains(Keyword)
-                     || x.Branch.Name.ToLower().Contains(Keyword)
-                     || x.Customer.Name.ToLower().Contains(Keyword)
-                     || x.SaleItems.Any(x=>x.Product.Name.StartsWith(Keyword)));
+                if (Keyword.StartsWith("S0"))
+                    ExpressionObject = x => x.SaleNo.ToLower().Contains(Keyword);
+                else ExpressionObject = x => x.SaleItems.Any(x=>x.Product.Name.StartsWith(Keyword));
             }
             if(fromDate.HasValue&& ToDate.HasValue)
             ExpressionObject = ExpressionObject.And(x => x.CreatedOn.Date >= fromDate.Value.Date && x.CreatedOn.Date <= ToDate.Value.Date);

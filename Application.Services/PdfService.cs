@@ -18,9 +18,11 @@ namespace Application.Services
     public class PdfService : IPdfService
     {
          private readonly GHP_POS_DBContext _context;
-        public PdfService(GHP_POS_DBContext context)
+        private readonly ICommonService _commonService;
+        public PdfService(GHP_POS_DBContext context, ICommonService commonService)
         {
             _context = context;
+            _commonService = commonService; 
         }
         protected void DrawHorizontalLineProtrait(PdfWriter pdfWriter)
         {
@@ -2816,7 +2818,7 @@ namespace Application.Services
         }
 
 
-        protected virtual void PrintSaleReport(Font titleFont, Document doc, IList<SaleViewModel> saleReportLines, Font font, Font attributesFont, int supplierId = 0)
+        protected virtual void PrintSaleReport(Font titleFont, Document doc, IList<SaleViewModel> saleReportLines, Font font, Font attributesFont, DateTime? fromDate, DateTime? toDate,Branch branch)
         {
 
 
@@ -2931,23 +2933,7 @@ namespace Application.Services
                 cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleReportTable.AddCell(cellSaleReportItem);
 
-
-
-
-
-
               
-
-                //cellSaleReportItem = GetPdfCell(pl.Subtotal, font);
-                //cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                //saleReportTable.AddCell(cellSaleReportItem);
-
-
-                //cellSaleReportItem = GetPdfCell(pl.Discount, font);
-                //cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                //saleReportTable.AddCell(cellSaleReportItem);
-
-
                 cellSaleReportItem = GetPdfCell(pl.PayableAmount, font);
                 cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleReportTable.AddCell(cellSaleReportItem);
@@ -2960,18 +2946,7 @@ namespace Application.Services
                 cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleReportTable.AddCell(cellSaleReportItem);
 
-                //cellSaleReportItem = GetPdfCell(pl.NetAmount, font);
-                //cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                //saleReportTable.AddCell(cellSaleReportItem);
-                //CurrentStock
-                //cellSaleReportItem = GetPdfCell(pl.Subtotal, font);
-                //cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                //purchaseReportTable.AddCell(cellSaleReportItem);
-
-                ////Price
-                //cellStockReportItem = GetPdfCell(Math.Round(pl.PriceExcludeDiscount, 2), font);
-                //cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                //stockReportTable.AddCell(cellStockReportItem);
+               
 
             }
             //..................total..................................
@@ -3004,15 +2979,47 @@ namespace Application.Services
             cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             saleReportTable.AddCell(cellSaleReportItem);
 
-            //CurrentStock
-            //cellSaleReportItem = GetPdfCell(saleReportLines.Sum(x => x.NetAmount), font);
-            //cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            //saleReportTable.AddCell(cellPurchaseReportItem);
+            if(fromDate.HasValue && toDate.HasValue && branch!=null)
+            {
+                var saleReturnAmount = _commonService.GetSaleReturnTotal(fromDate.Value.Date, toDate.Value.Date, branch.Id);
+                //..................total sale return..................................
+                //SL
+                cellSaleReportItem = GetPdfCell("Sale Return", font);
+                cellSaleReportItem.Colspan = 7;
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
 
-            ////Price
-            //cellStockReportItem = GetPdfCell(Math.Ceiling(stockReportLines.Sum(x => x.PriceExcludeDiscount)), font);
-            //cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            //stockReportTable.AddCell(cellStockReportItem);
+                //CurrentStock
+                cellSaleReportItem = GetPdfCell(saleReturnAmount, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+                //CurrentStock
+                cellSaleReportItem = GetPdfCell("", font);
+                cellSaleReportItem.Colspan = 2;
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //..................net sale..................................
+                //SL
+                cellSaleReportItem = GetPdfCell("Net Sale", font);
+                cellSaleReportItem.Colspan = 7;
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //CurrentStock
+                cellSaleReportItem = GetPdfCell(saleReportLines.Sum(x => x.PayableAmount)-saleReturnAmount, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+                //CurrentStock
+                cellSaleReportItem = GetPdfCell("", font);
+                cellSaleReportItem.Colspan = 2;
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+            }
+
+
+
             doc.Add(saleReportTable);
         }
         public virtual void PrintStockReportToPdf(Stream stream,Branch branch , IList<StockModel> stockReportLines, string reportName)
@@ -3800,7 +3807,7 @@ namespace Application.Services
             //Line
             //  DrawHorizontalLineProtrait(pdfWriter);
             //Profit Report
-            PrintSaleReport(reportTitleFont, doc, saleReportLines, defaultFont, attributesFont);
+            PrintSaleReport(reportTitleFont, doc, saleReportLines, defaultFont, attributesFont,fromDate,toDate,branch);
 
             var stockReportLineNumber = 20;
             var stockReportLineNumberCount = saleReportLines.Count;

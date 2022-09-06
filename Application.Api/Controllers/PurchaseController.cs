@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using PbApp.Service;
 using System;
@@ -466,7 +467,66 @@ namespace Application.Api.Controllers
             }
         }
 
-     
+        [HttpPost]
+        [Route("item-wise-purchase")]
+        public virtual async Task<Result<Tuple<List<ItemPurchaseViewModel>, int>>> ItemWisePurchase(ItemPurchaseRequestModel request)
+        {
+            try
+            {
+                var query = _context.PurchaseItems.AsQueryable();
+                if (!string.IsNullOrWhiteSpace(request.BranchId))
+                    query = query.Where(x => x.BranchId == request.BranchId);
+                //hardcoded initial value
+                if (!request.FromDate.HasValue)
+                    request.FromDate = DateTime.Now.AddYears(-5);
+                if (!request.ToDate.HasValue)
+                    request.ToDate = DateTime.Now;
+                query = query.Where(x => x.CreatedOn.Date >= request.FromDate.Value.Date && x.CreatedOn.Date <= request.ToDate.Value.Date);
+                var queryable = query.GroupBy(x => new { x.ProductId })
+                          .Select(y => new
+                          {
+                              ProductId = y.Key.ProductId,
+                              PurchaseQuantity = y.Sum(x => x.PurchaseQuantity),
+                              BonusQuantity = y.Sum(x => x.BonusQuantity),
+                              Subtotal = y.Sum(x => x.Amount),
+                              Discount= y.Sum(x => x.DiscountOnAmount),
+                              NetAmount = y.Sum(x => x.Amount) - y.Sum(x => x.DiscountOnAmount)
+                          });
+                
+                if (!string.IsNullOrWhiteSpace(request.ProductId))
+                    queryable = queryable.Where(x => x.ProductId == request.ProductId);
+
+                var pQueryable = from purchaseItem in queryable
+                                  join product in _context.Products on purchaseItem.ProductId equals product.Id
+                                  join category in _context.Categories on product.CategoryId equals category.Id
+                                  join supplier in _context.Suppliers on product.SupplierId equals supplier.Id
+                                  select new ItemPurchaseViewModel()
+                                  {
+                                      ProductName = product.Name + " " + product.PackSize + " " + product.Category.Name,
+                                      SupplierId = supplier.Id,
+                                      SupplierName = supplier.Name,
+                                      PurchaseQuantity = purchaseItem.PurchaseQuantity,
+                                      BonusQuantity = purchaseItem.BonusQuantity,
+                                      Subtotal = purchaseItem.Subtotal,
+                                      Discount= purchaseItem.Discount,
+                                      NetAmount = purchaseItem.NetAmount
+                                  };
+
+                if (!string.IsNullOrWhiteSpace(request.SupplierId))
+                    pQueryable = pQueryable.Where(x => x.SupplierId == request.SupplierId);
+
+                var count = pQueryable.Count();
+                if (request.Page != -1)
+                    pQueryable = pQueryable.Skip(request.Page * request.RowsPerPage).Take(request.RowsPerPage);
+                var list = await pQueryable.ToListAsync();
+                Tuple<List<ItemPurchaseViewModel>, int> content = new Tuple<List<ItemPurchaseViewModel>, int>(list, count);
+                return await Result<Tuple<List<ItemPurchaseViewModel>, int>>.SuccessAsync(content, "Item Wise Purchase Found");
+            }
+            catch (Exception exception)
+            {
+                return await Result<Tuple<List<ItemPurchaseViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
+            }
+        }
 
 
 

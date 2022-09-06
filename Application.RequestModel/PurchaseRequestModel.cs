@@ -30,9 +30,6 @@ namespace Application.RequestModel
             {
                 ExpressionObject =ExpressionObject.And(x =>
                     x.PurchaseNo.ToLower().Contains(Keyword)
-                    || x.ReferenceNo.ToLower().Contains(Keyword)
-                    || x.Branch.Name.ToLower().Contains(Keyword)
-                    || x.Supplier.Name.ToLower().Contains(Keyword)
                      || x.PurchaseItems.Any(x => x.Product.Name.StartsWith(Keyword)));
             }
             if (fromDate.HasValue && ToDate.HasValue)

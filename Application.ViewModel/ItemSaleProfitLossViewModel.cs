@@ -7,15 +7,18 @@ using System.Threading.Tasks;
 
 namespace Application.ViewModel
 {
-    public class ItemProfitLossViewModel
+    public class ItemSaleProfitLossViewModel
     {
      
         public string? ProductName { get; set; }
         public string? SupplierName { get; set; }
-        public int Quantity { get; set; }
-        public decimal Revenue { get; set; }
-        public decimal Cogs { get; set; }
+        public int SaleQuantity { get; set; }
         public int ReturnQuantity { get; set; }
+        public decimal Subtotal { get; set; }
+        public decimal Discount { get; set; }
+        public decimal NetAmount { get; set; }
+        public decimal Cogs { get; set; }
+
 
     }
 }
