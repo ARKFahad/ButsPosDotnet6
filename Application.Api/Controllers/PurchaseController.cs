@@ -466,13 +466,54 @@ namespace Application.Api.Controllers
                 return await Result<string>.FailAsync(exception.ToString(), exception.Message);
             }
         }
-
+        [Authorize(Policy = Permissions.Purchases.ItemWisePurchase)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
         [Route("item-wise-purchase")]
         public virtual async Task<Result<Tuple<List<ItemPurchaseViewModel>, int>>> ItemWisePurchase(ItemPurchaseRequestModel request)
         {
             try
             {
+                var pQueryable = ItemWisePurchaseQueryable(request);
+                var count = pQueryable.Count();
+                if (request.Page != -1)
+                    pQueryable = pQueryable.Skip(request.Page * request.RowsPerPage).Take(request.RowsPerPage);
+                var list = await pQueryable.ToListAsync();
+                Tuple<List<ItemPurchaseViewModel>, int> content = new Tuple<List<ItemPurchaseViewModel>, int>(list, count);
+                return await Result<Tuple<List<ItemPurchaseViewModel>, int>>.SuccessAsync(content, "Item Wise Purchase Found");
+            }
+            catch (Exception exception)
+            {
+                return await Result<Tuple<List<ItemPurchaseViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("item-wise-purchase-print")]
+        public virtual async Task<IActionResult> ItemWiseProfitLossPrint(ItemPurchaseRequestModel request)
+        {
+            try
+            {
+                var pList = await ItemWisePurchaseQueryable(request).ToListAsync();
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                {
+                    _pdfService.PrintItemWisePurchaseReportToPdf(stream, _context.Branches.Find(request.BranchId), pList, "Item Wise Purchase Report ", request.FromDate, request.ToDate);
+                    bytes = stream.ToArray();
+                    bytes = _pdfService.AddPageNumbers(bytes);
+                }
+
+                return File(bytes, MimeTypes.ApplicationPdf);
+            }
+            catch (Exception exception)
+            {
+                return Ok(exception.ToString());
+            }
+        }
+
+        private IQueryable<ItemPurchaseViewModel> ItemWisePurchaseQueryable(ItemPurchaseRequestModel request)
+        {
+            
                 var query = _context.PurchaseItems.AsQueryable();
                 if (!string.IsNullOrWhiteSpace(request.BranchId))
                     query = query.Where(x => x.BranchId == request.BranchId);
@@ -489,43 +530,32 @@ namespace Application.Api.Controllers
                               PurchaseQuantity = y.Sum(x => x.PurchaseQuantity),
                               BonusQuantity = y.Sum(x => x.BonusQuantity),
                               Subtotal = y.Sum(x => x.Amount),
-                              Discount= y.Sum(x => x.DiscountOnAmount),
+                              Discount = y.Sum(x => x.DiscountOnAmount),
                               NetAmount = y.Sum(x => x.Amount) - y.Sum(x => x.DiscountOnAmount)
                           });
-                
+
                 if (!string.IsNullOrWhiteSpace(request.ProductId))
                     queryable = queryable.Where(x => x.ProductId == request.ProductId);
 
                 var pQueryable = from purchaseItem in queryable
-                                  join product in _context.Products on purchaseItem.ProductId equals product.Id
-                                  join category in _context.Categories on product.CategoryId equals category.Id
-                                  join supplier in _context.Suppliers on product.SupplierId equals supplier.Id
-                                  select new ItemPurchaseViewModel()
-                                  {
-                                      ProductName = product.Name + " " + product.PackSize + " " + product.Category.Name,
-                                      SupplierId = supplier.Id,
-                                      SupplierName = supplier.Name,
-                                      PurchaseQuantity = purchaseItem.PurchaseQuantity,
-                                      BonusQuantity = purchaseItem.BonusQuantity,
-                                      Subtotal = purchaseItem.Subtotal,
-                                      Discount= purchaseItem.Discount,
-                                      NetAmount = purchaseItem.NetAmount
-                                  };
+                                 join product in _context.Products on purchaseItem.ProductId equals product.Id
+                                 join category in _context.Categories on product.CategoryId equals category.Id
+                                 join supplier in _context.Suppliers on product.SupplierId equals supplier.Id
+                                 select new ItemPurchaseViewModel()
+                                 {
+                                     ProductName = product.Name + " " + product.PackSize + " " + product.Category.Name,
+                                     SupplierId = supplier.Id,
+                                     SupplierName = supplier.Name,
+                                     PurchaseQuantity = purchaseItem.PurchaseQuantity,
+                                     BonusQuantity = purchaseItem.BonusQuantity,
+                                     Subtotal = purchaseItem.Subtotal,
+                                     Discount = purchaseItem.Discount,
+                                     NetAmount = purchaseItem.NetAmount
+                                 };
 
                 if (!string.IsNullOrWhiteSpace(request.SupplierId))
                     pQueryable = pQueryable.Where(x => x.SupplierId == request.SupplierId);
-
-                var count = pQueryable.Count();
-                if (request.Page != -1)
-                    pQueryable = pQueryable.Skip(request.Page * request.RowsPerPage).Take(request.RowsPerPage);
-                var list = await pQueryable.ToListAsync();
-                Tuple<List<ItemPurchaseViewModel>, int> content = new Tuple<List<ItemPurchaseViewModel>, int>(list, count);
-                return await Result<Tuple<List<ItemPurchaseViewModel>, int>>.SuccessAsync(content, "Item Wise Purchase Found");
-            }
-            catch (Exception exception)
-            {
-                return await Result<Tuple<List<ItemPurchaseViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
-            }
+            return pQueryable;
         }
 
 

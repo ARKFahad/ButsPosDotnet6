@@ -155,6 +155,7 @@ namespace Application.Core.Constants
             public const string Add = "Permissions.Purchases.Add";
             public const string Update = "Permissions.Purchases.Update";
             public const string Remove = "Permissions.Purchases.Remove";
+            public const string ItemWisePurchase = "Permissions.Purchases.ItemWisePurchase";
         }
 
         [DisplayName("CustomerPayments")]
@@ -215,6 +216,7 @@ namespace Application.Core.Constants
             public const string Add = "Permissions.Sales.Add";
             public const string Update = "Permissions.Sales.Update";
             public const string Remove = "Permissions.Sales.Remove";
+            public const string ItemWiseSaleProfitLoss = "Permissions.Sales.ItemWiseSaleProfitLoss";
         }
         [DisplayName("SaleReturns")]
         [Description("SaleReturns Permissions")]

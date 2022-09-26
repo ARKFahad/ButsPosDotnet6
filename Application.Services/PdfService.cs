@@ -3022,6 +3022,310 @@ namespace Application.Services
 
             doc.Add(saleReportTable);
         }
+
+        protected virtual void PrintItemWiseSaleProfitLossReport(Font titleFont, Document doc, IList<ItemSaleProfitLossViewModel> saleReportLines, Font font, Font attributesFont, DateTime? fromDate, DateTime? toDate, Branch branch)
+        {
+
+
+
+            var numColumns = 9;
+            var saleReportTable = new PdfPTable(numColumns)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var widths = new Dictionary<int, int[]>
+            {
+                { numColumns, new[] { 6,18,16,10,10,10,10,10,10 } }
+            };
+
+            saleReportTable.SetWidths(widths[numColumns]);
+
+            //SL
+            var cellSaleReportItem = GetPdfCell("SL", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Item
+            cellSaleReportItem = GetPdfCell("Product Name", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Category
+            cellSaleReportItem = GetPdfCell("Supplier Name", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Brand
+            cellSaleReportItem = GetPdfCell("Sale Quantity", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            cellSaleReportItem = GetPdfCell("Subtotal", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Stock Quantity
+            cellSaleReportItem = GetPdfCell("Discount", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            cellSaleReportItem = GetPdfCell("Net Amount", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+
+
+            cellSaleReportItem = GetPdfCell("COGS", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            cellSaleReportItem = GetPdfCell("PL", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            
+
+
+            saleReportTable.HeaderRows = 1;
+            var r = 0;
+            foreach (var pl in saleReportLines)
+            {
+                r++;
+
+                //SL
+                cellSaleReportItem = GetPdfCell(r, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                cellSaleReportItem = GetPdfCell(pl.ProductName, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                saleReportTable.AddCell(cellSaleReportItem);
+                //ItemName
+                cellSaleReportItem = GetPdfCell(pl.SupplierName, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //CategoryName
+                cellSaleReportItem = GetPdfCell(pl.SaleQuantity, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+
+                //BrandName
+                cellSaleReportItem = GetPdfCell(Math.Round(pl.Subtotal,2), font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //CurrentStock
+                cellSaleReportItem = GetPdfCell(Math.Round(pl.Discount,2), font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+
+                cellSaleReportItem = GetPdfCell(Math.Round(pl.NetAmount,2), font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                cellSaleReportItem = GetPdfCell(Math.Round(pl.Cogs,2), font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                cellSaleReportItem = GetPdfCell(Math.Round(pl.NetAmount-pl.Cogs,2), font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+
+
+            }
+            //..................total..................................
+            var totalNetAmount = saleReportLines.Sum(x => x.NetAmount);
+            var totalCogs = saleReportLines.Sum(x => x.Cogs);
+            //SL
+            cellSaleReportItem = GetPdfCell("Total", font);
+            cellSaleReportItem.Colspan = 3;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            //CurrentStock
+            cellSaleReportItem = GetPdfCell(saleReportLines.Sum(x => x.SaleQuantity), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            //CurrentStock
+            cellSaleReportItem = GetPdfCell(Math.Round(saleReportLines.Sum(x => x.Subtotal),2), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            //CurrentStock
+            cellSaleReportItem = GetPdfCell(Math.Round(saleReportLines.Sum(x => x.Discount),2), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            cellSaleReportItem = GetPdfCell(Math.Round(totalNetAmount,2), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            cellSaleReportItem = GetPdfCell(Math.Round(totalCogs,2), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            cellSaleReportItem = GetPdfCell(Math.Round(totalNetAmount - totalCogs,2), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            doc.Add(saleReportTable);
+        }
+
+        protected virtual void PrintItemWisePurchaseReport(Font titleFont, Document doc, IList<ItemPurchaseViewModel> saleReportLines, Font font, Font attributesFont, DateTime? fromDate, DateTime? toDate, Branch branch)
+        {
+
+
+
+            var numColumns = 8;
+            var saleReportTable = new PdfPTable(numColumns)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var widths = new Dictionary<int, int[]>
+            {
+                { numColumns, new[] { 8,20,16,10,10,12,12,12 } }
+            };
+
+            saleReportTable.SetWidths(widths[numColumns]);
+
+            //SL
+            var cellSaleReportItem = GetPdfCell("SL", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Item
+            cellSaleReportItem = GetPdfCell("Product Name", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Category
+            cellSaleReportItem = GetPdfCell("Supplier Name", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Brand
+            cellSaleReportItem = GetPdfCell("Purchase Qty", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            //Brand
+            cellSaleReportItem = GetPdfCell("Bonus Qty", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            cellSaleReportItem = GetPdfCell("Subtotal", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Stock Quantity
+            cellSaleReportItem = GetPdfCell("Discount", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            cellSaleReportItem = GetPdfCell("Net Amount", font);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            saleReportTable.HeaderRows = 1;
+            var r = 0;
+            foreach (var pl in saleReportLines)
+            {
+                r++;
+
+                //SL
+                cellSaleReportItem = GetPdfCell(r, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                cellSaleReportItem = GetPdfCell(pl.ProductName, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                saleReportTable.AddCell(cellSaleReportItem);
+                //ItemName
+                cellSaleReportItem = GetPdfCell(pl.SupplierName, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //CategoryName
+                cellSaleReportItem = GetPdfCell(pl.PurchaseQuantity, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //CategoryName
+                cellSaleReportItem = GetPdfCell(pl.BonusQuantity, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //BrandName
+                cellSaleReportItem = GetPdfCell(pl.Subtotal, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //CurrentStock
+                cellSaleReportItem = GetPdfCell(Math.Round(pl.Discount,2), font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+
+                cellSaleReportItem = GetPdfCell(pl.NetAmount, font);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+               
+
+            }
+            //..................total..................................
+          
+            //SL
+            cellSaleReportItem = GetPdfCell("Total", font);
+            cellSaleReportItem.Colspan = 3;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            //CurrentStock
+            cellSaleReportItem = GetPdfCell(saleReportLines.Sum(x => x.PurchaseQuantity), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            //CurrentStock
+            cellSaleReportItem = GetPdfCell(saleReportLines.Sum(x => x.BonusQuantity), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            //CurrentStock
+            cellSaleReportItem = GetPdfCell(saleReportLines.Sum(x => x.Subtotal), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            //CurrentStock
+            cellSaleReportItem = GetPdfCell(Math.Round(saleReportLines.Sum(x => x.Discount),2), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            cellSaleReportItem = GetPdfCell(saleReportLines.Sum(x => x.NetAmount), font);
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+           
+            doc.Add(saleReportTable);
+        }
         public virtual void PrintStockReportToPdf(Stream stream,Branch branch , IList<StockModel> stockReportLines, string reportName)
         {
             if (stream == null)
@@ -3808,6 +4112,139 @@ namespace Application.Services
             //  DrawHorizontalLineProtrait(pdfWriter);
             //Profit Report
             PrintSaleReport(reportTitleFont, doc, saleReportLines, defaultFont, attributesFont,fromDate,toDate,branch);
+
+            var stockReportLineNumber = 20;
+            var stockReportLineNumberCount = saleReportLines.Count;
+            stockReportLineNumber++;
+
+            if (stockReportLineNumber <= stockReportLineNumberCount)
+            {
+                doc.NewPage();
+            }
+
+            doc.Close();
+        }
+        public virtual void PrintItemWiseSaleProfitLossReportToPdf(Stream stream, Branch branch, IList<ItemSaleProfitLossViewModel> saleReportLines, string reportName, DateTime? fromDate, DateTime? toDate)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (saleReportLines == null)
+                throw new ArgumentNullException(nameof(saleReportLines));
+
+            var pageSize = PageSize.A4;
+
+
+
+            var doc = new Document(pageSize);
+
+            var pdfWriter = PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+            //headerTitlefonts
+            var headerTitleFont = GetFont();
+            headerTitleFont.SetFamily("Times New Roman");
+            headerTitleFont.Size = 12;
+            headerTitleFont.SetStyle(Font.BOLD);
+            headerTitleFont.Color = BaseColor.Black;
+
+            //addressFont
+            var addressFont = GetFont();
+            addressFont.SetFamily("Times New Roman");
+            addressFont.Size = 8;
+            addressFont.SetStyle(Font.NORMAL);
+            addressFont.Color = BaseColor.Black;
+
+            //reportTitleFont
+            var reportTitleFont = GetFont();
+            reportTitleFont.SetFamily("Times New Roman");
+            reportTitleFont.Size = 11;
+            reportTitleFont.SetStyle(Font.BOLD);
+            reportTitleFont.Color = BaseColor.Black;
+
+            //defaultFont
+            var defaultFont = GetFont();
+            defaultFont.SetFamily("Times New Roman");
+            defaultFont.SetStyle(Font.NORMAL);
+            defaultFont.Color = BaseColor.Black;
+            defaultFont.Size = 10;
+
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.ITALIC);
+
+
+            //headers
+            PrintReportHeader(pdfWriter, reportName, branch, headerTitleFont, addressFont, reportTitleFont, doc, fromDate, toDate);
+            //Line
+            //  DrawHorizontalLineProtrait(pdfWriter);
+            //Profit Report
+            PrintItemWiseSaleProfitLossReport(reportTitleFont, doc, saleReportLines, defaultFont, attributesFont, fromDate, toDate, branch);
+
+            var stockReportLineNumber = 20;
+            var stockReportLineNumberCount = saleReportLines.Count;
+            stockReportLineNumber++;
+
+            if (stockReportLineNumber <= stockReportLineNumberCount)
+            {
+                doc.NewPage();
+            }
+
+            doc.Close();
+        }
+
+        public virtual void PrintItemWisePurchaseReportToPdf(Stream stream, Branch branch, IList<ItemPurchaseViewModel> saleReportLines, string reportName, DateTime? fromDate, DateTime? toDate)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (saleReportLines == null)
+                throw new ArgumentNullException(nameof(saleReportLines));
+
+            var pageSize = PageSize.A4;
+
+
+
+            var doc = new Document(pageSize);
+
+            var pdfWriter = PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+            //headerTitlefonts
+            var headerTitleFont = GetFont();
+            headerTitleFont.SetFamily("Times New Roman");
+            headerTitleFont.Size = 12;
+            headerTitleFont.SetStyle(Font.BOLD);
+            headerTitleFont.Color = BaseColor.Black;
+
+            //addressFont
+            var addressFont = GetFont();
+            addressFont.SetFamily("Times New Roman");
+            addressFont.Size = 8;
+            addressFont.SetStyle(Font.NORMAL);
+            addressFont.Color = BaseColor.Black;
+
+            //reportTitleFont
+            var reportTitleFont = GetFont();
+            reportTitleFont.SetFamily("Times New Roman");
+            reportTitleFont.Size = 11;
+            reportTitleFont.SetStyle(Font.BOLD);
+            reportTitleFont.Color = BaseColor.Black;
+
+            //defaultFont
+            var defaultFont = GetFont();
+            defaultFont.SetFamily("Times New Roman");
+            defaultFont.SetStyle(Font.NORMAL);
+            defaultFont.Color = BaseColor.Black;
+            defaultFont.Size = 10;
+
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.ITALIC);
+
+
+            //headers
+            PrintReportHeader(pdfWriter, reportName, branch, headerTitleFont, addressFont, reportTitleFont, doc, fromDate, toDate);
+            //Line
+            //  DrawHorizontalLineProtrait(pdfWriter);
+            //Profit Report
+            PrintItemWisePurchaseReport(reportTitleFont, doc, saleReportLines, defaultFont, attributesFont, fromDate, toDate, branch);
 
             var stockReportLineNumber = 20;
             var stockReportLineNumberCount = saleReportLines.Count;

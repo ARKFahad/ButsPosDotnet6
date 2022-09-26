@@ -13,6 +13,8 @@ namespace Application.Services
 {
    public interface IPdfService
     {
+        void PrintItemWisePurchaseReportToPdf(Stream stream, Branch branch, IList<ItemPurchaseViewModel> saleReportLines, string reportName, DateTime? fromDate, DateTime? toDate);
+        void PrintItemWiseSaleProfitLossReportToPdf(Stream stream, Branch branch, IList<ItemSaleProfitLossViewModel> saleReportLines, string reportName, DateTime? fromDate, DateTime? toDate);
         void PrintSubsidiaryLedgerReportToPdf(MemoryStream stream, Branch? branch, IList<SubsidiaryLedgerViewModel> list, string reportName, DateTime? fromDate, DateTime? toDate);
         void PrintIncomeStatementReportToPdf(Stream stream, Branch? branch, IList<AccountHeadWithBalanceViewModel> incomeStatementReportLines, string reportName, DateTime? fromDate, DateTime? toDate,decimal netIncome=0);
         void PrintBalanceSheetReportToPdf(Stream stream, Branch? branch, IList<AccountHeadWithBalanceViewModel> balanceSheetReportLines, string reportName, DateTime? fromDate, DateTime? toDate,decimal netIncome=0);
