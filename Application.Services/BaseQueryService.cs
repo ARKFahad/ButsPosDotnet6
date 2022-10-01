@@ -52,7 +52,7 @@ namespace PbApp.Service
 
         public virtual async Task<Tuple<List<Tv>, int>> SearchAsync(Tr request)
         {
-            var queryable = request.GetOrderedData(_repository.GetAll());
+            var queryable = request.GetOrderedData(_repository.GetAllAsNoTracking());
             if (!queryable.Any<T>())
             {
                 throw new NotFoundResultException("Ooo! No Search Result Found.");

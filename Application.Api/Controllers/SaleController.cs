@@ -33,12 +33,12 @@ namespace Application.Api.Controllers
         private readonly GHP_POS_DBContext _context;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IPdfService _pdfService;
-        private readonly IBaseQueryService<Sale, SaleRequestModel, SaleViewModel> _saleQueryService;
+        private readonly ISaleQueryService _saleQueryService;
         private readonly IConfiguration _configuration;
         private readonly ICommonService _commonService;
         private readonly IAccountService _accountService;
         private readonly IHubContext<BroadcastHub,IHubClient> _hubContext;
-        public SaleController(IBaseQueryService<Sale, SaleRequestModel, SaleViewModel> saleQueryService, 
+        public SaleController(ISaleQueryService saleQueryService, 
             GHP_POS_DBContext context, IHttpContextAccessor contextAccessor, IPdfService pdfService,
             IConfiguration configuration,
             ICommonService commonService,

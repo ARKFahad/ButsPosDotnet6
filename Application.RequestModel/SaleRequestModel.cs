@@ -28,23 +28,14 @@ namespace Application.RequestModel
             {
                 if (Keyword.StartsWith("S0"))
                     ExpressionObject = x => x.SaleNo.ToLower().Contains(Keyword);
-                else ExpressionObject = x => x.SaleItems.Any(x=>x.Product.Name.StartsWith(Keyword));
+                else ExpressionObject = x => x.SaleItems.Any(x=>(x.Product.Name+" "+x.Product.PackSize).StartsWith(Keyword));
             }
             if(fromDate.HasValue&& ToDate.HasValue)
             ExpressionObject = ExpressionObject.And(x => x.CreatedOn.Date >= fromDate.Value.Date && x.CreatedOn.Date <= ToDate.Value.Date);
-            if (!string.IsNullOrWhiteSpace(BranchId))
-            {
-                //var EXPR2 = ExpressionObject;
-                //EXPR2 = x => x.BranchId == BranchId;
-                //var body = Expression.And(ExpressionObject.Body, EXPR2.Body);
-                //var lambda = Expression.Lambda<Func<Sale, bool>>(body, ExpressionObject.Parameters[0]);
-                // ExpressionObject = lambda;
-                //return ExpressionObject;
-                ExpressionObject = ExpressionObject.And(x => x.BranchId == BranchId);
-               
-                
-               
-            }
+            //if (!string.IsNullOrWhiteSpace(BranchId))
+            //{
+            //    ExpressionObject = ExpressionObject.And(x => x.BranchId == BranchId);              
+            //}
             if (!string.IsNullOrWhiteSpace(CustomerId))
             {
                 ExpressionObject = ExpressionObject.And(x => x.CustomerId == CustomerId);
@@ -58,5 +49,6 @@ namespace Application.RequestModel
             return queryable.Include(x => x.Customer).Include(x => x.Branch)
                 .Include(x => x.SaleItems).ThenInclude(x => x.Product).ThenInclude(x => x.Category);
         }
+       
     }
 }
