@@ -219,7 +219,7 @@ namespace Application.Api.Controllers
             }
         }
         [HttpGet("/api/sale/invoice/{id}")]
-        public IActionResult SaleInvoice(string id= "de955566-4795-4048-9c61-9893a3dc6f8f")
+        public IActionResult SaleInvoice(string id)
         {
             var sale = _context.Sales.Find(id);
             if (sale == null) throw new NotFoundResultException("Not Found");

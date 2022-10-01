@@ -38,5 +38,6 @@ namespace Application.Services
         void PrintSaleReturnReportToPdf(MemoryStream stream, List<SaleReturnViewModel> item1, string v, Branch branch, DateTime? fromDate, DateTime? toDate);
         byte[] AddFooterInfoForA5Page(byte[] bytes);
         byte[] AddPageNumbers(byte[] pdf);
+        void PrintPurchaseInvoiceToPdf(MemoryStream stream, Supplier? supplier, Branch? branch, Purchase purchase, List<PurchaseItemModel> purchaseItems);
     }
 }

@@ -584,6 +584,38 @@ namespace Application.Api.Controllers
             }
             return subTotal;
         }
+        [HttpGet("/api/purchase/invoice/{id}")]
+        public IActionResult PurchaseInvoice(string id)
+        {
+            var purchase = _context.Purchases.Find(id);
+            if (purchase == null) throw new NotFoundResultException("Not Found");
+            var supplier = _context.Suppliers.Find(purchase.SupplierId);
+            var branch = _context.Branches.Find(purchase.BranchId);
+            var purchaseItems = _context.PurchaseItems.Include(x => x.Product).Where(x => x.PurchaseId == purchase.Id).Select(x => new PurchaseItemModel
+            {
+                Description = x.Product.Name + " " + x.Product.PackSize,
+                Quantity = x.PurchaseQuantity,
+                Price = x.PurchasePrice,
+                Amount = x.Amount,
+                BonusQuantity = x.BonusQuantity,
+            }).ToList();
+            try
+            {
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                {
+                    _pdfService.PrintPurchaseInvoiceToPdf(stream, supplier, branch, purchase, purchaseItems);
+                    bytes = stream.ToArray();
+                    // bytes =_pdfService.AddFooterInfoForA5Page(bytes);
+                }
+                return File(bytes, MimeTypes.ApplicationPdf);
+            }
+            catch (Exception exc)
+            {
+                throw;
+            }
+
+        }
 
     }
 }
