@@ -39,5 +39,7 @@ namespace Application.Services
         byte[] AddFooterInfoForA5Page(byte[] bytes);
         byte[] AddPageNumbers(byte[] pdf);
         void PrintPurchaseInvoiceToPdf(MemoryStream stream, Supplier? supplier, Branch? branch, Purchase purchase, List<PurchaseItemModel> purchaseItems);
+        void PrintSupplierPaymentVoucherToPdf(MemoryStream stream, Supplier? supplier, Branch? branch, SupplierPayment supplierPayment, PaymentMethod? paymentMethod);
+        void PrintCustomerPaymentVoucherToPdf(MemoryStream stream, Customer? customer, Branch? branch, CustomerPayment customerPayment, PaymentMethod? paymentMethod);
     }
 }

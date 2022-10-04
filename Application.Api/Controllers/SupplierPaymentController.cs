@@ -2,6 +2,7 @@
 using Application.Core.Constants;
 using Application.Core.Data;
 using Application.Core.Entities;
+using Application.Core.Exceptions;
 using Application.Core.PermissionHelpers;
 using Application.RequestModel;
 using Application.Services;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using PbApp.Service;
 using System;
@@ -80,7 +82,7 @@ namespace Application.Api.Controllers
                
                 using (var stream = new MemoryStream())
                 {
-                    _pdfService.PrintSupplierPaymentReportToPdf(stream, content.Item1, "Supplier Payment Report ", _context.Branches.Find(request.BranchId), request.fromDate, request.ToDate);
+                    _pdfService.PrintSupplierPaymentReportToPdf(stream, content.Item1, "Supplier Payment Report", _context.Branches.Find(request.BranchId), request.fromDate, request.ToDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
@@ -241,6 +243,31 @@ namespace Application.Api.Controllers
             {
                 return await Result<string>.FailAsync(exception.ToString(), exception.Message);
             }
+        }
+        [HttpGet("/api/supplierPayment/voucher/{id}")]
+        public IActionResult SupplierPaymentVoucher(string id)
+        {
+            var supplierPayment = _context.SupplierPayments.Find(id);
+            if (supplierPayment == null) throw new NotFoundResultException("Not Found");
+            var supplier = _context.Suppliers.Find(supplierPayment.SupplierId);
+            var paymentMethod = _context.PaymentMethods.Find(supplierPayment.PaymentMethodId);
+            var branch = _context.Branches.Find(supplierPayment.BranchId);
+            try
+            {
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                {
+                    _pdfService.PrintSupplierPaymentVoucherToPdf(stream, supplier, branch, supplierPayment, paymentMethod);
+                    bytes = stream.ToArray();
+                    // bytes =_pdfService.AddFooterInfoForA5Page(bytes);
+                }
+                return File(bytes, MimeTypes.ApplicationPdf);
+            }
+            catch (Exception exc)
+            {
+                throw;
+            }
+
         }
     }
 }

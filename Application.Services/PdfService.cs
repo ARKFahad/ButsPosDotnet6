@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Application.Core.Constants.Permissions;
 
 namespace Application.Services
 {
@@ -5524,9 +5525,509 @@ namespace Application.Services
             doc.Add(purchaseItemTable);
             doc.Close();
 
+        }
+
+        public void PrintSupplierPaymentVoucherToPdf(MemoryStream stream, Supplier? supplier, Branch? branch, SupplierPayment supplierPayment, PaymentMethod? paymentMethod)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (supplierPayment == null)
+                throw new ArgumentNullException(nameof(supplierPayment));
+
+            var pageSize = PageSize.A5;
 
 
+
+            var doc = new Document(pageSize);
+            //var doc = new Document(new iTextSharp.text.Rectangle(410f, 288f).Rotate());
+
+            var pdfWriter = PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+            var headerTitleFont = GetFont();
+            headerTitleFont.SetFamily("Times New Roman");
+            headerTitleFont.Size = 12;
+            headerTitleFont.SetStyle(Font.BOLD);
+            headerTitleFont.Color = BaseColor.Black;
+
+            //addressFont
+            var addressFont = GetFont();
+            addressFont.SetFamily("Times New Roman");
+            addressFont.Size = 8;
+            addressFont.SetStyle(Font.NORMAL);
+            addressFont.Color = BaseColor.Black;
+
+            //reportTitleFont
+            var reportTitleFont = GetFont();
+            reportTitleFont.SetFamily("Times New Roman");
+            reportTitleFont.Size = 11;
+            reportTitleFont.SetStyle(Font.BOLD);
+            reportTitleFont.Color = BaseColor.Black;
+
+            //defaultFont
+            var defaultFont = GetFont();
+            defaultFont.SetFamily("Times New Roman");
+            defaultFont.SetStyle(Font.NORMAL);
+            defaultFont.Color = BaseColor.Black;
+            defaultFont.Size = 10;
+
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.ITALIC);
+
+
+            //headers
+            PrintReportHeader(pdfWriter, "Credit Voucher", branch, headerTitleFont, addressFont, reportTitleFont, doc);
+            //Line
+            //DrawHorizontalLineProtrait(pdfWriter);
+            //Profit Report
+            PrintSupplierPaymentVoucherReport(stream, supplier, branch, supplierPayment, paymentMethod, reportTitleFont, doc, defaultFont, attributesFont);
+            doc.Close();
 
         }
+        protected virtual void PrintSupplierPaymentVoucherReport(Stream stream, Supplier supplier, Branch branch, SupplierPayment supplierPayment, PaymentMethod paymentMethod, Font reportTitleFont, Document doc, Font defaultFont, Font attributesFont)
+        {
+
+            //Horizontal Line
+            //Paragraph line = new Paragraph(new Chunk(new iTextSharp.text.pdf.draw.LineSeparator(0.0F, 100.0F, BaseColor.Black, Element.ALIGN_LEFT, 1)));
+
+            var numColumns = 4;
+            var supplierPaymentVoucherReportTable = new PdfPTable(numColumns)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var widths = new Dictionary<int, int[]>
+            {
+                { numColumns, new[] { 10,40,25,25 } }
+            };
+
+            supplierPaymentVoucherReportTable.SetWidths(widths[numColumns]);
+
+            var cellsupplierPaymentVoucherReportItem = GetPdfCell("Voucher No :     " + supplierPayment.BillNo , defaultFont);
+            cellsupplierPaymentVoucherReportItem.Border = Rectangle.NO_BORDER;
+            cellsupplierPaymentVoucherReportItem.Colspan = 2;
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            //Item
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("Date :     " + supplierPayment.CreatedOn.ToString("dd/MM/yyyy"), defaultFont);
+            cellsupplierPaymentVoucherReportItem.Border = Rectangle.NO_BORDER;
+            cellsupplierPaymentVoucherReportItem.Colspan = 2;
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("Cost Center :     " + branch.Name, defaultFont);
+            cellsupplierPaymentVoucherReportItem.Border = Rectangle.NO_BORDER;
+            cellsupplierPaymentVoucherReportItem.Colspan = 4;
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("", defaultFont);
+            cellsupplierPaymentVoucherReportItem.Phrase.Add(new Phrase(Environment.NewLine));
+            cellsupplierPaymentVoucherReportItem.Colspan = 4;
+            cellsupplierPaymentVoucherReportItem.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            //SL
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("SL", defaultFont);
+            cellsupplierPaymentVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+            //Item
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("Account Name/Description", defaultFont);
+            cellsupplierPaymentVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("DR", defaultFont);
+            cellsupplierPaymentVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("CR", defaultFont);
+            cellsupplierPaymentVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            //SL: 1
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("1", defaultFont);
+            //cellsupplierPaymentVoucherReportItem.Colspan = 4;
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell(supplier.Name, defaultFont);
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell(supplierPayment.PaymentAmount, defaultFont);
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("0.00", defaultFont);
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            //SL: 2
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("2", defaultFont);
+
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell(paymentMethod.Name.ToUpper()=="CASH" ? "Cash In Hand" : paymentMethod.Name, defaultFont);
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("0.00", defaultFont);
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell(supplierPayment.PaymentAmount, defaultFont);
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            //Total
+            cellsupplierPaymentVoucherReportItem = GetPdfCell("Total", defaultFont);
+            cellsupplierPaymentVoucherReportItem.Colspan = 2;
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell(supplierPayment.PaymentAmount, defaultFont);
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            cellsupplierPaymentVoucherReportItem = GetPdfCell(supplierPayment.PaymentAmount, defaultFont);
+            cellsupplierPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            supplierPaymentVoucherReportTable.AddCell(cellsupplierPaymentVoucherReportItem);
+
+            var numColumn = 2;
+            var supplierPaymentVoucherReportTableInfo = new PdfPTable(numColumn)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var width = new Dictionary<int, int[]>
+            {
+                { numColumn, new[] { 30,70 } }
+            };
+
+            supplierPaymentVoucherReportTableInfo.SetWidths(width[numColumn]);
+
+            var cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("Amount In Words :", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell(NumberToWords.ConvertAmount(supplierPayment.PaymentAmount), reportTitleFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("Narration :", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell(paymentMethod.Name + " Payment To " + supplier.Name + " Tk- " + supplierPayment.PaymentAmount, defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("Payment Mode :", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell(paymentMethod.Name + " - - " + supplierPayment.PaymentDate.ToString("dd/MM/yyyy"), defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("Checked By :", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("Approved By :", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            supplierPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            doc.Add(supplierPaymentVoucherReportTable);
+            doc.Add(supplierPaymentVoucherReportTableInfo);
+        }
+
+        public void PrintCustomerPaymentVoucherToPdf(MemoryStream stream, Customer? customer, Branch? branch, CustomerPayment customerPayment, PaymentMethod? paymentMethod)
+        {
+            //throw new NotImplementedException();
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (customerPayment == null)
+                throw new ArgumentNullException(nameof(customerPayment));
+
+            var pageSize = PageSize.A5;
+
+
+
+            var doc = new Document(pageSize);
+            //var doc = new Document(new iTextSharp.text.Rectangle(410f, 288f).Rotate());
+
+            var pdfWriter = PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+            var headerTitleFont = GetFont();
+            headerTitleFont.SetFamily("Times New Roman");
+            headerTitleFont.Size = 12;
+            headerTitleFont.SetStyle(Font.BOLD);
+            headerTitleFont.Color = BaseColor.Black;
+
+            //addressFont
+            var addressFont = GetFont();
+            addressFont.SetFamily("Times New Roman");
+            addressFont.Size = 8;
+            addressFont.SetStyle(Font.NORMAL);
+            addressFont.Color = BaseColor.Black;
+
+            //reportTitleFont
+            var reportTitleFont = GetFont();
+            reportTitleFont.SetFamily("Times New Roman");
+            reportTitleFont.Size = 11;
+            reportTitleFont.SetStyle(Font.BOLD);
+            reportTitleFont.Color = BaseColor.Black;
+
+            //defaultFont
+            var defaultFont = GetFont();
+            defaultFont.SetFamily("Times New Roman");
+            defaultFont.SetStyle(Font.NORMAL);
+            defaultFont.Color = BaseColor.Black;
+            defaultFont.Size = 10;
+
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.ITALIC);
+
+
+            //headers
+            PrintReportHeader(pdfWriter, "Debit Voucher", branch, headerTitleFont, addressFont, reportTitleFont, doc);
+            //Line
+            //DrawHorizontalLineProtrait(pdfWriter);
+            //Profit Report
+            PrintCustomerPaymentVoucherReport(stream, customer, branch, customerPayment, paymentMethod, reportTitleFont, doc, defaultFont, attributesFont);
+            doc.Close();
+        }
+        protected virtual void PrintCustomerPaymentVoucherReport(Stream stream, Customer customer, Branch branch, CustomerPayment customerPayment, PaymentMethod paymentMethod, Font reportTitleFont, Document doc, Font defaultFont, Font attributesFont)
+        {
+
+            //Horizontal Line
+            //Paragraph line = new Paragraph(new Chunk(new iTextSharp.text.pdf.draw.LineSeparator(0.0F, 100.0F, BaseColor.Black, Element.ALIGN_LEFT, 1)));
+
+            var numColumns = 4;
+            var customerPaymentVoucherReportTable = new PdfPTable(numColumns)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var widths = new Dictionary<int, int[]>
+            {
+                { numColumns, new[] { 10,40,25,25 } }
+            };
+
+            customerPaymentVoucherReportTable.SetWidths(widths[numColumns]);
+
+            var cellcustomerPaymentVoucherReportItem = GetPdfCell("Voucher No :     " + customerPayment.BillNo, defaultFont);
+            cellcustomerPaymentVoucherReportItem.Border = Rectangle.NO_BORDER;
+            cellcustomerPaymentVoucherReportItem.Colspan = 2;
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            //Item
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("Date :     " + customerPayment.CreatedOn.ToString("dd/MM/yyyy"), defaultFont);
+            cellcustomerPaymentVoucherReportItem.Border = Rectangle.NO_BORDER;
+            cellcustomerPaymentVoucherReportItem.Colspan = 2;
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("Cost Center :     " + branch.Name, defaultFont);
+            cellcustomerPaymentVoucherReportItem.Border = Rectangle.NO_BORDER;
+            cellcustomerPaymentVoucherReportItem.Colspan = 4;
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("", defaultFont);
+            cellcustomerPaymentVoucherReportItem.Phrase.Add(new Phrase(Environment.NewLine));
+            cellcustomerPaymentVoucherReportItem.Colspan = 4;
+            cellcustomerPaymentVoucherReportItem.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            //SL
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("SL", defaultFont);
+            cellcustomerPaymentVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+            //Item
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("Account Name/Description", defaultFont);
+            cellcustomerPaymentVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("DR", defaultFont);
+            cellcustomerPaymentVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("CR", defaultFont);
+            cellcustomerPaymentVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            //SL: 1
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("1", defaultFont);
+            //cellsupplierPaymentVoucherReportItem.Colspan = 4;
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell(customer.Name, defaultFont);
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("0.00", defaultFont);
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount, defaultFont);
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            //SL: 2
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("2", defaultFont);
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell(paymentMethod.Name.ToUpper() == "CASH" ? "Cash In Hand" : paymentMethod.Name, defaultFont);
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount, defaultFont);
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("0.00", defaultFont);
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            //Total
+            cellcustomerPaymentVoucherReportItem = GetPdfCell("Total", defaultFont);
+            cellcustomerPaymentVoucherReportItem.Colspan = 2;
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount, defaultFont);
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount, defaultFont);
+            cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
+
+            var numColumn = 2;
+            var customerPaymentVoucherReportTableInfo = new PdfPTable(numColumn)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var width = new Dictionary<int, int[]>
+            {
+                { numColumn, new[] { 30,70 } }
+            };
+
+            customerPaymentVoucherReportTableInfo.SetWidths(width[numColumn]);
+
+            var cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("Amount In Words :", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell(NumberToWords.ConvertAmount(customerPayment.PaymentAmount), reportTitleFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("Narration :", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell(paymentMethod.Name + " Receive From " + customer.Name + " Tk- " + customerPayment.PaymentAmount, defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("Payment Mode :", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell(paymentMethod.Name + " - - " + customerPayment.PaymentDate.ToString("dd/MM/yyyy"), defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("Checked By :", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell("Approved By :", defaultFont);
+            cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+            cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
+
+            doc.Add(customerPaymentVoucherReportTable);
+            doc.Add(customerPaymentVoucherReportTableInfo);
+        }
+
     }
+
 }
