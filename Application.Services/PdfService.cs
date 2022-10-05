@@ -1,6 +1,7 @@
 ﻿using Application.Core.Common;
 using Application.Core.Data;
 using Application.Core.Entities;
+using Application.Core.Enums;
 using Application.Core.ReportModels;
 using Application.ViewModel;
 using iTextSharp.text;
@@ -6276,6 +6277,253 @@ namespace Application.Services
 
             doc.Add(expenseVoucherReportTable);
             doc.Add(expenseVoucherReportTableInfo);
+        }
+
+        public void PrintPayReceiveVoucherToPdf(MemoryStream stream, Branch? branch, PayReceive payReceive, AccountHead? accountHead, PaymentMethod? paymentMethod)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (payReceive == null)
+                throw new ArgumentNullException(nameof(payReceive));
+
+            var pageSize = PageSize.A5;
+
+
+
+            var doc = new Document(pageSize);
+            //var doc = new Document(new iTextSharp.text.Rectangle(410f, 288f).Rotate());
+
+            var pdfWriter = PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+            var headerTitleFont = GetFont();
+            headerTitleFont.SetFamily("Times New Roman");
+            headerTitleFont.Size = 12;
+            headerTitleFont.SetStyle(Font.BOLD);
+            headerTitleFont.Color = BaseColor.Black;
+
+            //addressFont
+            var addressFont = GetFont();
+            addressFont.SetFamily("Times New Roman");
+            addressFont.Size = 8;
+            addressFont.SetStyle(Font.NORMAL);
+            addressFont.Color = BaseColor.Black;
+
+            //reportTitleFont
+            var reportTitleFont = GetFont();
+            reportTitleFont.SetFamily("Times New Roman");
+            reportTitleFont.Size = 11;
+            reportTitleFont.SetStyle(Font.BOLD);
+            reportTitleFont.Color = BaseColor.Black;
+
+            //defaultFont
+            var defaultFont = GetFont();
+            defaultFont.SetFamily("Times New Roman");
+            defaultFont.SetStyle(Font.NORMAL);
+            defaultFont.Color = BaseColor.Black;
+            defaultFont.Size = 10;
+
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.ITALIC);
+
+
+            //headers
+            PrintReportHeader(pdfWriter, payReceive.VoucherType==1? "Credit Voucher":"Debit Voucher", branch, headerTitleFont, addressFont, reportTitleFont, doc);
+            //Line
+            //DrawHorizontalLineProtrait(pdfWriter);
+            //Profit Report
+            PrintPayReceiveVoucherReport(stream, branch, accountHead, payReceive, paymentMethod, reportTitleFont, doc, defaultFont, attributesFont);
+            doc.Close();
+        }
+
+
+        protected virtual void PrintPayReceiveVoucherReport(MemoryStream stream, Branch branch, AccountHead accountHead, PayReceive payReceive, PaymentMethod paymentMethod, Font reportTitleFont, Document doc, Font defaultFont, Font attributesFont)
+        {
+            var numColumns = 4;
+            var payReceiveVoucherReportTable = new PdfPTable(numColumns)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var widths = new Dictionary<int, int[]>
+            {
+                { numColumns, new[] { 10,40,25,25 } }
+            };
+
+            payReceiveVoucherReportTable.SetWidths(widths[numColumns]);
+
+            var cellPayReceiveVoucherReportItem = GetPdfCell("Voucher No :     " + payReceive.Vnumber, defaultFont);
+            cellPayReceiveVoucherReportItem.Border = Rectangle.NO_BORDER;
+            cellPayReceiveVoucherReportItem.Colspan = 2;
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            //Item
+            cellPayReceiveVoucherReportItem = GetPdfCell("Date :     " + payReceive.VoucherDate.ToString("dd/MM/yyyy"), defaultFont);
+            cellPayReceiveVoucherReportItem.Border = Rectangle.NO_BORDER;
+            cellPayReceiveVoucherReportItem.Colspan = 2;
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell("Cost Center :     " + branch.Name, defaultFont);
+            cellPayReceiveVoucherReportItem.Border = Rectangle.NO_BORDER;
+            cellPayReceiveVoucherReportItem.Colspan = 4;
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell("", defaultFont);
+            cellPayReceiveVoucherReportItem.Phrase.Add(new Phrase(Environment.NewLine));
+            cellPayReceiveVoucherReportItem.Colspan = 4;
+            cellPayReceiveVoucherReportItem.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            //SL
+            cellPayReceiveVoucherReportItem = GetPdfCell("SL", defaultFont);
+            cellPayReceiveVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+            //Item
+            cellPayReceiveVoucherReportItem = GetPdfCell("Account Name/Description", defaultFont);
+            cellPayReceiveVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell("DR", defaultFont);
+            cellPayReceiveVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell("CR", defaultFont);
+            cellPayReceiveVoucherReportItem.BackgroundColor = BaseColor.LightGray;
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            //SL: 1
+            cellPayReceiveVoucherReportItem = GetPdfCell("1", defaultFont);
+            //cellsupplierPaymentVoucherReportItem.Colspan = 4;
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell(accountHead.Name, defaultFont);
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.VoucherType == 1 ? payReceive.Amount : "0.00", defaultFont);
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.VoucherType == 1 ? "0.00" : payReceive.Amount, defaultFont);
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            //SL: 2
+            cellPayReceiveVoucherReportItem = GetPdfCell("2", defaultFont);
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell(paymentMethod.Name.ToUpper() == "CASH" ? "Cash In Hand" : paymentMethod.Name, defaultFont);
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.VoucherType == 1 ? "0.00" : payReceive.Amount, defaultFont);
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.VoucherType == 1 ? payReceive.Amount : "0.00", defaultFont);
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            //Total
+            cellPayReceiveVoucherReportItem = GetPdfCell("Total", defaultFont);
+            cellPayReceiveVoucherReportItem.Colspan = 2;
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.Amount, defaultFont);
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.Amount, defaultFont);
+            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+
+            var numColumn = 2;
+            var payReceiveVoucherReportTableInfo = new PdfPTable(numColumn)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var width = new Dictionary<int, int[]>
+            {
+                { numColumn, new[] { 30,70 } }
+            };
+
+            payReceiveVoucherReportTableInfo.SetWidths(width[numColumn]);
+
+            var cellExpenseVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellExpenseVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellExpenseVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell("Amount In Words :", defaultFont);
+            cellExpenseVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell(NumberToWords.ConvertAmount(payReceive.Amount), reportTitleFont);
+            cellExpenseVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell("Narration :", defaultFont);
+            cellExpenseVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell(paymentMethod.Name + (payReceive.VoucherType == 1 ? " Paid To " : " Receive From ") + accountHead.Name + " Tk- " + payReceive.Amount + "  " + payReceive.Description, defaultFont);
+            cellExpenseVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell("Payment Mode :", defaultFont);
+            cellExpenseVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell(paymentMethod.Name + " - - " + payReceive.VoucherDate.ToString("dd/MM/yyyy"), defaultFont);
+            cellExpenseVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellExpenseVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell("", defaultFont);
+            cellExpenseVoucherReportItemInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell("Checked By :", defaultFont);
+            cellExpenseVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            cellExpenseVoucherReportItemInfo = GetPdfCell("Approved By :", defaultFont);
+            cellExpenseVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_RIGHT;
+            cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
+            payReceiveVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
+
+            doc.Add(payReceiveVoucherReportTable);
+            doc.Add(payReceiveVoucherReportTableInfo);
         }
     }
 
