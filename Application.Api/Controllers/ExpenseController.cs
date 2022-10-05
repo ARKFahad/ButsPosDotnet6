@@ -2,6 +2,7 @@
 using Application.Core.Constants;
 using Application.Core.Data;
 using Application.Core.Entities;
+using Application.Core.Exceptions;
 using Application.Core.PermissionHelpers;
 using Application.RequestModel;
 using Application.Services;
@@ -207,6 +208,31 @@ namespace Application.Api.Controllers
             {
                 return await Result<string>.FailAsync(exception.ToString(), exception.Message);
             }
+        }
+        [HttpGet("/api/expense/voucher/{id}")]
+        public IActionResult ExpenseVoucher(string id)
+        {
+            var expense = _context.Expenses.Find(id);
+            if (expense == null) throw new NotFoundResultException("Not Found");
+            var expenseType = _context.ExpenseTypes.Find(expense.ExpenseTypeId);
+            var paymentMethod = _context.PaymentMethods.Find(expense.PaymentMethodId);
+            var branch = _context.Branches.Find(expense.BranchId);
+            try
+            {
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                {
+                    _pdfService.PrintExpenseVoucherToPdf(stream, expenseType, branch, expense, paymentMethod);
+                    bytes = stream.ToArray();
+                    // bytes =_pdfService.AddFooterInfoForA5Page(bytes);
+                }
+                return File(bytes, MimeTypes.ApplicationPdf);
+            }
+            catch (Exception exc)
+            {
+                throw;
+            }
+
         }
     }
 }

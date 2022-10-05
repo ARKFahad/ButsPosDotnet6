@@ -41,5 +41,6 @@ namespace Application.Services
         void PrintPurchaseInvoiceToPdf(MemoryStream stream, Supplier? supplier, Branch? branch, Purchase purchase, List<PurchaseItemModel> purchaseItems);
         void PrintSupplierPaymentVoucherToPdf(MemoryStream stream, Supplier? supplier, Branch? branch, SupplierPayment supplierPayment, PaymentMethod? paymentMethod);
         void PrintCustomerPaymentVoucherToPdf(MemoryStream stream, Customer? customer, Branch? branch, CustomerPayment customerPayment, PaymentMethod? paymentMethod);
+        void PrintExpenseVoucherToPdf(MemoryStream stream, ExpenseType? expenseType, Branch? branch, Expense expense, PaymentMethod? paymentMethod);
     }
 }
