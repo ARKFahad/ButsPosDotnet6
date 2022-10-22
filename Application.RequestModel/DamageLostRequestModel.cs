@@ -18,6 +18,10 @@ namespace Application.RequestModel
         public DateTime? fromDate { get; set; }
 
         public DateTime? ToDate { get; set; }
+        public string? BranchId { get; set; }
+        public string? SupplierId { get; set; }
+        public string? ProductId { get; set; }
+
         public override Expression<Func<DamageLost, bool>> GetExpression()
         {
             ExpressionObject = x => !x.Deleted;

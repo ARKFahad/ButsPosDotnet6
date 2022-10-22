@@ -18,11 +18,18 @@ namespace Application.RequestModel
         public DateTime? fromDate { get; set; }
 
         public DateTime? ToDate { get; set; }
+        public string? BranchId { get; set; }
+        public string? SupplierId { get; set; }
+        public string? ProductId { get; set; }
         public override Expression<Func<StockAdjustment, bool>> GetExpression()
         {
             ExpressionObject = x => !x.Deleted;
             if (fromDate.HasValue && ToDate.HasValue)
                 ExpressionObject = ExpressionObject.And(x => x.CreatedOn.Date >= fromDate.Value.Date && x.CreatedOn.Date <= ToDate.Value.Date);
+           
+            
+            
+            
             return ExpressionObject;
 
         }
