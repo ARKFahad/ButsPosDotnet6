@@ -27,6 +27,15 @@ namespace Application.RequestModel
             ExpressionObject = x => !x.Deleted;
             if (fromDate.HasValue && ToDate.HasValue)
                 ExpressionObject = ExpressionObject.And(x => x.CreatedOn.Date >= fromDate.Value.Date && x.CreatedOn.Date <= ToDate.Value.Date);
+            if (!string.IsNullOrWhiteSpace(BranchId))
+            {
+                ExpressionObject = ExpressionObject.And(x => x.BranchId == BranchId);
+            }
+          
+            if (!string.IsNullOrWhiteSpace(ProductId))
+            {
+                ExpressionObject = ExpressionObject.And(x => x.ProductId == ProductId);
+            }
             return ExpressionObject;
 
         }
