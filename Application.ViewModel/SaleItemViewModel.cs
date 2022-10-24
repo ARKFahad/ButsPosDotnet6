@@ -12,6 +12,7 @@ namespace Application.ViewModel
         public SaleItemViewModel(SaleItem saleItem)
         {
             Id = saleItem.Id;
+            SaleNo = saleItem.Sale.SaleNo;
             SaleId = saleItem.SaleId;
             ProductId = saleItem.ProductId;
             ProductName = saleItem?.Product?.Name;
@@ -21,8 +22,10 @@ namespace Application.ViewModel
             ReturnQuantity = saleItem.ReturnQuantity;
             Amount = saleItem.Amount;
             ItemCogs = saleItem.CogsPerItem;
+            CreatedOn = saleItem.CreatedOn;
         }
         public string Id { get; set; }
+        public string  SaleNo { get; set; }
         public string SaleId { get; set; }
         public string ProductId { get; set; }
         public string? ProductName { get; set; }
@@ -32,8 +35,9 @@ namespace Application.ViewModel
         public int ReturnQuantity { get; set; }
         public decimal ItemCogs { get; set; }
         public decimal Amount { get; set; }
-        
-      
-       
+        public DateTime CreatedOn { get; set; }
+
+
+
     }
 }

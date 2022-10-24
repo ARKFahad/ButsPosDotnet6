@@ -12,6 +12,7 @@ namespace Application.ViewModel
         public PurchaseItemViewModel(PurchaseItem purchaseItem )
         {
             Id = purchaseItem.Id;
+            PurchaseNo = purchaseItem.Purchase.PurchaseNo;
             PurchaseId = purchaseItem.PurchaseId;
             ProductId = purchaseItem.ProductId;
             ProductName = purchaseItem.Product?.Name;
@@ -23,9 +24,11 @@ namespace Application.ViewModel
             ReturnQuantity = purchaseItem.ReturnQuantity;
             BonusQuantity = purchaseItem.BonusQuantity;
             Amount = purchaseItem.Amount;
-            Deleted = purchaseItem.Deleted;
+            CreatedOn = purchaseItem.CreatedOn;
+            
         }
         public string Id { get; set; }
+        public string PurchaseNo { get; set; }
         public string PurchaseId { get; set; }
         public string ProductId { get; set; }
         public string? ProductName { get; set; }
@@ -37,7 +40,7 @@ namespace Application.ViewModel
         public int ReturnQuantity { get; set; }
         public int BonusQuantity { get; set; }
         public decimal Amount { get; set; }
-        public bool Deleted { get; set; }
+        public DateTime CreatedOn { get; set; }
 
     }
 }

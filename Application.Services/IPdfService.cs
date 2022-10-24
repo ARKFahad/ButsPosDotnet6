@@ -43,5 +43,7 @@ namespace Application.Services
         void PrintCustomerPaymentVoucherToPdf(MemoryStream stream, Customer? customer, Branch? branch, CustomerPayment customerPayment, PaymentMethod? paymentMethod);
         void PrintExpenseVoucherToPdf(MemoryStream stream, ExpenseType? expenseType, Branch? branch, Expense expense, PaymentMethod? paymentMethod);
         void PrintPayReceiveVoucherToPdf(MemoryStream stream, Branch? branch, PayReceive payReceive, AccountHead? accountHead, PaymentMethod? paymentMethod);
+        void PrintPurchaseItemReportToPdf(MemoryStream stream, Branch? branch, List<PurchaseItemViewModel> purchaseItemViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
+        void PrintSaleItemReportToPdf(MemoryStream stream, Branch? branch, List<SaleItemViewModel> saleItemViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
     }
 }
