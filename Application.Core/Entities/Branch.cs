@@ -22,7 +22,6 @@ namespace Application.Core.Entities
             SupplierPayments = new HashSet<SupplierPayment>();
             TransferHistoryDestinations = new HashSet<TransferHistory>();
             TransferHistorySources = new HashSet<TransferHistory>();
-            Users = new HashSet<User>();
         }
 
         public string Id { get; set; }
@@ -51,6 +50,5 @@ namespace Application.Core.Entities
         public virtual ICollection<SupplierPayment> SupplierPayments { get; set; }
         public virtual ICollection<TransferHistory> TransferHistoryDestinations { get; set; }
         public virtual ICollection<TransferHistory> TransferHistorySources { get; set; }
-        public virtual ICollection<User> Users { get; set; }
     }
 }
