@@ -198,7 +198,7 @@ namespace Application.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim("branchId", user.BranchId),
+                new Claim("branchId", user.BranchId??""),
                 new Claim("company",company.Name),
                 new Claim("logo",company.LogoPath),
                 new Claim(ClaimTypes.Role, _roleRepository.GetAll().FirstOrDefault(x=>x.Id==user.RoleId)?.Name)
