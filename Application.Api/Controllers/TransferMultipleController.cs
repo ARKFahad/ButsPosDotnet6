@@ -58,7 +58,6 @@ namespace Application.Api.Controllers
                     var sourceBranch = await _context.Branches.FindAsync(transferMultipleModel.SourceId);
                     var dbSupplier = await _context.Suppliers.Where(x=>x.AccountId==sourceBranch.SupplierAccountId)?.FirstOrDefaultAsync();
                     if (dbSupplier == null) throw new NotFoundResultException("Please Make Source Branch as Supplier");
-
                     var totalTransferAmount = 0M;
                     var count = _context.TransferMultiples.Count() + 1;
                      TransferMultiple transferMultiple = new TransferMultiple
@@ -67,12 +66,12 @@ namespace Application.Api.Controllers
                             TransferNo= "T" + count.ToString().PadLeft(7, '0'),
                             SourceId = transferMultipleModel.SourceId,
                             DestinationId = transferMultipleModel.DestinationId,
+                            SupplierId=transferMultipleModel.SupplierId,
                          //  SupplierBalance = dbSupplier.Balance + totalTransferAmount,
                             CreatedOn = DateTime.Now,
                             CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId() ?? "",
                             UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId() ?? "",
                             UpdatedOn = DateTime.Now
-
                         };
                     
                     foreach (var transferDetail in transferMultipleModel.TransferDetails)
@@ -147,8 +146,6 @@ namespace Application.Api.Controllers
            
         }
 
-
-
         [Authorize(Policy = Permissions.Transfers.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -165,9 +162,6 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<TransferMultipleViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
-
-
-
 
     }
 }

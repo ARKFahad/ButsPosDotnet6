@@ -46,9 +46,7 @@ namespace Application.RequestModel
         }
         public override IQueryable<TransferDetail> IncludeParents(IQueryable<TransferDetail> queryable)
         {
-            return queryable.Include(x => x.TransferMultiple).ThenInclude(x=>x.Source)
-                .Include(x => x.TransferMultiple).ThenInclude(x => x.Destination).
-                Include(x => x.Product);
+            return queryable.Include(x => x.TransferMultiple).Include(x => x.Product).ThenInclude(x=>x.Category);
         }
     }
 }
