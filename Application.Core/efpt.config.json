@@ -158,7 +158,15 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[TransferDetail]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[TransferHistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TransferMultiple]",
          "ObjectType": 0
       },
       {

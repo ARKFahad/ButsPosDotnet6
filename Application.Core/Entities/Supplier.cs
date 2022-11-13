@@ -14,6 +14,7 @@ namespace Application.Core.Entities
             Purchases = new HashSet<Purchase>();
             StockAdjustments = new HashSet<StockAdjustment>();
             SupplierPayments = new HashSet<SupplierPayment>();
+            TransferMultiples = new HashSet<TransferMultiple>();
         }
 
         public string Id { get; set; }
@@ -37,5 +38,6 @@ namespace Application.Core.Entities
         public virtual ICollection<Purchase> Purchases { get; set; }
         public virtual ICollection<StockAdjustment> StockAdjustments { get; set; }
         public virtual ICollection<SupplierPayment> SupplierPayments { get; set; }
+        public virtual ICollection<TransferMultiple> TransferMultiples { get; set; }
     }
 }

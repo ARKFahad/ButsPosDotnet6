@@ -67,7 +67,7 @@ namespace Application.Api.Controllers
                              totalPurchasePrice += ((item.PurchaseRate+item.AdditionalCostPerItem)-item.DiscountPerItem);
                              item.BranchId = transfermodel.DestinationId;
                         }
-
+                     
                     var count = _context.TransferHistories.Count() + 1;
                     TransferHistory transferHistory = new TransferHistory
                         {
@@ -136,6 +136,9 @@ namespace Application.Api.Controllers
             }
            
         }
+
+
+
         [Authorize(Policy = Permissions.Transfers.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
