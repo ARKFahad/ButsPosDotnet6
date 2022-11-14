@@ -37,7 +37,7 @@ namespace Application.ViewModel
         public string Id { get; set; }
         public string TransferNo { get; set; }
         public string SourceId { get; set; }
-        public string SourceName { get; set; }
+       public string SourceName { get; set; }
         public string SupplierId { get; set; }
         public string SupplierName { get; set; }
         public string DestinationId { get; set; }

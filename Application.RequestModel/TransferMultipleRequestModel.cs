@@ -11,6 +11,10 @@ namespace Application.RequestModel
 {
     public class TransferMultipleRequestModel : BaseRequestModel<TransferMultiple>
     {
+        public TransferMultipleRequestModel()
+        {
+            IsIncludeParents = true;
+        }
         public override Expression<Func<TransferMultiple, bool>> GetExpression()
         {
             ExpressionObject = x => !x.Deleted;
