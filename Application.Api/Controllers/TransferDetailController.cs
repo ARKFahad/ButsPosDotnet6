@@ -61,7 +61,8 @@ namespace Application.Api.Controllers
                 using (var stream = new MemoryStream())
                 {
 
-                   // _pdfService.PrintTransferDetailReportToPdf(stream, _context.Branches.Find(request.BranchId), content.Item1.ToList(), "Purchase History", request.fromDate, request.ToDate);
+                   
+                    _pdfService.PrintTransferDetailReportToPdf(stream, _context.Branches.Find(request.SourceBranchId), _context.Branches.Find(request.DestinationBranchId), content.Item1.ToList(), "Transfer History Report", request.FromDate, request.ToDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }

@@ -219,6 +219,121 @@ namespace Application.Services
             }
             doc.Add(headerTable);
         }
+        protected virtual void PrintTransferDetailReportHeader(PdfWriter pdfWriter, string reportHeader, Branch sourceBranch, Branch destinationBranch, Font headerTitleFont, Font addressFont, Font reportTitleFont, Document doc, DateTime? fromDate, DateTime? toDatde)
+        {
+
+            var font = GetFont();
+            font.SetFamily("Times New Roman");
+            font.Size = 10;
+            font.SetStyle(Font.NORMAL);
+            font.SetStyle(Font.BOLD);
+            font.Color = BaseColor.Black;
+
+            //header
+            var numColumns = 2;
+            var headerTable = new PdfPTable(numColumns)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var widths = new Dictionary<int, int[]>
+            {
+                { numColumns, new[] { 70,30 } }
+            };
+
+            headerTable.SetWidths(widths[numColumns]);
+            //SL
+            var company = _context.Companies.First();
+
+            var logo = Image.GetInstance(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", Path.GetFileName(company.LogoPath)));
+            logo.ScaleToFit(100f, 500f);
+            logo.Alignment = iTextSharp.text.Image.ALIGN_CENTER;
+            logo.IndentationLeft = 9f;
+            logo.IndentationRight = 9f;
+            logo.SpacingBefore = 5f;
+            logo.SpacingAfter = 2f;
+            //Item
+
+            var logocell = new PdfPCell { Border = Rectangle.NO_BORDER };
+            logocell.AddElement(logo);
+            logocell.Colspan = 2;
+            headerTable.AddCell(logocell);
+            var cellCompanyName = GetPdfCell(company.Name, headerTitleFont);
+            cellCompanyName.HorizontalAlignment = Element.ALIGN_CENTER;
+            cellCompanyName.Phrase.Add(new Phrase(Environment.NewLine));
+            cellCompanyName.Border = Rectangle.NO_BORDER;
+            cellCompanyName.Colspan = 2;
+            headerTable.AddCell(cellCompanyName);
+            var cellReportName = GetPdfCell(reportHeader, headerTitleFont);
+            cellReportName.HorizontalAlignment = Element.ALIGN_CENTER;
+            cellReportName.Phrase.Add(new Phrase(Environment.NewLine));
+            cellReportName.Phrase.Add(new Phrase(Environment.NewLine));
+            cellReportName.Border = Rectangle.NO_BORDER;
+            cellReportName.Colspan = 2;
+            headerTable.AddCell(cellReportName);
+            var cellSourceBranchName = GetPdfCell("Source Branch Name: " + sourceBranch.Name, font);
+            if (sourceBranch != null)
+            {
+                cellSourceBranchName.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellSourceBranchName.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellSourceBranchName);
+            }
+            else
+            {
+                cellSourceBranchName = GetPdfCell("", font);
+                cellSourceBranchName.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellSourceBranchName.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellSourceBranchName);
+            }
+            var cellFromDate = GetPdfCell("From: " + fromDate?.ToString("dd/MM/yyyy"), font);
+            if (fromDate.HasValue)
+            {
+                cellFromDate.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellFromDate.Phrase.Add(new Phrase(Environment.NewLine));
+                cellFromDate.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellFromDate);
+            }
+            else
+            {
+                cellFromDate = GetPdfCell("", font);
+                cellFromDate.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellFromDate.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellFromDate);
+            }
+            var cellDestinationBranchName = GetPdfCell("Destination Branch Name: " + destinationBranch.Name, font);
+            if (destinationBranch != null)
+            {
+                cellDestinationBranchName.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellDestinationBranchName.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellDestinationBranchName);
+            }
+            else
+            {
+                cellDestinationBranchName = GetPdfCell("", font);
+                cellDestinationBranchName.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellDestinationBranchName.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellDestinationBranchName);
+            }
+            var cellToDate = GetPdfCell("To: " + toDatde?.ToString("dd/MM/yyyy"), font);
+            if (toDatde.HasValue)
+            {
+                cellToDate = GetPdfCell("To: " + toDatde?.ToString("dd/MM/yyyy"), font);
+                cellToDate.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellToDate.Phrase.Add(new Phrase(Environment.NewLine));
+                cellToDate.Phrase.Add(new Phrase(Environment.NewLine));
+                cellToDate.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellToDate);
+            }
+            else
+            {
+                cellToDate = GetPdfCell("", font);
+                cellToDate.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellToDate.Border = Rectangle.NO_BORDER;
+                headerTable.AddCell(cellToDate);
+            }
+            doc.Add(headerTable);
+        }
         protected virtual void PrintSupplierLedgerReportHeader(PdfWriter pdfWriter, string reportHeader, Supplier supplier, Font headerTitleFont, Font addressFont, Font reportTitleFont, Document doc, DateTime? fromDate, DateTime? toDatde)
         {
 
@@ -6871,6 +6986,165 @@ namespace Application.Services
 
             }
             doc.Add(saleItemReportTable);
+        }
+
+        public void PrintTransferDetailReportToPdf(MemoryStream stream, Branch? sourceBranch, Branch? destinationBranch, List<TransferDetailViewModel> transferDetailViewModels, string reportName, DateTime? fromDate, DateTime? toDate)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (transferDetailViewModels == null)
+                throw new ArgumentNullException(nameof(transferDetailViewModels));
+
+            var pageSize = PageSize.A4;
+
+
+
+            var doc = new Document(pageSize);
+
+            var pdfWriter = PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+            var headerTitleFont = GetFont();
+            headerTitleFont.SetFamily("Times New Roman");
+            headerTitleFont.Size = 12;
+            headerTitleFont.SetStyle(Font.BOLD);
+            headerTitleFont.Color = BaseColor.Black;
+
+            //addressFont
+            var addressFont = GetFont();
+            addressFont.SetFamily("Times New Roman");
+            addressFont.Size = 8;
+            addressFont.SetStyle(Font.NORMAL);
+            addressFont.Color = BaseColor.Black;
+
+            //reportTitleFont
+            var reportTitleFont = GetFont();
+            reportTitleFont.SetFamily("Times New Roman");
+            reportTitleFont.Size = 11;
+            reportTitleFont.SetStyle(Font.BOLD);
+            reportTitleFont.Color = BaseColor.Black;
+
+            //defaultFont
+            var defaultFont = GetFont();
+            defaultFont.SetFamily("Times New Roman");
+            defaultFont.SetStyle(Font.NORMAL);
+            defaultFont.Color = BaseColor.Black;
+            defaultFont.Size = 10;
+
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.ITALIC);
+
+
+            //headers
+            PrintTransferDetailReportHeader(pdfWriter, reportName, sourceBranch, destinationBranch, headerTitleFont, addressFont, reportTitleFont, doc, fromDate, toDate);
+
+            PrintTransferDetailReport(reportTitleFont, doc, transferDetailViewModels, defaultFont, attributesFont);
+
+            var transferDetailReportLineNumber = 20;
+            var transferDetailReportLineNumberCount = transferDetailViewModels.Count;
+            transferDetailReportLineNumber++;
+
+            if (transferDetailReportLineNumber <= transferDetailReportLineNumberCount)
+            {
+                doc.NewPage();
+            }
+
+            doc.Close();
+        }
+
+        private void PrintTransferDetailReport(Font reportTitleFont, Document doc, List<TransferDetailViewModel> transferDetailViewModels, Font defaultFont, Font attributesFont)
+        {
+            var numColumns = 5;
+            var transferDetailReportTable = new PdfPTable(numColumns)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var widths = new Dictionary<int, int[]>
+            {
+                { numColumns, new[] { 10,15,40,20,15 } }
+            };
+
+            transferDetailReportTable.SetWidths(widths[numColumns]);
+
+            //SL
+            var cellTransferDetailReportItem = GetPdfCell("SL", defaultFont);
+            cellTransferDetailReportItem.BackgroundColor = BaseColor.LightGray;
+            cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+            //Transfer No
+            cellTransferDetailReportItem = GetPdfCell("Transfer No", defaultFont);
+            cellTransferDetailReportItem.BackgroundColor = BaseColor.LightGray;
+            cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+            //Product Name
+            cellTransferDetailReportItem = GetPdfCell("Product Name", defaultFont);
+            cellTransferDetailReportItem.BackgroundColor = BaseColor.LightGray;
+            cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+            //Transfer Quantity
+            cellTransferDetailReportItem = GetPdfCell("Transfer Qty", defaultFont);
+            cellTransferDetailReportItem.BackgroundColor = BaseColor.LightGray;
+            cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+            //Amount
+            cellTransferDetailReportItem = GetPdfCell("Amount", defaultFont);
+            cellTransferDetailReportItem.BackgroundColor = BaseColor.LightGray;
+            cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+
+
+            transferDetailReportTable.HeaderRows = 1;
+            var r = 0;
+            foreach (var transferDetailObj in transferDetailViewModels)
+            {
+                r++;
+
+                //SL
+                cellTransferDetailReportItem = GetPdfCell(r, defaultFont);
+                cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+                //Transfer Name
+                cellTransferDetailReportItem = GetPdfCell(transferDetailObj.TransferNo, defaultFont);
+                cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+
+                //Product Name
+                cellTransferDetailReportItem = GetPdfCell(transferDetailObj.ProductName, defaultFont);
+                cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+
+                //Transfer Quantity
+                cellTransferDetailReportItem = GetPdfCell(transferDetailObj.TransferQty, defaultFont);
+                cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+                //Amount
+                cellTransferDetailReportItem = GetPdfCell(transferDetailObj.Amount, defaultFont);
+                cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+          }
+            //Grand Total
+            cellTransferDetailReportItem = GetPdfCell("GrandTotal", defaultFont);
+            cellTransferDetailReportItem.Colspan = 3;
+            cellTransferDetailReportItem.BackgroundColor = BaseColor.LightGray;
+            cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+
+            //Total Transfer Quantity
+            cellTransferDetailReportItem = GetPdfCell(transferDetailViewModels.Sum(x=>x.TransferQty), defaultFont);
+            cellTransferDetailReportItem.BackgroundColor = BaseColor.LightGray;
+            cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+
+            cellTransferDetailReportItem = GetPdfCell(transferDetailViewModels.Sum(x => x.Amount), defaultFont);
+            cellTransferDetailReportItem.BackgroundColor = BaseColor.LightGray;
+            cellTransferDetailReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            transferDetailReportTable.AddCell(cellTransferDetailReportItem);
+
+
+
+            doc.Add(transferDetailReportTable);
         }
     }
 
