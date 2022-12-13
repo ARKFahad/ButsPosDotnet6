@@ -18,7 +18,7 @@ public static class RegisterStartupServices
         {
 
           builder.Services.AddDbContext<GHP_POS_DBContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-       //  builder.Services.AddClientDbContext(builder.Configuration);        
+        // builder.Services.AddClientDbContext(builder.Configuration);        
          builder.Services.AddControllers();
            //cors
         builder.Services.AddCors(opt =>
@@ -28,7 +28,7 @@ public static class RegisterStartupServices
                        policy
                       .AllowAnyHeader()
                       .AllowAnyMethod()
-                     // .AllowCredentials()
+                      //.AllowCredentials()
                       .AllowAnyOrigin();
                      // .WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Value.Split(","));
             });
