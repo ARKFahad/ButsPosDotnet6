@@ -25,7 +25,6 @@ namespace Application.Services
         void PrintCustomerLedgerReportToPdf(Stream stream, Customer? customer,decimal? prevBalance, IList<CustomerLedgerReportLine> customerLedgerReportLines, string reportName, DateTime? fromDate, DateTime? toDatde);
         void PrintStockReportToPdf(Stream stream, Branch? branch, IList<StockModel> stockReportLines, string reportName);
         void PrintOutOfStockReportToPdf(Stream stream, Branch? branch, IList<StockModel> stockReportLines, string reportName);
-        void PrintPurchaseReportToPdf(Stream stream, Branch? branch, IList<PurchaseViewModel> purchaseReportLines, string reportName, DateTime? fromDate, DateTime? toDatde);
         void PrintSaleReportToPdf(Stream stream, Branch? branch, IList<SaleViewModel> saleReportLines, string reportName, DateTime? fromDate, DateTime? toDatde);
         void PrintExpenseReportToPdf(Stream stream, Branch? branch, IList<ExpenseViewModel> expenseReportLines, string reportName, DateTime? fromDate, DateTime? toDatde);
        
@@ -46,5 +45,6 @@ namespace Application.Services
         void PrintPurchaseItemReportToPdf(MemoryStream stream, Branch? branch, List<PurchaseItemViewModel> purchaseItemViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
         void PrintSaleItemReportToPdf(MemoryStream stream, Branch? branch, List<SaleItemViewModel> saleItemViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
         void PrintTransferDetailReportToPdf(MemoryStream stream, Branch? sourceBranch, Branch? destinationBranch, List<TransferDetailViewModel> transferDetailViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
+        void PrintPurchaseReportToPdf(MemoryStream stream, Branch? branch, List<PurchaseViewModel> purchaseViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
     }
 }

@@ -83,7 +83,7 @@ namespace Application.Api.Controllers
         }
         [HttpPost]
         [Route("print")]
-        public virtual async Task<IActionResult> Print(PurchaseRequestModel request)
+        public virtual async Task<IActionResult> TestPrint(PurchaseRequestModel request)
         {
             try
             {
@@ -93,8 +93,8 @@ namespace Application.Api.Controllers
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                   
-                    _pdfService.PrintPurchaseReportToPdf(stream, _context.Branches.Find(request.BranchId), content.Item1.ToList(), "Purchase Report ",request.fromDate,request.ToDate);
+
+                    _pdfService.PrintPurchaseReportToPdf(stream, _context.Branches.Find(request.BranchId), content.Item1.ToList(), "Purchase Report ", request.fromDate, request.ToDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
@@ -103,7 +103,7 @@ namespace Application.Api.Controllers
             }
             catch (Exception exception)
             {
-                return  Ok(exception.ToString());
+                return Ok(exception.ToString());
             }
         }
         [Authorize(Policy = Permissions.Purchases.View)]
