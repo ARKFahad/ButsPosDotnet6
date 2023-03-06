@@ -17,7 +17,9 @@ namespace Application.Core.Data.Configurations
 
             entity.Property(e => e.Id).HasMaxLength(100);
 
-            entity.Property(e => e.BranchId).HasMaxLength(100);
+            entity.Property(e => e.BranchId)
+                .HasMaxLength(100)
+                .HasDefaultValueSql("(N'bbb')");
 
             entity.Property(e => e.CreatedBy)
                 .IsRequired()

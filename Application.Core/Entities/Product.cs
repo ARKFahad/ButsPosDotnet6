@@ -15,6 +15,7 @@ namespace Application.Core.Entities
             SaleItems = new HashSet<SaleItem>();
             SaleReturnItems = new HashSet<SaleReturnItem>();
             StockAdjustments = new HashSet<StockAdjustment>();
+            StockItems = new HashSet<StockItem>();
             TransferDetails = new HashSet<TransferDetail>();
             TransferHistories = new HashSet<TransferHistory>();
         }
@@ -52,6 +53,7 @@ namespace Application.Core.Entities
         public virtual ICollection<SaleItem> SaleItems { get; set; }
         public virtual ICollection<SaleReturnItem> SaleReturnItems { get; set; }
         public virtual ICollection<StockAdjustment> StockAdjustments { get; set; }
+        public virtual ICollection<StockItem> StockItems { get; set; }
         public virtual ICollection<TransferDetail> TransferDetails { get; set; }
         public virtual ICollection<TransferHistory> TransferHistories { get; set; }
     }

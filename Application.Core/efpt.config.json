@@ -8,6 +8,7 @@
    "ModelNamespace": null,
    "OutputContextPath": "Data",
    "OutputPath": "Entities",
+   "PreserveCasingWithRegex": true,
    "ProjectRootNamespace": "Application.Core",
    "Schemas": null,
    "SelectedHandlebarsLanguage": 0,
@@ -174,9 +175,11 @@
          "ObjectType": 0
       }
    ],
-   "UiHint": "WIN-8UKQEU5IGCJ.DEMO1",
+   "UiHint": "WIN-8UKQEU5IGCJ.ghp",
+   "UncountableWords": null,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": false,
+   "UseDateOnlyTimeOnly": false,
    "UseDbContextSplitting": true,
    "UseFluentApiOnly": true,
    "UseHandleBars": false,
@@ -184,12 +187,11 @@
    "UseInflector": true,
    "UseLegacyPluralizer": false,
    "UseManyToManyEntity": false,
-   "UseNoConstructor": false,
    "UseNoDefaultConstructor": false,
-   "UseNoNavigations": false,
    "UseNoObjectFilter": false,
    "UseNodaTime": false,
    "UseNullableReferences": false,
    "UseSchemaFolders": false,
-   "UseSpatial": false
+   "UseSpatial": false,
+   "UseT4": false
 }

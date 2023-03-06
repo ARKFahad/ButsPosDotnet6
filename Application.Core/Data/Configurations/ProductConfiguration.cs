@@ -67,7 +67,7 @@ namespace Application.Core.Data.Configurations
 
             entity.Property(e => e.TempCode)
                 .HasMaxLength(100)
-                .HasDefaultValueSql("(N'thhhdffss')");
+                .HasDefaultValueSql("(N'fdfdfdfdf')");
 
             entity.Property(e => e.UpdatedBy)
                 .IsRequired()

@@ -52,6 +52,18 @@ namespace Application.Core.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(100);
 
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.StockItems)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_StockItem_Product");
+
+            entity.HasOne(d => d.Supplier)
+                .WithMany(p => p.StockItems)
+                .HasForeignKey(d => d.SupplierId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_StockItem_Supplier");
+
             OnConfigurePartial(entity);
         }
 
