@@ -32,10 +32,7 @@ namespace Application.RequestModel
             }
             if(fromDate.HasValue&& ToDate.HasValue)
             ExpressionObject = ExpressionObject.And(x => x.CreatedOn.Date >= fromDate.Value.Date && x.CreatedOn.Date <= ToDate.Value.Date);
-            //if (!string.IsNullOrWhiteSpace(BranchId))
-            //{
-            //    ExpressionObject = ExpressionObject.And(x => x.BranchId == BranchId);              
-            //}
+            
             if (!string.IsNullOrWhiteSpace(CustomerId))
             {
                 ExpressionObject = ExpressionObject.And(x => x.CustomerId == CustomerId);

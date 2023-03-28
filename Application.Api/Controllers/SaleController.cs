@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Org.BouncyCastle.Asn1.Ocsp;
 using PbApp.Service;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Transactions;
+using static Application.Core.Constants.Permissions;
 
 namespace Application.Api.Controllers
 {
@@ -341,6 +343,42 @@ namespace Application.Api.Controllers
                                   };
                  return plQueryable;
          }
+
+        [HttpPost]
+        [Route("day-wise-sale-summary")]
+        public  IActionResult DayWiseSaleSummary(SaleRequestModel request)
+        {
+            var queryable = _context.Sales.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(request.BranchId))
+                queryable = queryable.Where(x => x.BranchId == request.BranchId);
+            if (request.fromDate.HasValue && request.ToDate.HasValue)
+                queryable = queryable.Where(x => x.CreatedOn.Date >= request.fromDate.Value.Date && x.CreatedOn.Date <= request.ToDate.Value.Date);
+            if (!string.IsNullOrWhiteSpace(request.CustomerId))
+            {
+                queryable = queryable.Where(x => x.CustomerId == request.CustomerId);
+            }
+
+            try
+            {
+                var summaryData = queryable.GroupBy(sd => sd.CreatedOn.Date)
+                                       .Select(g => new SalesData { Date = g.Key, Amount = g.Sum(sd => sd.PaidAmount) })
+                                       .OrderBy(sd => sd.Date)
+                                       .ToList();
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                {
+                   // _pdfService.PrintDayWiseSaleReportToPdf(stream, _context.Branches.Find(request.BranchId), summaryData, "Day wise Sale Report", request.fromDate, request.ToDate);
+                    bytes = stream.ToArray();
+                    bytes = _pdfService.AddPageNumbers(bytes);
+                }
+
+                return File(bytes, MimeTypes.ApplicationPdf);
+            }
+            catch (Exception exception)
+            {
+                return Ok(exception.ToString());
+            }
+        }
     }
 }
 
