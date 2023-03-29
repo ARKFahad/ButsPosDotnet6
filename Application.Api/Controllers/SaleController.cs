@@ -361,13 +361,13 @@ namespace Application.Api.Controllers
             try
             {
                 var summaryData = queryable.GroupBy(sd => sd.CreatedOn.Date)
-                                       .Select(g => new SalesData { Date = g.Key, Amount = g.Sum(sd => sd.PaidAmount) })
+                                       .Select(g => new SalesData { Date = g.Key, Payable = g.Sum(sd => sd.PayableAmount), Paid = g.Sum(sd=>sd.PaidAmount), Due=g.Sum(sd=>sd.DueAmount) })
                                        .OrderBy(sd => sd.Date)
                                        .ToList();
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                   // _pdfService.PrintDayWiseSaleReportToPdf(stream, _context.Branches.Find(request.BranchId), summaryData, "Day wise Sale Report", request.fromDate, request.ToDate);
+                   _pdfService.PrintDayWiseSaleReportToPdf(stream, _context.Branches.Find(request.BranchId), summaryData, "Day wise Sale Report", request.fromDate, request.ToDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }

@@ -46,5 +46,6 @@ namespace Application.Services
         void PrintSaleItemReportToPdf(MemoryStream stream, Branch? branch, List<SaleItemViewModel> saleItemViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
         void PrintTransferDetailReportToPdf(MemoryStream stream, Branch? sourceBranch, Branch? destinationBranch, List<TransferDetailViewModel> transferDetailViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
         void PrintPurchaseReportToPdf(MemoryStream stream, Branch? branch, List<PurchaseViewModel> purchaseViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
+        void PrintDayWiseSaleReportToPdf(MemoryStream stream, Branch? branch, List<SalesData> summaryData, string reportName, DateTime? fromDate, DateTime? toDate);
     }
 }

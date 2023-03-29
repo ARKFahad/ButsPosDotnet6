@@ -9,6 +9,8 @@ namespace Application.ViewModel
     public class SalesData
     {
         public DateTime Date { get; set; }
-        public decimal Amount { get; set; }
+        public decimal Payable { get; set; }
+        public decimal Paid { get; set; }
+        public decimal Due { get; set; }
     }
 }

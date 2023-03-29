@@ -7451,6 +7451,204 @@ namespace Application.Services
             doc.Add(purchaseReportTable);
         }
 
+        public virtual void PrintDayWiseSaleReportToPdf(MemoryStream stream, Branch? branch, List<SalesData> summaryData, string reportName, DateTime? fromDate, DateTime? toDate)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (summaryData == null)
+                throw new ArgumentNullException(nameof(summaryData));
+
+            var pageSize = PageSize.A4;
+
+
+
+            var doc = new Document(pageSize);
+
+            var pdfWriter = PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+            //headerTitlefonts
+            var headerTitleFont = GetFont();
+            headerTitleFont.SetFamily("Times New Roman");
+            headerTitleFont.Size = 12;
+            headerTitleFont.SetStyle(Font.BOLD);
+            headerTitleFont.Color = BaseColor.Black;
+
+            //addressFont
+            var addressFont = GetFont();
+            addressFont.SetFamily("Times New Roman");
+            addressFont.Size = 8;
+            addressFont.SetStyle(Font.NORMAL);
+            addressFont.Color = BaseColor.Black;
+
+            //reportTitleFont
+            var reportTitleFont = GetFont();
+            reportTitleFont.SetFamily("Times New Roman");
+            reportTitleFont.Size = 11;
+            reportTitleFont.SetStyle(Font.BOLD);
+            reportTitleFont.Color = BaseColor.Black;
+
+            //defaultFont
+            var defaultFont = GetFont();
+            defaultFont.SetFamily("Times New Roman");
+            defaultFont.SetStyle(Font.NORMAL);
+            defaultFont.Color = BaseColor.Black;
+            defaultFont.Size = 10;
+
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.ITALIC);
+
+
+            //headers
+            PrintReportHeader(pdfWriter, reportName, branch, headerTitleFont, addressFont, reportTitleFont, doc, fromDate, toDate);
+            //DayWiseSaleReport
+            PrintDayWiseSaleReport(reportTitleFont, doc, summaryData, defaultFont, attributesFont, fromDate, toDate, branch);
+
+            var summaryDataLineNumber = 20;
+            var summaryDataLineNumberCount = summaryData.Count;
+            summaryDataLineNumber++;
+
+            if (summaryDataLineNumber <= summaryDataLineNumberCount)
+            {
+                doc.NewPage();
+            }
+
+            doc.Close();
+        }
+
+        protected virtual void PrintDayWiseSaleReport(Font reportTitleFont, Document doc, List<SalesData> summaryData, Font defaultFont, Font attributesFont, DateTime? fromDate, DateTime? toDate, Branch branch)
+        {
+            var numColumns = 5;
+            var saleReportTable = new PdfPTable(numColumns)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var widths = new Dictionary<int, int[]>
+            {
+                { numColumns, new[] { 15,25,20,20,20 } }
+            };
+
+            saleReportTable.SetWidths(widths[numColumns]);
+
+            //SL
+            var cellSaleReportItem = GetPdfCell("SL", defaultFont);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Sale Date
+            cellSaleReportItem = GetPdfCell("Sale Date", defaultFont);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Payable
+            cellSaleReportItem = GetPdfCell("Payable", defaultFont);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Paid
+            cellSaleReportItem = GetPdfCell("Paid", defaultFont);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //Due
+            cellSaleReportItem = GetPdfCell("Due", defaultFont);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            saleReportTable.AddCell(cellSaleReportItem);
+
+            saleReportTable.HeaderRows = 1;
+            var r = 0;
+            foreach (var pl in summaryData)
+            {
+                r++;
+
+                //SL
+                cellSaleReportItem = GetPdfCell(r, defaultFont);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                saleReportTable.AddCell(cellSaleReportItem);
+                //Sale Date
+                cellSaleReportItem = GetPdfCell(pl.Date.ToString("dd/MM/yyyy"), defaultFont);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                saleReportTable.AddCell(cellSaleReportItem);
+                //Payable
+                cellSaleReportItem = GetPdfCell(pl.Payable, defaultFont);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+                //Paid
+                cellSaleReportItem = GetPdfCell(pl.Paid, defaultFont);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+                //Due
+                cellSaleReportItem = GetPdfCell(pl.Due, defaultFont);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+            }
+            //SL
+            cellSaleReportItem = GetPdfCell("Total", defaultFont);
+            cellSaleReportItem.Colspan = 2;
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //TotalPayable
+            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Payable), defaultFont);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //TotalPaid
+            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Paid), defaultFont);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+            //TotalDue
+            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Due), defaultFont);
+            cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+            cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            saleReportTable.AddCell(cellSaleReportItem);
+            if (fromDate.HasValue && toDate.HasValue && branch != null)
+            {
+                var saleReturnAmount = _commonService.GetSaleReturnTotal(fromDate.Value.Date, toDate.Value.Date, branch.Id);
+                //..................total sale return..................................
+                //SL
+                cellSaleReportItem = GetPdfCell("Sale Return", defaultFont);
+                cellSaleReportItem.Colspan = 2;
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //Total Sale Return
+                cellSaleReportItem = GetPdfCell(saleReturnAmount, defaultFont);
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+                //EmptyColumn
+                cellSaleReportItem = GetPdfCell("", defaultFont);
+                cellSaleReportItem.Colspan = 2;
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //..................net sale..................................
+                //SL
+                cellSaleReportItem = GetPdfCell("Net Sale", defaultFont);
+                cellSaleReportItem.Colspan = 2;
+                cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+
+                //Total Net Sale
+                cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Payable) - saleReturnAmount, defaultFont);
+                cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+                //EmptyColumn
+                cellSaleReportItem = GetPdfCell("", defaultFont);
+                cellSaleReportItem.Colspan = 2;
+                cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                saleReportTable.AddCell(cellSaleReportItem);
+            }
+
+            doc.Add(saleReportTable);
+        }
     }
 
 }
