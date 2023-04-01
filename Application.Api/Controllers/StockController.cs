@@ -304,9 +304,9 @@ namespace Application.Api.Controllers
 
 
                 var queryable = outOfStocks.AsQueryable();
-                var count = outOfStocks.Count();
                 var expression = request.GetExpression();
                 queryable = queryable.Where(expression);
+                var count = queryable.Count();
                 queryable = request.SkipAndTake(queryable);
                 var list = queryable.ToList();
                 Tuple<List<StockModel>, int> content = new Tuple<List<StockModel>, int>(list, count);
@@ -404,11 +404,14 @@ namespace Application.Api.Controllers
                 }).ToList();
 
                 var outOfStocks = products.Except(stocks, new StockComparer()).ToList();
-
+                var queryable = outOfStocks.AsQueryable();
+                var expression = request.GetExpression();
+                queryable = queryable.Where(expression);
+                var outOfStocksList = queryable.ToList();
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                    _pdfService.PrintOutOfStockReportToPdf(stream, _context.Branches.Find(request.BranchId), outOfStocks, "OutOfStock Report ");
+                    _pdfService.PrintOutOfStockReportToPdf(stream, _context.Branches.Find(request.BranchId), outOfStocksList, "OutOfStock Report ");
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }

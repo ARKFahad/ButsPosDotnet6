@@ -158,7 +158,7 @@ namespace Application.Services
             cellReportName.Border = Rectangle.NO_BORDER;
             cellReportName.Colspan = 2;
             headerTable.AddCell(cellReportName);
-            var cellBranchName = GetPdfCell("Branch Name: " + branch.Name, font);
+            var cellBranchName = GetPdfCell("Branch Name: " + branch?.Name, font);
             if (branch != null)
             {
                 cellBranchName.HorizontalAlignment = Element.ALIGN_LEFT;
