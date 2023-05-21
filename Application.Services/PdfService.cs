@@ -1230,7 +1230,7 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 10,15,40,15,15 } }
+                { numColumns, new[] { 10,32,28,15,15 } }
             };
 
             stockReportTable.SetWidths( widths[numColumns]);
@@ -1240,15 +1240,15 @@ namespace Application.Services
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             stockReportTable.AddCell(cellStockReportItem);
-            //Item
-           
-            //Category
-            cellStockReportItem = GetPdfCell("Supplier Code", font);
+
+            //Brand
+            cellStockReportItem = GetPdfCell("Product Details", font);
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             stockReportTable.AddCell(cellStockReportItem);
-            //Brand
-            cellStockReportItem = GetPdfCell("Product Details", font);
+
+            //SupplierName
+            cellStockReportItem = GetPdfCell("Supplier", font);
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             stockReportTable.AddCell(cellStockReportItem);
@@ -1274,19 +1274,16 @@ namespace Application.Services
                 cellStockReportItem = GetPdfCell(r, font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 stockReportTable.AddCell(cellStockReportItem);
-                //ItemName
-                
-
-                //CategoryName
-                cellStockReportItem = GetPdfCell(pl.Code, font);
-                cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                stockReportTable.AddCell(cellStockReportItem);
 
                 //BrandName
                 cellStockReportItem = GetPdfCell(pl.ProductName+" " +pl.ProductPackSize+" "+pl.ProductCategory, font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 stockReportTable.AddCell(cellStockReportItem);
 
+                //SupplierName
+                cellStockReportItem = GetPdfCell(pl.SupplierName??" ", font);
+                cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                stockReportTable.AddCell(cellStockReportItem);
 
                 //CurrentStock
                 cellStockReportItem = GetPdfCell(pl.Quantity, font);
