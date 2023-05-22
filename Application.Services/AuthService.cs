@@ -43,7 +43,7 @@ namespace Application.Services
         }
         public async Task<Result<string>> Login(string username, string password)
         {
-            User user = await _userRepository.GetAll().FirstOrDefaultAsync(x => x.Username.ToLower().Equals(username.ToLower()));
+            User user = await _userRepository.GetAll().FirstOrDefaultAsync(x =>!x.Deleted && x.Username.ToLower().Equals(username.ToLower()));
             if (user == null) return await Result<string>.FailAsync("Object Not Found Exception", "User Not Found");
             else if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt)) return await Result<string>.FailAsync("", "Wrong Password");
             else return await Result<string>.SuccessAsync(CreateToken(user), "Login Successful");
