@@ -1230,7 +1230,7 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 10,15,40,15,15 } }
+                { numColumns, new[] { 10,32,28,15,15 } }
             };
 
             stockReportTable.SetWidths( widths[numColumns]);
@@ -1240,15 +1240,15 @@ namespace Application.Services
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             stockReportTable.AddCell(cellStockReportItem);
-            //Item
-           
-            //Category
-            cellStockReportItem = GetPdfCell("Supplier Code", font);
+
+            //Brand
+            cellStockReportItem = GetPdfCell("Product Details", font);
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             stockReportTable.AddCell(cellStockReportItem);
-            //Brand
-            cellStockReportItem = GetPdfCell("Product Details", font);
+
+            //SupplierName
+            cellStockReportItem = GetPdfCell("Supplier", font);
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             stockReportTable.AddCell(cellStockReportItem);
@@ -1274,19 +1274,16 @@ namespace Application.Services
                 cellStockReportItem = GetPdfCell(r, font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 stockReportTable.AddCell(cellStockReportItem);
-                //ItemName
-                
-
-                //CategoryName
-                cellStockReportItem = GetPdfCell(pl.Code, font);
-                cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                stockReportTable.AddCell(cellStockReportItem);
 
                 //BrandName
                 cellStockReportItem = GetPdfCell(pl.ProductName+" " +pl.ProductPackSize+" "+pl.ProductCategory, font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 stockReportTable.AddCell(cellStockReportItem);
 
+                //SupplierName
+                cellStockReportItem = GetPdfCell(pl.SupplierName??" ", font);
+                cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                stockReportTable.AddCell(cellStockReportItem);
 
                 //CurrentStock
                 cellStockReportItem = GetPdfCell(pl.Quantity, font);
@@ -7648,6 +7645,189 @@ namespace Application.Services
             }
 
             doc.Add(saleReportTable);
+        }
+
+        public void PrintStockAdjustmentReportToPdf(MemoryStream stream, List<StockAdjustmentViewModel> stockAdjustmentViewModels, string reportName, Branch? branch, DateTime? fromDate, DateTime? toDate)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (stockAdjustmentViewModels == null)
+                throw new ArgumentNullException(nameof(stockAdjustmentViewModels));
+
+            var pageSize = PageSize.A4;
+            var doc = new Document(pageSize);
+
+            var pdfWriter = PdfWriter.GetInstance(doc, stream);
+            doc.Open();
+
+            //headerTitleFont
+            var headerTitleFont = GetFont();
+            headerTitleFont.SetFamily("Times New Roman");
+            headerTitleFont.Size = 12;
+            headerTitleFont.SetStyle(Font.BOLD);
+            headerTitleFont.Color = BaseColor.Black;
+
+            //addressFont
+            var addressFont = GetFont();
+            addressFont.SetFamily("Times New Roman");
+            addressFont.Size = 8;
+            addressFont.SetStyle(Font.NORMAL);
+            addressFont.Color = BaseColor.Black;
+
+            //reportTitleFont
+            var reportTitleFont = GetFont();
+            reportTitleFont.SetFamily("Times New Roman");
+            reportTitleFont.Size = 11;
+            reportTitleFont.SetStyle(Font.BOLD);
+            reportTitleFont.Color = BaseColor.Black;
+
+            //defaultFont
+            var defaultFont = GetFont();
+            defaultFont.SetFamily("Times New Roman");
+            defaultFont.SetStyle(Font.NORMAL);
+            defaultFont.Color = BaseColor.Black;
+            defaultFont.Size = 10;
+
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.ITALIC);
+
+
+            //headers
+            PrintReportHeader(pdfWriter, "Stock Adjustment Report", branch, headerTitleFont, addressFont, reportTitleFont, doc, fromDate, toDate);
+            PrintStockAdjustmentReport(reportTitleFont, doc, stockAdjustmentViewModels, defaultFont, attributesFont);
+
+            var stockAdjustmentReportLineNumber = 20;
+            var stockAdjustmentReportLineNumberCount = stockAdjustmentViewModels.Count;
+            stockAdjustmentReportLineNumber++;
+
+            if (stockAdjustmentReportLineNumber <= stockAdjustmentReportLineNumberCount)
+            {
+                doc.NewPage();
+            }
+
+            doc.Close();
+        }
+
+        private void PrintStockAdjustmentReport(Font reportTitleFont, Document doc, List<StockAdjustmentViewModel> stockAdjustmentViewModels, Font defaultFont, Font attributesFont)
+        {
+            var numColumns = 7;
+            var stockAdjustmentReportTable = new PdfPTable(numColumns)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var widths = new Dictionary<int, int[]>
+            {
+                { numColumns, new[] { 8,12,27,22,8,10,13 } }
+            };
+
+            stockAdjustmentReportTable.SetWidths(widths[numColumns]);
+
+            //SL
+            var cellcustomerPaymentReportItem = GetPdfCell("SL", defaultFont);
+            cellcustomerPaymentReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+            //Code
+            cellcustomerPaymentReportItem = GetPdfCell("Code", defaultFont);
+            cellcustomerPaymentReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+            //Product
+            cellcustomerPaymentReportItem = GetPdfCell("Product", defaultFont);
+            cellcustomerPaymentReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+            //Supplier
+            cellcustomerPaymentReportItem = GetPdfCell("Supplier", defaultFont);
+            cellcustomerPaymentReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+            //Quantity
+            cellcustomerPaymentReportItem = GetPdfCell("Quantity", defaultFont);
+            cellcustomerPaymentReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+            //Purchase Rate
+            cellcustomerPaymentReportItem = GetPdfCell("Purchase Rate", defaultFont);
+            cellcustomerPaymentReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+            //Amount
+            cellcustomerPaymentReportItem = GetPdfCell("Amount", defaultFont);
+            cellcustomerPaymentReportItem.BackgroundColor = BaseColor.LightGray;
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+
+            stockAdjustmentReportTable.HeaderRows = 1;
+            var r = 0;
+            foreach (var sl in stockAdjustmentViewModels)
+            {
+                r++;
+
+                //SL
+                cellcustomerPaymentReportItem = GetPdfCell(r, defaultFont);
+                cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+                //Code
+                cellcustomerPaymentReportItem = GetPdfCell(sl.Code, defaultFont);
+                cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+                //Product
+                cellcustomerPaymentReportItem = GetPdfCell(sl.Product?.Name + " " + sl.Product?.PackSize + " " + sl.Product?.Category?.Name, defaultFont);
+                cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+                //Supplier
+                cellcustomerPaymentReportItem = GetPdfCell(sl.SupplierName, defaultFont);
+                cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+                //Quantity
+                cellcustomerPaymentReportItem = GetPdfCell(sl.Quantity, defaultFont);
+                cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+                //Purchase Rate
+                cellcustomerPaymentReportItem = GetPdfCell(sl.PurchaseRate.ToString("0.00"), defaultFont);
+                cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+                //Amount
+                cellcustomerPaymentReportItem = GetPdfCell((sl.Quantity*sl.PurchaseRate).ToString("0.00"), defaultFont);
+                cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+
+            }
+            //..................total..................................
+            //SL
+            cellcustomerPaymentReportItem = GetPdfCell("Total", defaultFont);
+            cellcustomerPaymentReportItem.Colspan = 4;
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+            //TotalQuantity
+            cellcustomerPaymentReportItem = GetPdfCell(stockAdjustmentViewModels.Sum(x => x.Quantity), defaultFont);
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+            //TotalPurchaseRate
+            cellcustomerPaymentReportItem = GetPdfCell(" ", defaultFont);
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+            //TotalQuantity
+            cellcustomerPaymentReportItem = GetPdfCell(stockAdjustmentViewModels.Sum(x => x.Quantity * x.PurchaseRate).ToString("0.00"), defaultFont);
+            cellcustomerPaymentReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            stockAdjustmentReportTable.AddCell(cellcustomerPaymentReportItem);
+
+
+            doc.Add(stockAdjustmentReportTable);
         }
     }
 
