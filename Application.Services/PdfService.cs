@@ -5050,7 +5050,7 @@ namespace Application.Services
 
         private void PrintSupplierPaymentReport(Font reportTitleFont, Document doc, List<SupplierPaymentViewModel> supplierpayments, Font defaultFont, Font attributesFont)
         {
-            var numColumns = 5;
+            var numColumns = 6;
             var supplierPaymentReportTable = new PdfPTable(numColumns)
             {
                 //  RunDirection = GetDirection(lang),
@@ -5059,7 +5059,7 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 10,25,30,15,20 } }
+                { numColumns, new[] { 8,15,12,30,15,20 } }
             };
 
             supplierPaymentReportTable.SetWidths(widths[numColumns]);
@@ -5071,6 +5071,11 @@ namespace Application.Services
             supplierPaymentReportTable.AddCell(cellsupplierPaymentReportItem);
             //Item
             cellsupplierPaymentReportItem = GetPdfCell("Bill-No", defaultFont);
+            cellsupplierPaymentReportItem.BackgroundColor = BaseColor.LightGray;
+            cellsupplierPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            supplierPaymentReportTable.AddCell(cellsupplierPaymentReportItem);
+
+            cellsupplierPaymentReportItem = GetPdfCell("Payment Date", defaultFont);
             cellsupplierPaymentReportItem.BackgroundColor = BaseColor.LightGray;
             cellsupplierPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             supplierPaymentReportTable.AddCell(cellsupplierPaymentReportItem);
@@ -5104,11 +5109,15 @@ namespace Application.Services
 
                 //SL
                 cellsupplierPaymentReportItem = GetPdfCell(r, defaultFont);
-                cellsupplierPaymentReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellsupplierPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 supplierPaymentReportTable.AddCell(cellsupplierPaymentReportItem);
                 //ItemName
                 cellsupplierPaymentReportItem = GetPdfCell(sl.BillNo, defaultFont);
-                cellsupplierPaymentReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellsupplierPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                supplierPaymentReportTable.AddCell(cellsupplierPaymentReportItem);
+
+                cellsupplierPaymentReportItem = GetPdfCell(sl.PaymentDate.ToString("dd/MM/yy"), defaultFont);
+                cellsupplierPaymentReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 supplierPaymentReportTable.AddCell(cellsupplierPaymentReportItem);
 
                 //CategoryName
@@ -5139,7 +5148,7 @@ namespace Application.Services
             //..................total..................................
             //SL
             cellsupplierPaymentReportItem = GetPdfCell("Total Payment", defaultFont);
-            cellsupplierPaymentReportItem.Colspan = 4;
+            cellsupplierPaymentReportItem.Colspan = 5;
             cellsupplierPaymentReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             supplierPaymentReportTable.AddCell(cellsupplierPaymentReportItem);
 
