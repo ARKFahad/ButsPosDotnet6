@@ -12,5 +12,6 @@ namespace Application.ViewModel
         public decimal Payable { get; set; }
         public decimal Paid { get; set; }
         public decimal Due { get; set; }
+        public decimal ReturnAmount { get; set; }
     }
 }

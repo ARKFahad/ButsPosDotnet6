@@ -361,7 +361,7 @@ namespace Application.Api.Controllers
             try
             {
                 var summaryData = queryable.GroupBy(sd => sd.CreatedOn.Date)
-                                       .Select(g => new SalesData { Date = g.Key, Payable = g.Sum(sd => sd.PayableAmount), Paid = g.Sum(sd=>sd.PaidAmount), Due=g.Sum(sd=>sd.DueAmount) })
+                                       .Select(g => new SalesData { Date = g.Key, Payable = g.Sum(sd => sd.PayableAmount), Paid = g.Sum(sd=>sd.PaidAmount), Due=g.Sum(sd=>sd.DueAmount), ReturnAmount = g.Sum(sd => sd.TotalSaleReturnedAmount) })
                                        .OrderBy(sd => sd.Date)
                                        .ToList();
                 byte[] bytes;
