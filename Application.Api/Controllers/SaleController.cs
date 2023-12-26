@@ -10,21 +10,9 @@ using Application.Services;
 using Application.ViewModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Org.BouncyCastle.Asn1.Ocsp;
-using PbApp.Service;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Transactions;
-using static Application.Core.Constants.Permissions;
 
 namespace Application.Api.Controllers
 {
@@ -39,8 +27,8 @@ namespace Application.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly ICommonService _commonService;
         private readonly IAccountService _accountService;
-        private readonly IHubContext<BroadcastHub,IHubClient> _hubContext;
-        public SaleController(ISaleQueryService saleQueryService, 
+        private readonly IHubContext<BroadcastHub, IHubClient> _hubContext;
+        public SaleController(ISaleQueryService saleQueryService,
             GHP_POS_DBContext context, IHttpContextAccessor contextAccessor, IPdfService pdfService,
             IConfiguration configuration,
             ICommonService commonService,
@@ -75,7 +63,7 @@ namespace Application.Api.Controllers
         }
         [HttpPost]
         [Route("print")]
-        public virtual async Task<IActionResult> Print(SaleRequestModel request) 
+        public virtual async Task<IActionResult> Print(SaleRequestModel request)
         {
             try
             {
@@ -85,7 +73,7 @@ namespace Application.Api.Controllers
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                    _pdfService.PrintSaleReportToPdf(stream, _context.Branches.Find(request.BranchId), content.Item1.ToList(), "Sale Report ", request.fromDate,request.ToDate);
+                    _pdfService.PrintSaleReportToPdf(stream, _context.Branches.Find(request.BranchId), content.Item1.ToList(), "Sale Report ", request.fromDate, request.ToDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
@@ -102,7 +90,7 @@ namespace Application.Api.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [Authorize(Policy = Permissions.Sales.Add)]
         public async Task<IActionResult> AddSaleAsync([FromBody] SaleAddRequestModel model)
-           
+
         {
             var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
             using (var dbContextTransaction = await _context.Database.BeginTransactionAsync())
@@ -113,24 +101,24 @@ namespace Application.Api.Controllers
                     var dbCustomer = await _context.Customers.FindAsync(model.CustomerId);
                     Sale sale = new Sale();
                     var count = _context.Sales.Count() + 1;
-                        sale.Id = Guid.NewGuid().ToString();
-                        sale.SaleNo = "S" + count.ToString().PadLeft(7, '0');
-                        sale.CustomerId = model.CustomerId;
-                        sale.BranchId = branchId;
-                        sale.Subtotal = model.Total;
-                        sale.Discount = model.Discount;
-                        sale.DiscountInPercentage=model.DiscountInPercentage;
-                        sale.PayableAmount = model.NetTotal;
-                        sale.RecievedAmount = model.ReceivedAmount;
-                        sale.ReturnAmount = model.ReturnAmount;
-                        sale.PaidAmount = model.PaymentAmount;
-                        sale.DueAmount = model.DueAmount;
-                        sale.CreatedOn = DateTime.Now;
-                        sale.UpdatedOn = DateTime.Now;
-                        sale.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
-                        sale.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                    sale.Id = Guid.NewGuid().ToString();
+                    sale.SaleNo = "S" + count.ToString().PadLeft(7, '0');
+                    sale.CustomerId = model.CustomerId;
+                    sale.BranchId = branchId;
+                    sale.Subtotal = model.Total;
+                    sale.Discount = model.Discount;
+                    sale.DiscountInPercentage = model.DiscountInPercentage;
+                    sale.PayableAmount = model.NetTotal;
+                    sale.RecievedAmount = model.ReceivedAmount;
+                    sale.ReturnAmount = model.ReturnAmount;
+                    sale.PaidAmount = model.PaymentAmount;
+                    sale.DueAmount = model.DueAmount;
+                    sale.CreatedOn = DateTime.Now;
+                    sale.UpdatedOn = DateTime.Now;
+                    sale.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                    sale.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     foreach (var item in model.CartItems)
-                        {
+                    {
                         var saleItem = new SaleItem
                         {
                             Id = Guid.NewGuid().ToString(),
@@ -144,32 +132,32 @@ namespace Application.Api.Controllers
                             BranchId = branchId,
                             DiscountOnAmount = (sale.DiscountInPercentage * (item.Quantity * item.Price)) / 100
                         };
-                            var stockItems = await _context.StockItems.Where(x => x.ProductId == saleItem.ProductId && x.BranchId == branchId).OrderBy(x => x.CreatedOn).Take(saleItem.Quantity).ToListAsync();
-                            decimal cogsItem = 0M;
-                            foreach (var stockItem in stockItems)
-                            {
-                               var cogsperItem= ((stockItem.PurchaseRate - stockItem.DiscountPerItem) + stockItem.AdditionalCostPerItem);
-                                cogsItem += cogsperItem;
-                                sale.Cogs += cogsperItem;
-                            }
-                            //cogs perItem
-                            saleItem.CogsPerItem = cogsItem / saleItem.Quantity;
-                            saleItem.SupplierId= stockItems[0].SupplierId;
-                            sale.SaleItems.Add(saleItem);
-                            //stock check
-                            var stockCount = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == branchId).Sum(x => x.Quantity);
-                            if (item.Quantity > stockCount) throw new Exception("Out of Stock");
-                            _context.StockItems.RemoveRange(stockItems);
-                             await _context.SaveChangesAsync();
-                    }                      
+                        var stockItems = await _context.StockItems.Where(x => x.ProductId == saleItem.ProductId && x.BranchId == branchId).OrderBy(x => x.CreatedOn).Take(saleItem.Quantity).ToListAsync();
+                        decimal cogsItem = 0M;
+                        foreach (var stockItem in stockItems)
+                        {
+                            var cogsperItem = ((stockItem.PurchaseRate - stockItem.DiscountPerItem) + stockItem.AdditionalCostPerItem);
+                            cogsItem += cogsperItem;
+                            sale.Cogs += cogsperItem;
+                        }
+                        //cogs perItem
+                        saleItem.CogsPerItem = cogsItem / saleItem.Quantity;
+                        saleItem.SupplierId = stockItems[0].SupplierId;
+                        sale.SaleItems.Add(saleItem);
+                        //stock check
+                        var stockCount = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == branchId).Sum(x => x.Quantity);
+                        if (item.Quantity > stockCount) throw new Exception("Out of Stock");
+                        _context.StockItems.RemoveRange(stockItems);
+                        await _context.SaveChangesAsync();
+                    }
                     if (isAccountsActive)
                     {
                         if (sale.DueAmount > 0)
                         {
-                            sale.CustomerBalance =  _accountService.CalculateBalanceByAccountId(dbCustomer.AccountId, AccType.Asset,_context.FiscalYears.FirstOrDefault(x=>x.IsActive)?.Id,null,null, branchId) + model.DueAmount;
+                            sale.CustomerBalance = _accountService.CalculateBalanceByAccountId(dbCustomer.AccountId, AccType.Asset, _context.FiscalYears.FirstOrDefault(x => x.IsActive)?.Id, null, null, branchId) + model.DueAmount;
                             //sale a/c credit
                             await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Credit Sale",
-                                AccountHeadConstants.Sales, 0, sale.DueAmount,sale.CreatedOn);
+                                AccountHeadConstants.Sales, 0, sale.DueAmount, sale.CreatedOn);
                             //customer a/c debit
                             await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Credit Sale",
                                dbCustomer.AccountId, sale.DueAmount, 0, sale.CreatedOn);
@@ -211,7 +199,7 @@ namespace Application.Api.Controllers
                     await dbContextTransaction.CommitAsync();
                     //integrate signalR
                     await _hubContext.Clients.All.BroadcastMessage();
-                    return Ok(new { SaleId = sale.Id,Message="Sale Added Successfully" });
+                    return Ok(new { SaleId = sale.Id, Message = "Sale Added Successfully" });
                 }
                 catch (Exception e)
                 {
@@ -227,21 +215,21 @@ namespace Application.Api.Controllers
             if (sale == null) throw new NotFoundResultException("Not Found");
             var customer = _context.Customers.Find(sale.CustomerId);
             var branch = _context.Branches.Find(sale.BranchId);
-            var saleItems = _context.SaleItems.Include(x=>x.Product).Where(x => x.SaleId == sale.Id).Select(x => new SaleItemModel
+            var saleItems = _context.SaleItems.Include(x => x.Product).Where(x => x.SaleId == sale.Id).Select(x => new SaleItemModel
             {
-                Description=x.Product.Name+" "+x.Product.PackSize,
-                Quantity=x.Quantity,
-                Price=x.Price,
-                Amount=x.Amount
+                Description = x.Product.Name + " " + x.Product.PackSize,
+                Quantity = x.Quantity,
+                Price = x.Price,
+                Amount = x.Amount
             }).ToList();
             try
             {
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                    _pdfService.PrintSaleInvoiceToPdf(stream, customer,branch,sale,saleItems);
+                    _pdfService.PrintSaleInvoiceToPdf(stream, customer, branch, sale, saleItems);
                     bytes = stream.ToArray();
-                   // bytes =_pdfService.AddFooterInfoForA5Page(bytes);
+                    // bytes =_pdfService.AddFooterInfoForA5Page(bytes);
                 }
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
@@ -260,7 +248,7 @@ namespace Application.Api.Controllers
         {
             try
             {
-               var plQueryable=ItemWiseProfitLossQueryable(request);
+                var plQueryable = ItemWiseProfitLossQueryable(request);
                 var count = plQueryable.Count();
                 if (request.Page != -1)
                     plQueryable = plQueryable.Skip(request.Page * request.RowsPerPage).Take(request.RowsPerPage);
@@ -299,54 +287,54 @@ namespace Application.Api.Controllers
 
         private IQueryable<ItemSaleProfitLossViewModel> ItemWiseProfitLossQueryable(ItemSaleProfitLossRequestModel request)
         {
-            
-                var query = _context.SaleItems.AsQueryable();
-                if (!string.IsNullOrWhiteSpace(request.BranchId))
-                    query = query.Where(x => x.BranchId == request.BranchId);
-                //hardcoded initial value
-                if (!request.FromDate.HasValue)
-                    request.FromDate = DateTime.Now.AddYears(-5);
-                if (!request.ToDate.HasValue)
-                    request.ToDate = DateTime.Now;
-                query = query.Where(x => x.CreatedOn.Date >= request.FromDate.Value.Date && x.CreatedOn.Date <= request.ToDate.Value.Date);
-                var queryable = query.GroupBy(x => new { x.ProductId, x.SupplierId })
-                          .Select(y => new
-                          {
-                              ProductId = y.Key.ProductId,
-                              SupplierId = y.Key.SupplierId,
-                              SaleQuantity = y.Sum(x => x.Quantity),
-                              ReturnQuantity = y.Sum(x => x.ReturnQuantity),
-                              Subtotal = y.Sum(x => x.Amount),
-                              Discount = y.Sum(x => x.DiscountOnAmount),
-                              NetAmount = y.Sum(x => x.Amount) - y.Sum(x => x.DiscountOnAmount),
-                              COGS = y.Sum(x => x.CogsPerItem * x.Quantity)
-                          });
-                if (!string.IsNullOrWhiteSpace(request.SupplierId))
-                    queryable = queryable.Where(x => x.SupplierId == request.SupplierId);
-                if (!string.IsNullOrWhiteSpace(request.ProductId))
-                    queryable = queryable.Where(x => x.ProductId == request.ProductId);
 
-                var plQueryable = from saleItem in queryable
-                                  join product in _context.Products on saleItem.ProductId equals product.Id
-                                  join category in _context.Categories on product.CategoryId equals category.Id
-                                  join supplier in _context.Suppliers on saleItem.SupplierId equals supplier.Id
-                                  select new ItemSaleProfitLossViewModel()
-                                  {
-                                      ProductName = product.Name + " " + product.PackSize + " " + product.Category.Name,
-                                      SupplierName = supplier.Name,
-                                      SaleQuantity = saleItem.SaleQuantity,
-                                      ReturnQuantity = saleItem.ReturnQuantity,
-                                      Subtotal = saleItem.Subtotal,
-                                      Discount = saleItem.Discount,
-                                      NetAmount = saleItem.NetAmount,
-                                      Cogs = saleItem.COGS,
-                                  };
-                 return plQueryable;
-         }
+            var query = _context.SaleItems.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(request.BranchId))
+                query = query.Where(x => x.BranchId == request.BranchId);
+            //hardcoded initial value
+            if (!request.FromDate.HasValue)
+                request.FromDate = DateTime.Now.AddYears(-5);
+            if (!request.ToDate.HasValue)
+                request.ToDate = DateTime.Now;
+            query = query.Where(x => x.CreatedOn.Date >= request.FromDate.Value.Date && x.CreatedOn.Date <= request.ToDate.Value.Date);
+            var queryable = query.GroupBy(x => new { x.ProductId, x.SupplierId })
+                      .Select(y => new
+                      {
+                          ProductId = y.Key.ProductId,
+                          SupplierId = y.Key.SupplierId,
+                          SaleQuantity = y.Sum(x => x.Quantity),
+                          ReturnQuantity = y.Sum(x => x.ReturnQuantity),
+                          Subtotal = y.Sum(x => x.Amount),
+                          Discount = y.Sum(x => x.DiscountOnAmount),
+                          NetAmount = y.Sum(x => x.Amount) - y.Sum(x => x.DiscountOnAmount),
+                          COGS = y.Sum(x => x.CogsPerItem * x.Quantity)
+                      });
+            if (!string.IsNullOrWhiteSpace(request.SupplierId))
+                queryable = queryable.Where(x => x.SupplierId == request.SupplierId);
+            if (!string.IsNullOrWhiteSpace(request.ProductId))
+                queryable = queryable.Where(x => x.ProductId == request.ProductId);
+
+            var plQueryable = from saleItem in queryable
+                              join product in _context.Products on saleItem.ProductId equals product.Id
+                              join category in _context.Categories on product.CategoryId equals category.Id
+                              join supplier in _context.Suppliers on saleItem.SupplierId equals supplier.Id
+                              select new ItemSaleProfitLossViewModel()
+                              {
+                                  ProductName = product.Name + " " + product.PackSize + " " + product.Category.Name,
+                                  SupplierName = supplier.Name,
+                                  SaleQuantity = saleItem.SaleQuantity,
+                                  ReturnQuantity = saleItem.ReturnQuantity,
+                                  Subtotal = saleItem.Subtotal,
+                                  Discount = saleItem.Discount,
+                                  NetAmount = saleItem.NetAmount,
+                                  Cogs = saleItem.COGS,
+                              };
+            return plQueryable;
+        }
 
         [HttpPost]
         [Route("day-wise-sale-summary")]
-        public  IActionResult DayWiseSaleSummary(SaleRequestModel request)
+        public IActionResult DayWiseSaleSummary(SaleRequestModel request)
         {
             var queryable = _context.Sales.AsQueryable();
             if (!string.IsNullOrWhiteSpace(request.BranchId))
@@ -361,13 +349,13 @@ namespace Application.Api.Controllers
             try
             {
                 var summaryData = queryable.GroupBy(sd => sd.CreatedOn.Date)
-                                       .Select(g => new SalesData { Date = g.Key, Payable = g.Sum(sd => sd.PayableAmount), Paid = g.Sum(sd=>sd.PaidAmount), Due=g.Sum(sd=>sd.DueAmount), ReturnAmount = g.Sum(sd => sd.TotalSaleReturnedAmount) })
+                                       .Select(g => new SalesData { Date = g.Key, Payable = g.Sum(sd => sd.PayableAmount), Paid = g.Sum(sd => sd.PaidAmount), Due = g.Sum(sd => sd.DueAmount), ReturnAmount = g.Sum(sd => sd.TotalSaleReturnedAmount) })
                                        .OrderBy(sd => sd.Date)
                                        .ToList();
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                   _pdfService.PrintDayWiseSaleReportToPdf(stream, _context.Branches.Find(request.BranchId), summaryData, "Day wise Sale Report", request.fromDate, request.ToDate);
+                    _pdfService.PrintDayWiseSaleReportToPdf(stream, _context.Branches.Find(request.BranchId), summaryData, "Day wise Sale Report", request.fromDate, request.ToDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
