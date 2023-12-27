@@ -6025,7 +6025,7 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
@@ -6051,7 +6051,7 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 10,40,25,25 } }
+                { numColumns, new[] { 10,50,20,20 } }
             };
 
             payReceiveVoucherReportTable.SetWidths(widths[numColumns]);
@@ -6081,75 +6081,25 @@ namespace Application.Services
             cellPayReceiveVoucherReportItem.Border = Rectangle.NO_BORDER;
             payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
 
-            //SL
-            cellPayReceiveVoucherReportItem = GetPdfCell("SL", defaultFont);
-            cellPayReceiveVoucherReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-            //Item
-            cellPayReceiveVoucherReportItem = GetPdfCell("Account Name/Description", defaultFont);
-            cellPayReceiveVoucherReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
-            cellPayReceiveVoucherReportItem = GetPdfCell("DR", defaultFont);
-            cellPayReceiveVoucherReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
-            cellPayReceiveVoucherReportItem = GetPdfCell("CR", defaultFont);
-            cellPayReceiveVoucherReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase("SL", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase("Account Name/Description", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase("DR", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase("CR", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
             //SL: 1
-            cellPayReceiveVoucherReportItem = GetPdfCell("1", defaultFont);
-            //cellsupplierPaymentVoucherReportItem.Colspan = 4;
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
-            cellPayReceiveVoucherReportItem = GetPdfCell(accountHead.Name, defaultFont);
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
-            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.VoucherType == 1 ? payReceive.Amount : "0.00", defaultFont);
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
-            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.VoucherType == 1 ? "0.00" : payReceive.Amount, defaultFont);
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase("1", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase(accountHead.Name, defaultFont)) { HorizontalAlignment = Element.ALIGN_LEFT });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase(payReceive.VoucherType == 1 ? payReceive.Amount.ToString("#,##0.00") : "0.00", defaultFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase(payReceive.VoucherType == 1 ? "0.00" : payReceive.Amount.ToString("#,##0.00"), defaultFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
             //SL: 2
-            cellPayReceiveVoucherReportItem = GetPdfCell("2", defaultFont);
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
-            cellPayReceiveVoucherReportItem = GetPdfCell(paymentMethod.Name.ToUpper() == "CASH" ? "Cash In Hand" : paymentMethod.Name, defaultFont);
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
-            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.VoucherType == 1 ? "0.00" : payReceive.Amount, defaultFont);
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
-            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.VoucherType == 1 ? payReceive.Amount : "0.00", defaultFont);
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase("2", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase(paymentMethod.Name.ToUpper() == "CASH" ? "Cash In Hand" : paymentMethod.Name, defaultFont)) { HorizontalAlignment = Element.ALIGN_LEFT, });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase(payReceive.VoucherType == 1 ? "0.00" : payReceive.Amount.ToString("#,##0.00"), defaultFont)) { HorizontalAlignment = Element.ALIGN_RIGHT, });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase(payReceive.VoucherType == 1 ? payReceive.Amount.ToString("#,##0.00") : "0.00", defaultFont)) { HorizontalAlignment = Element.ALIGN_RIGHT, });
 
             //Total
-            cellPayReceiveVoucherReportItem = GetPdfCell("Total", defaultFont);
-            cellPayReceiveVoucherReportItem.Colspan = 2;
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
-            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.Amount, defaultFont);
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
-
-            cellPayReceiveVoucherReportItem = GetPdfCell(payReceive.Amount, defaultFont);
-            cellPayReceiveVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            payReceiveVoucherReportTable.AddCell(cellPayReceiveVoucherReportItem);
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase("Total", defaultFont)) { Colspan = 2, HorizontalAlignment = Element.ALIGN_RIGHT, });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase(payReceive.Amount.ToString("#,##0.00"), defaultFont)) { HorizontalAlignment = Element.ALIGN_RIGHT, });
+            payReceiveVoucherReportTable.AddCell(new PdfPCell(new Phrase(payReceive.Amount.ToString("#,##0.00"), defaultFont)) { HorizontalAlignment = Element.ALIGN_RIGHT, });
 
             var numColumn = 2;
             var payReceiveVoucherReportTableInfo = new PdfPTable(numColumn)
