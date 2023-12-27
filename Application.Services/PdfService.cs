@@ -861,13 +861,11 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(stockReportLines));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize, 20, 20, 25, 100);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -923,9 +921,6 @@ namespace Application.Services
 
         protected virtual void PrintStockReport(Font titleFont, Document doc, IList<StockModel> stockReportLines, Font font, Font attributesFont, int supplierId = 0)
         {
-
-
-
             var numColumns = 5;
             var stockReportTable = new PdfPTable(numColumns)
             {
@@ -963,6 +958,7 @@ namespace Application.Services
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             stockReportTable.AddCell(cellStockReportItem);
+
             //Stock Value
             cellStockReportItem = GetPdfCell("Stock Value", font);
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
@@ -980,22 +976,22 @@ namespace Application.Services
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 stockReportTable.AddCell(cellStockReportItem);
 
-                //BrandName
+                //Product Details
                 cellStockReportItem = GetPdfCell(pl.ProductName + " " + pl.ProductPackSize + " " + pl.ProductCategory, font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 stockReportTable.AddCell(cellStockReportItem);
 
-                //SupplierName
+                //Supplier Name
                 cellStockReportItem = GetPdfCell(pl.SupplierName ?? " ", font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 stockReportTable.AddCell(cellStockReportItem);
 
-                //CurrentStock
+                //Quantity
                 cellStockReportItem = GetPdfCell(pl.Quantity, font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 stockReportTable.AddCell(cellStockReportItem);
 
-                //Price
+                //Stock Value
                 cellStockReportItem = GetPdfCell(Math.Round(pl.Value, 2), font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 stockReportTable.AddCell(cellStockReportItem);
@@ -1008,22 +1004,16 @@ namespace Application.Services
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             stockReportTable.AddCell(cellStockReportItem);
 
-
-
-
             //CurrentStock
             cellStockReportItem = GetPdfCell(stockReportLines.Sum(x => x.Quantity), font);
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             stockReportTable.AddCell(cellStockReportItem);
+
             //CurrentStock
             cellStockReportItem = GetPdfCell(Math.Round(stockReportLines.Sum(x => x.Value), 2), font);
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             stockReportTable.AddCell(cellStockReportItem);
 
-            ////Price
-            //cellStockReportItem = GetPdfCell(Math.Ceiling(stockReportLines.Sum(x => x.PriceExcludeDiscount)), font);
-            //cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            //stockReportTable.AddCell(cellStockReportItem);
             doc.Add(stockReportTable);
         }
 
@@ -1038,13 +1028,10 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(stockReportLines));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -1100,9 +1087,6 @@ namespace Application.Services
 
         protected virtual void PrintOutOfStockReport(Font titleFont, Document doc, IList<StockModel> stockReportLines, Font font, Font attributesFont, int supplierId = 0)
         {
-
-
-
             var numColumns = 4;
             var stockReportTable = new PdfPTable(numColumns)
             {
@@ -1122,12 +1106,6 @@ namespace Application.Services
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             stockReportTable.AddCell(cellStockReportItem);
-            //Item
-            //cellStockReportItem = GetPdfCell("Branch", font);
-            //cellStockReportItem.BackgroundColor = BaseColor.LightGray;
-            //cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            //stockReportTable.AddCell(cellStockReportItem);
-            //Category
 
             //Brand
             cellStockReportItem = GetPdfCell("Product", font);
@@ -1144,11 +1122,6 @@ namespace Application.Services
             cellStockReportItem.BackgroundColor = BaseColor.LightGray;
             cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             stockReportTable.AddCell(cellStockReportItem);
-            //Stock Value
-            //cellStockReportItem = GetPdfCell("Stock Value", font);
-            //cellStockReportItem.BackgroundColor = BaseColor.LightGray;
-            //cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            //stockReportTable.AddCell(cellStockReportItem);
 
             stockReportTable.HeaderRows = 1;
             var r = 0;
@@ -1160,57 +1133,24 @@ namespace Application.Services
                 cellStockReportItem = GetPdfCell(r, font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 stockReportTable.AddCell(cellStockReportItem);
-                //ItemName
-                //cellStockReportItem = GetPdfCell(pl.BranchName, font);
-                //cellStockReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                //stockReportTable.AddCell(cellStockReportItem);
 
-
-
-                //BrandName
+                //Product Details
                 cellStockReportItem = GetPdfCell(pl.ProductName + " " + pl.ProductPackSize + " " + pl.ProductCategory, font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 stockReportTable.AddCell(cellStockReportItem);
 
-
-                //CategoryName
+                //SupplierName
                 cellStockReportItem = GetPdfCell(pl.SupplierName, font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 stockReportTable.AddCell(cellStockReportItem);
+
                 //CurrentStock
                 cellStockReportItem = GetPdfCell("Out Of Stock", font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 stockReportTable.AddCell(cellStockReportItem);
 
-                //Price
-                //cellStockReportItem = GetPdfCell(Math.Round(pl.Value, 2), font);
-                //cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                //stockReportTable.AddCell(cellStockReportItem);
-
             }
-            //..................total..................................
-            //SL
-            //cellStockReportItem = GetPdfCell("Total", font);
-            //cellStockReportItem.Colspan = 4;
-            //cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            //stockReportTable.AddCell(cellStockReportItem);
 
-
-
-
-            //CurrentStock
-            //cellStockReportItem = GetPdfCell(stockReportLines.Sum(x => x.Quantity), font);
-            //cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            //stockReportTable.AddCell(cellStockReportItem);
-            //CurrentStock
-            //cellStockReportItem = GetPdfCell(Math.Round(stockReportLines.Sum(x => x.Value), 2), font);
-            //cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            //stockReportTable.AddCell(cellStockReportItem);
-
-            ////Price
-            //cellStockReportItem = GetPdfCell(Math.Ceiling(stockReportLines.Sum(x => x.PriceExcludeDiscount)), font);
-            //cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            //stockReportTable.AddCell(cellStockReportItem);
             doc.Add(stockReportTable);
         }
 
@@ -1426,7 +1366,6 @@ namespace Application.Services
             //stockReportTable.AddCell(cellStockReportItem);
             doc.Add(profitReportTable);
         }
-
 
 
         //Balance
@@ -4812,13 +4751,11 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(item1));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -4875,42 +4812,17 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 10,20,10,25,15,20 } }
+                { numColumns, new[] { 10,12,20,25,13,20 } }
             };
 
             saleReturnReportTable.SetWidths(widths[numColumns]);
 
-            var cellsalereturnReportItem = GetPdfCell("SL", defaultFont);
-            cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-            cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-            cellsalereturnReportItem = GetPdfCell("Date", defaultFont);
-            cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-            cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-            cellsalereturnReportItem = GetPdfCell("Invoice No.", defaultFont);
-            cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-            cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-            cellsalereturnReportItem = GetPdfCell("Customer Name", defaultFont);
-            cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-            cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-            cellsalereturnReportItem = GetPdfCell("Qty", defaultFont);
-            cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-            cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-            cellsalereturnReportItem = GetPdfCell("Amount", defaultFont);
-            cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-            cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-
+            saleReturnReportTable.AddCell(new PdfPCell(new Phrase("SL", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            saleReturnReportTable.AddCell(new PdfPCell(new Phrase("Date", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            saleReturnReportTable.AddCell(new PdfPCell(new Phrase("Invoice No.", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            saleReturnReportTable.AddCell(new PdfPCell(new Phrase("Customer Name", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            saleReturnReportTable.AddCell(new PdfPCell(new Phrase("Qty", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            saleReturnReportTable.AddCell(new PdfPCell(new Phrase("Amount", defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
 
             saleReturnReportTable.HeaderRows = 1;
 
@@ -4918,51 +4830,18 @@ namespace Application.Services
             foreach (var sl in item1)
             {
                 r++;
-                cellsalereturnReportItem = GetPdfCell(r, defaultFont);
-                // cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-                cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                saleReturnReportTable.AddCell(cellsalereturnReportItem);
 
-                cellsalereturnReportItem = GetPdfCell(sl.SaleReturnDate.ToString("dd/MM/yy"), defaultFont);
-                // cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-                cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-                cellsalereturnReportItem = GetPdfCell(sl.SaleNo, defaultFont);
-                // cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-                cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-                cellsalereturnReportItem = GetPdfCell(sl.CustomerName, defaultFont);
-                // cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-                cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-                cellsalereturnReportItem = GetPdfCell(sl.TotalItem, defaultFont);
-                // cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-                cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-                cellsalereturnReportItem = GetPdfCell(sl.Subtotal, defaultFont);
-                //  cellsalereturnReportItem.BackgroundColor = BaseColor.LightGray;
-                cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
+                saleReturnReportTable.AddCell(new PdfPCell(new Phrase(r.ToString(), defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                saleReturnReportTable.AddCell(new PdfPCell(new Phrase(sl.SaleReturnDate.ToString("dd/MM/yy"), defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                saleReturnReportTable.AddCell(new PdfPCell(new Phrase(sl.SaleNo, defaultFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                saleReturnReportTable.AddCell(new PdfPCell(new Phrase(sl.CustomerName, defaultFont)) { HorizontalAlignment = Element.ALIGN_LEFT });
+                saleReturnReportTable.AddCell(new PdfPCell(new Phrase(sl.TotalItem.ToString("#,##0"), defaultFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                saleReturnReportTable.AddCell(new PdfPCell(new Phrase(sl.Subtotal.ToString("#,##0.00"), defaultFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
             }
 
-            cellsalereturnReportItem = GetPdfCell("Total", defaultFont);
-            cellsalereturnReportItem.Colspan = 4;
-            cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-            cellsalereturnReportItem = GetPdfCell(item1.Sum(x => x.TotalItem), defaultFont);
-            cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
-            cellsalereturnReportItem = GetPdfCell(item1.Sum(x => x.Subtotal), defaultFont);
-            cellsalereturnReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            saleReturnReportTable.AddCell(cellsalereturnReportItem);
-
+            saleReturnReportTable.AddCell(new PdfPCell(new Phrase("Total", defaultFont)) { Colspan = 4, HorizontalAlignment = Element.ALIGN_RIGHT });
+            saleReturnReportTable.AddCell(new PdfPCell(new Phrase(item1.Sum(x => x.TotalItem).ToString("#,##0"), defaultFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            saleReturnReportTable.AddCell(new PdfPCell(new Phrase(item1.Sum(x => x.Subtotal).ToString("#,##0.00"), defaultFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
 
             doc.Add(saleReturnReportTable);
         }
