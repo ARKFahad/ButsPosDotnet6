@@ -2253,13 +2253,11 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(trialBalanceReportLines));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -2286,11 +2284,10 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.NORMAL);
-            defaultFont.Size = 10;
 
 
             //headers
@@ -2316,14 +2313,23 @@ namespace Application.Services
         {
             var redColorFont = GetFont();
             redColorFont.Color = new BaseColor(113, 18, 26, 255);
+            redColorFont.Size = 8;
+
             var blueColorFont = GetFont();
             blueColorFont.Color = BaseColor.Blue;
+            blueColorFont.Size = 8;
+
             var magentaColorFont = GetFont();
             magentaColorFont.Color = BaseColor.Magenta;
+            magentaColorFont.Size = 8;
+
             var pinkColorFont = GetFont();
             pinkColorFont.Color = BaseColor.Pink;
+            pinkColorFont.Size = 8;
+
             var blackColorFont = GetFont();
             blackColorFont.Color = BaseColor.Black;
+            blackColorFont.Size = 8;
 
 
             var numColumns = 8;
