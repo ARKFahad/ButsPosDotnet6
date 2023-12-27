@@ -3690,7 +3690,7 @@ namespace Application.Services
         {
             PdfPTable itemWiseSaleProfitLossReportTable = new(9);
             itemWiseSaleProfitLossReportTable.WidthPercentage = 100;
-            float[] widths = new float[] { 6, 18, 16, 9, 11, 10, 11, 11, 10 };
+            float[] widths = new float[] { 6, 19, 22, 7, 10, 8, 10, 10, 10 };
             itemWiseSaleProfitLossReportTable.SetWidths(widths);
 
             itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase("SL", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
