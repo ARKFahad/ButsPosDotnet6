@@ -21,16 +21,18 @@ namespace Application.Api.Controllers
     public class StockAdjustmentController : ControllerBase
     {
         private readonly GHP_POS_DBContext _context;
+        private readonly IPdfService _pdfService;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IConfiguration _configuration;
         private readonly ICommonService _commonService;
         private readonly IBaseQueryService<StockAdjustment, StockAdjustmentRequestModel, StockAdjustmentViewModel> _stockAdjustmentQueryService;
-        public StockAdjustmentController(GHP_POS_DBContext context, IHttpContextAccessor contextAccessor,
+        public StockAdjustmentController(GHP_POS_DBContext context, IPdfService pdfService, IHttpContextAccessor contextAccessor,
             IConfiguration configuration,
             ICommonService commonService,
             IBaseQueryService<StockAdjustment, StockAdjustmentRequestModel, StockAdjustmentViewModel> stockAdjustmentQueryService)
         {
             _context = context;
+            _pdfService = pdfService;
             _contextAccessor = contextAccessor;
             _configuration = configuration;
             _commonService = commonService;
@@ -155,6 +157,31 @@ namespace Application.Api.Controllers
                     return await Result<string>.FailAsync(exception.ToString(), exception.Message);
                 }
 
+            }
+        }
+        [HttpPost]
+        [Route("print")]
+        public virtual async Task<IActionResult> Print(StockAdjustmentRequestModel request)
+        {
+            try
+            {
+                request.Page = -1;
+                request.IsAscending = true;
+                Tuple<List<StockAdjustmentViewModel>, int> content = await _stockAdjustmentQueryService.SearchAsync(request);
+                byte[] bytes;
+
+                using (var stream = new MemoryStream())
+                {
+                    _pdfService.PrintStockAdjustmentReportToPdf(stream, content.Item1, "Stock Adjustment Report ", _context.Branches.Find(request.BranchId), request.fromDate, request.ToDate);
+                    bytes = stream.ToArray();
+                    bytes = _pdfService.AddPageNumbers(bytes);
+                }
+
+                return File(bytes, MimeTypes.ApplicationPdf);
+            }
+            catch (Exception exception)
+            {
+                return Ok(exception.ToString());
             }
         }
     }

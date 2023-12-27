@@ -17,6 +17,8 @@ namespace Application.Core.Data.Configurations
 
             entity.HasIndex(e => e.Name, "ix_products_name");
 
+            entity.HasIndex(e => new { e.Name, e.PackSize }, "ix_products_name_packsize");
+
             entity.Property(e => e.Id).HasMaxLength(100);
 
             entity.Property(e => e.Barcode)
@@ -65,7 +67,7 @@ namespace Application.Core.Data.Configurations
 
             entity.Property(e => e.TempCode)
                 .HasMaxLength(100)
-                .HasDefaultValueSql("(N'thhhdffss')");
+                .HasDefaultValueSql("(N'fdfdfdfdf')");
 
             entity.Property(e => e.UpdatedBy)
                 .IsRequired()

@@ -19,7 +19,6 @@ namespace Application.Core.Entities
         public string UpdatedBy { get; set; }
         public bool Deleted { get; set; }
 
-        public virtual Branch Branch { get; set; }
         public virtual Role Role { get; set; }
     }
 }

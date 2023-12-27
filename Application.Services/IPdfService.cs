@@ -25,7 +25,6 @@ namespace Application.Services
         void PrintCustomerLedgerReportToPdf(Stream stream, Customer? customer,decimal? prevBalance, IList<CustomerLedgerReportLine> customerLedgerReportLines, string reportName, DateTime? fromDate, DateTime? toDatde);
         void PrintStockReportToPdf(Stream stream, Branch? branch, IList<StockModel> stockReportLines, string reportName);
         void PrintOutOfStockReportToPdf(Stream stream, Branch? branch, IList<StockModel> stockReportLines, string reportName);
-        void PrintPurchaseReportToPdf(Stream stream, Branch? branch, IList<PurchaseViewModel> purchaseReportLines, string reportName, DateTime? fromDate, DateTime? toDatde);
         void PrintSaleReportToPdf(Stream stream, Branch? branch, IList<SaleViewModel> saleReportLines, string reportName, DateTime? fromDate, DateTime? toDatde);
         void PrintExpenseReportToPdf(Stream stream, Branch? branch, IList<ExpenseViewModel> expenseReportLines, string reportName, DateTime? fromDate, DateTime? toDatde);
        
@@ -38,5 +37,16 @@ namespace Application.Services
         void PrintSaleReturnReportToPdf(MemoryStream stream, List<SaleReturnViewModel> item1, string v, Branch branch, DateTime? fromDate, DateTime? toDate);
         byte[] AddFooterInfoForA5Page(byte[] bytes);
         byte[] AddPageNumbers(byte[] pdf);
+        void PrintPurchaseInvoiceToPdf(MemoryStream stream, Supplier? supplier, Branch? branch, Purchase purchase, List<PurchaseItemModel> purchaseItems);
+        void PrintSupplierPaymentVoucherToPdf(MemoryStream stream, Supplier? supplier, Branch? branch, SupplierPayment supplierPayment, PaymentMethod? paymentMethod);
+        void PrintCustomerPaymentVoucherToPdf(MemoryStream stream, Customer? customer, Branch? branch, CustomerPayment customerPayment, PaymentMethod? paymentMethod);
+        void PrintExpenseVoucherToPdf(MemoryStream stream, ExpenseType? expenseType, Branch? branch, Expense expense, PaymentMethod? paymentMethod);
+        void PrintPayReceiveVoucherToPdf(MemoryStream stream, Branch? branch, PayReceive payReceive, AccountHead? accountHead, PaymentMethod? paymentMethod);
+        void PrintPurchaseItemReportToPdf(MemoryStream stream, Branch? branch, List<PurchaseItemViewModel> purchaseItemViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
+        void PrintSaleItemReportToPdf(MemoryStream stream, Branch? branch, List<SaleItemViewModel> saleItemViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
+        void PrintTransferDetailReportToPdf(MemoryStream stream, Branch? sourceBranch, Branch? destinationBranch, List<TransferDetailViewModel> transferDetailViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
+        void PrintPurchaseReportToPdf(MemoryStream stream, Branch? branch, List<PurchaseViewModel> purchaseViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
+        void PrintDayWiseSaleReportToPdf(MemoryStream stream, Branch? branch, List<SalesData> summaryData, string reportName, DateTime? fromDate, DateTime? toDate);
+        void PrintStockAdjustmentReportToPdf(MemoryStream stream, List<StockAdjustmentViewModel> stockAdjustmentViewModels, string reportName, Branch? branch, DateTime? fromDate, DateTime? toDate);
     }
 }

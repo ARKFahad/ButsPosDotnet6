@@ -20,5 +20,8 @@ namespace Application.Core.Entities
         public string BatchNo { get; set; }
         public DateTime CreatedOn { get; set; }
         public string CreatedBy { get; set; }
+
+        public virtual Product Product { get; set; }
+        public virtual Supplier Supplier { get; set; }
     }
 }

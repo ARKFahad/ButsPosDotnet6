@@ -16,7 +16,6 @@ namespace Application.ViewModel
             RoleId = user.RoleId;
             RoleName = user.Role?.Name;
             BranchId = user.BranchId;
-            BranchName = user.Branch?.Name;
             CreatedOn = user.CreatedOn;
             UpdatedOn = user.UpdatedOn;
             CreatedBy = user.CreatedBy;

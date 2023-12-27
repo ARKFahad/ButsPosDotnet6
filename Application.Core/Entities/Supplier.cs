@@ -13,7 +13,9 @@ namespace Application.Core.Entities
             PurchaseReturns = new HashSet<PurchaseReturn>();
             Purchases = new HashSet<Purchase>();
             StockAdjustments = new HashSet<StockAdjustment>();
+            StockItems = new HashSet<StockItem>();
             SupplierPayments = new HashSet<SupplierPayment>();
+            TransferMultiples = new HashSet<TransferMultiple>();
         }
 
         public string Id { get; set; }
@@ -36,6 +38,8 @@ namespace Application.Core.Entities
         public virtual ICollection<PurchaseReturn> PurchaseReturns { get; set; }
         public virtual ICollection<Purchase> Purchases { get; set; }
         public virtual ICollection<StockAdjustment> StockAdjustments { get; set; }
+        public virtual ICollection<StockItem> StockItems { get; set; }
         public virtual ICollection<SupplierPayment> SupplierPayments { get; set; }
+        public virtual ICollection<TransferMultiple> TransferMultiples { get; set; }
     }
 }

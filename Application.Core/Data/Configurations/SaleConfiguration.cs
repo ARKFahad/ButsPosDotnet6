@@ -15,6 +15,8 @@ namespace Application.Core.Data.Configurations
         {
             entity.ToTable("Sale");
 
+            entity.HasIndex(e => e.BranchId, "ix_sale_branchid");
+
             entity.Property(e => e.Id).HasMaxLength(100);
 
             entity.Property(e => e.BranchId)

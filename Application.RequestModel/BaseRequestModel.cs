@@ -63,7 +63,7 @@ namespace Application.RequestModel
 
         public abstract Expression<Func<T, bool>> GetExpression();
 
-        public IQueryable<T> GetOrderedData(IQueryable<T> queryable)
+        public virtual IQueryable<T> GetOrderedData(IQueryable<T> queryable)
         {
             queryable = queryable.Where(GetExpression());
             queryable = OrderByFunc()(queryable);
@@ -101,23 +101,7 @@ public static class ExpressionHelper
         return first.Compose(second, Expression.Or);
     }
 
-    public static bool IdIsOk(this string id)
-    {
-        if (string.IsNullOrWhiteSpace(id))
-        {
-            return false;
-        }
-        //Guid guid;
-        //if (!Guid.TryParse(id, out guid))
-        //{
-        //    return false;
-        //}
-        //if (guid == new Guid())
-        //{
-        //    return false;
-        //}
-        return true;
-    }
+  
 
 }
 

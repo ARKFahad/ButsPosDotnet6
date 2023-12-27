@@ -187,7 +187,7 @@ namespace Application.Services
                 {
                     loadSubAccounts = false;
                 }
-                if (loadSubAccounts)
+                if (loadSubAccounts) 
                 {
                     var subAccounts = PrepareAccountHeadModelsWithBalance(queryable, account.Id, level + 1, levelsToLoad, fiscalYearId, fromDate, toDate, branchId, profitLoss);
                     result.AddRange(subAccounts);

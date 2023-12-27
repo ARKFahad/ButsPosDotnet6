@@ -1,5 +1,4 @@
-﻿using Application.Api;
-using Application.Core.Data;
+﻿using Application.Core.Data;
 using Application.Core.Exceptions;
 using Application.Core.PermissionHelpers;
 using Application.Repositories;
@@ -13,24 +12,24 @@ using PbApp.Service;
 using System.Text;
 
 public static class RegisterStartupServices
+{
+    public static WebApplicationBuilder RegisterServices(this WebApplicationBuilder builder)
     {
-        public static WebApplicationBuilder RegisterServices(this WebApplicationBuilder builder)
-        {
 
-        // builder.Services.AddDbContext<GHP_POS_DBContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-         builder.Services.AddClientDbContext(builder.Configuration);        
-         builder.Services.AddControllers();
-           //cors
+        builder.Services.AddDbContext<GHP_POS_DBContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        //builder.Services.AddClientDbContext(builder.Configuration);        
+        builder.Services.AddControllers();
+        //cors
         builder.Services.AddCors(opt =>
         {
             opt.AddPolicy("CorsPolicy", policy =>
             {
-                       policy
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials()
-                     // .AllowAnyOrigin();
-                      .WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Value.Split(","));
+                policy
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials()
+               //.AllowAnyOrigin();
+               .WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Value.Split(","));
             });
         });
         //....cors end
@@ -43,13 +42,14 @@ public static class RegisterStartupServices
         builder.Services.AddScoped<IAccountService, AccountService>();
         builder.Services.AddScoped<IPdfService, PdfService>();
         builder.Services.AddScoped<IImportManager, ImportManager>();
+        builder.Services.AddScoped<ISaleQueryService, SaleQueryService>();
 
 
         builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>()
            .AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-       
+
         //swagger
         builder.Services.AddSwaggerGen(c =>
         {
@@ -123,8 +123,8 @@ public static class RegisterStartupServices
                };
            });
         //end jwt
- 
-            return builder;
-        }
+
+        return builder;
     }
+}
 

@@ -101,7 +101,8 @@ namespace Application.Api.Controllers
                         var itemsToRemoveFromStock = _context.StockItems.Where(x => x.ProductId == item.ProductId&& x.BranchId==model.BranchId).OrderBy(x=>x.CreatedOn).Take(item.ReturnQty).ToList();
                         //stock check
                         var stockCount = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).Sum(x => x.Quantity);
-                        if (item.ReturnQty > stockCount) throw new Exception("Out of Stock");
+                        var product = _context.Products.Find(item.ProductId);
+                        if (item.ReturnQty > stockCount) throw new Exception(product?.Name+" "+product?.PackSize+" Exceeds Stock Limit"+" Available Stock : "+stockCount);
                         _context.StockItems.RemoveRange(itemsToRemoveFromStock);
                        await _context.SaveChangesAsync();
                     }
@@ -198,7 +199,8 @@ namespace Application.Api.Controllers
                         stockValue+=itemsToRemoveFromStock.Sum(x=>((x.PurchaseRate - x.DiscountPerItem) + x.AdditionalCostPerItem));
                         //stock check
                         var stockCount = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).Sum(x => x.Quantity);
-                        if (item.ReturnQty > stockCount) throw new Exception("Out of Stock");
+                        var product = _context.Products.Find(item.ProductId);
+                        if (item.ReturnQty > stockCount) throw new Exception(product?.Name + " " + product?.PackSize + " Exceeds Stock Limit !" + " Available Stock : " + stockCount);
                         _context.StockItems.RemoveRange(itemsToRemoveFromStock);
                         await _context.SaveChangesAsync();
                         if (item.ReturnQty > 0)

@@ -15,14 +15,21 @@ namespace Application.RequestModel
         {
             IsIncludeParents = true;
         }
+
         public DateTime? fromDate { get; set; }
 
         public DateTime? ToDate { get; set; }
+        public string? ProductId { get; set; }
         public override Expression<Func<TransferHistory, bool>> GetExpression()
         {
             ExpressionObject = x => !x.Deleted;
             if (fromDate.HasValue && ToDate.HasValue)
                 ExpressionObject = ExpressionObject.And(x => x.CreatedOn.Date >= fromDate.Value.Date && x.CreatedOn.Date <= ToDate.Value.Date);
+          
+            if (!string.IsNullOrWhiteSpace(ProductId))
+            {
+                ExpressionObject = ExpressionObject.And(x => x.ProductId == ProductId);
+            }
             return ExpressionObject;
 
         }

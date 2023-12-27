@@ -57,7 +57,9 @@ namespace Application.Core.Data
         public virtual DbSet<StockItem> StockItems { get; set; }
         public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<SupplierPayment> SupplierPayments { get; set; }
+        public virtual DbSet<TransferDetail> TransferDetails { get; set; }
         public virtual DbSet<TransferHistory> TransferHistories { get; set; }
+        public virtual DbSet<TransferMultiple> TransferMultiples { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<PLModel> PLModels { get; set; }
         public virtual DbSet<SupplierLedgerReportLine> SupplierLedgerReportLines { get; set; }
@@ -103,7 +105,9 @@ namespace Application.Core.Data
             modelBuilder.ApplyConfiguration(new Configurations.StockItemConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.SupplierConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.SupplierPaymentConfiguration());
+            modelBuilder.ApplyConfiguration(new Configurations.TransferDetailConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.TransferHistoryConfiguration());
+            modelBuilder.ApplyConfiguration(new Configurations.TransferMultipleConfiguration());
             modelBuilder.ApplyConfiguration(new Configurations.UserConfiguration());
 
             OnModelCreatingPartial(modelBuilder);

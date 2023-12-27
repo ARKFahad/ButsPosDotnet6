@@ -1,5 +1,6 @@
 ﻿using Application.Core.Common;
 using Application.Core.Constants;
+using Application.Core.Data;
 using Application.Core.Entities;
 using Application.Core.PermissionHelpers;
 using Application.RequestModel;
@@ -23,16 +24,20 @@ namespace Application.Api.Controllers
     {
         private readonly IBaseQueryService<User, UserRequestModel, UserViewModel> _userQueryService;
         private readonly IBaseCommandService<User> _userCommandService;
+        private readonly GHP_POS_DBContext _context;
         private readonly IAuthService _authService;
         private readonly IHttpContextAccessor _contextAccessor;
         public UserController(IBaseQueryService<User, UserRequestModel, UserViewModel> userQueryService,
             IBaseCommandService<User> userCommandService,
-            IHttpContextAccessor contextAccessor, IAuthService authService)
+            IHttpContextAccessor contextAccessor, 
+            IAuthService authService,
+            GHP_POS_DBContext context)
         {
             _authService = authService;
             _userCommandService = userCommandService;
             _userQueryService = userQueryService;
             _contextAccessor = contextAccessor;
+            _context = context;
         }
 
         [HttpPost]
@@ -44,6 +49,19 @@ namespace Application.Api.Controllers
             try
             {
                 Tuple<List<UserViewModel>, int> content = await _userQueryService.SearchAsync(request);
+
+                foreach (var item in content.Item1)
+                {
+                    if (!string.IsNullOrEmpty(item.BranchId))
+                    {
+                        item.BranchName = _context.Branches.Find(item.BranchId)?.Name;
+                    }
+                    else
+                    {
+                        item.BranchName = "N/A";
+                    }
+                   
+                }
                 return await Result<Tuple<List<UserViewModel>, int>>.SuccessAsync(content, "Users Found");
             }
             catch (Exception exception)
@@ -110,14 +128,27 @@ namespace Application.Api.Controllers
         [Authorize(Policy = Permissions.Users.Edit)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("/api/user/update")]
-        public virtual async Task<Result> Put([FromBody] User model)
+        public virtual async Task<Result> Put([FromBody] UserUpdateRequestModel model)
         {
             try
             {
-                model.UpdatedOn = DateTime.UtcNow;
-                model.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
-                await _userCommandService.UpdateAsync(model);
-                return await Result<User>.SuccessAsync(model, "User Updated Successfully");
+                User user =await _userCommandService.FindAsync(model.Id);
+                if (user == null) return await Result<User>.FailAsync("","User Not Found");
+                if (!string.IsNullOrWhiteSpace(model.Password))
+                {
+                    CreatePasswordHash(model.Password, out byte[] passwordHash, out byte[] passwordSalt);
+                    user.PasswordHash = passwordHash;
+                    user.PasswordSalt = passwordSalt;
+                }
+                if (model.RoleId != RoleIdConstants.SalesManRoleId)
+                    user.BranchId = "";
+                else
+                    user.BranchId = model.BranchId;
+                user.RoleId = model.RoleId;
+                user.UpdatedOn = DateTime.Now;
+                user.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                await _userCommandService.UpdateAsync(user);
+                return await Result<User>.SuccessAsync(user, "User Updated Successfully");
             }
             catch (Exception exception)
             {

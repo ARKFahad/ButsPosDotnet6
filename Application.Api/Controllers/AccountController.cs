@@ -165,5 +165,36 @@ namespace Application.Api.Controllers
             }
           
         }
+
+        [Authorize(Policy = Permissions.AccountingReports.TrialBalance_BalanceSheet_IncomeStatement)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("income-statement-print-custom")]
+        public IActionResult PrintIncomeStatementReportCustom(AccountReportRequestModel requestModel)
+        {
+            try
+            {
+                requestModel.FiscalYearId = _context.FiscalYears.FirstOrDefault(x => x.IsActive).Id;
+                var income = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.Income, AccType.Income, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
+                var expense = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.Expenditure, AccType.Expense, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
+                var incomeHeadsQueryable = _context.AccountHeads.Where(x => x.AccountTypeId==AccType.Income);
+                var expenseHeadsQueryable = _context.AccountHeads.Where(x => x.AccountTypeId == AccType.Expense);
+                var incomeHeads = _accountService.PrepareAccountHeadModelsWithBalance(incomeHeadsQueryable, requestModel.RootAccountHeadId, requestModel.Level, requestModel.LevelsToLoad, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
+                var expenseHeads = _accountService.PrepareAccountHeadModelsWithBalance(incomeHeadsQueryable, requestModel.RootAccountHeadId, requestModel.Level, requestModel.LevelsToLoad, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                {
+                  //  _pdfService.PrintIncomeStatementReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Income Statement ", requestModel.FromDate, requestModel.ToDate, income - expense);
+                    bytes = stream.ToArray();
+                    bytes = _pdfService.AddPageNumbers(bytes);
+                }
+
+                return File(bytes, MimeTypes.ApplicationPdf);
+            }
+            catch (Exception exception)
+            {
+                return Ok(exception.ToString());
+            }
+
+        }
     }
 }

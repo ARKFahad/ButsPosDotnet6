@@ -83,7 +83,7 @@ namespace Application.Api.Controllers
         }
         [HttpPost]
         [Route("print")]
-        public virtual async Task<IActionResult> Print(PurchaseRequestModel request)
+        public virtual async Task<IActionResult> TestPrint(PurchaseRequestModel request)
         {
             try
             {
@@ -93,8 +93,8 @@ namespace Application.Api.Controllers
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                   
-                    _pdfService.PrintPurchaseReportToPdf(stream, _context.Branches.Find(request.BranchId), content.Item1.ToList(), "Purchase Report ",request.fromDate,request.ToDate);
+
+                    _pdfService.PrintPurchaseReportToPdf(stream, _context.Branches.Find(request.BranchId), content.Item1.ToList(), "Purchase Report ", request.fromDate, request.ToDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
@@ -103,7 +103,7 @@ namespace Application.Api.Controllers
             }
             catch (Exception exception)
             {
-                return  Ok(exception.ToString());
+                return Ok(exception.ToString());
             }
         }
         [Authorize(Policy = Permissions.Purchases.View)]
@@ -583,6 +583,38 @@ namespace Application.Api.Controllers
                 subTotal += (item.PurchaseQuantity * item.PurchasePrice);
             }
             return subTotal;
+        }
+        [HttpGet("/api/purchase/invoice/{id}")]
+        public IActionResult PurchaseInvoice(string id)
+        {
+            var purchase = _context.Purchases.Find(id);
+            if (purchase == null) throw new NotFoundResultException("Not Found");
+            var supplier = _context.Suppliers.Find(purchase.SupplierId);
+            var branch = _context.Branches.Find(purchase.BranchId);
+            var purchaseItems = _context.PurchaseItems.Include(x => x.Product).Where(x => x.PurchaseId == purchase.Id).Select(x => new PurchaseItemModel
+            {
+                Description = x.Product.Name + " " + x.Product.PackSize,
+                Quantity = x.PurchaseQuantity,
+                Price = x.PurchasePrice,
+                Amount = x.Amount,
+                BonusQuantity = x.BonusQuantity,
+            }).ToList();
+            try
+            {
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                {
+                    _pdfService.PrintPurchaseInvoiceToPdf(stream, supplier, branch, purchase, purchaseItems);
+                    bytes = stream.ToArray();
+                    // bytes =_pdfService.AddFooterInfoForA5Page(bytes);
+                }
+                return File(bytes, MimeTypes.ApplicationPdf);
+            }
+            catch (Exception exc)
+            {
+                throw;
+            }
+
         }
 
     }

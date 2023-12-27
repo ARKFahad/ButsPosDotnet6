@@ -18,7 +18,6 @@ namespace Application.Core.Data.Configurations
             entity.Property(e => e.Id).HasMaxLength(100);
 
             entity.Property(e => e.BranchId)
-                .IsRequired()
                 .HasMaxLength(100)
                 .HasDefaultValueSql("(N'bbb')");
 
@@ -45,12 +44,6 @@ namespace Application.Core.Data.Configurations
             entity.Property(e => e.Username)
                 .IsRequired()
                 .HasMaxLength(200);
-
-            entity.HasOne(d => d.Branch)
-                .WithMany(p => p.Users)
-                .HasForeignKey(d => d.BranchId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_User_Branch");
 
             entity.HasOne(d => d.Role)
                 .WithMany(p => p.Users)

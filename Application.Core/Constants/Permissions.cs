@@ -157,6 +157,22 @@ namespace Application.Core.Constants
             public const string Remove = "Permissions.Purchases.Remove";
             public const string ItemWisePurchase = "Permissions.Purchases.ItemWisePurchase";
         }
+        [DisplayName("PurchaseItems")]
+        [Description("PurchaseItems Permissions")]
+        public static class PurchaseItems
+        {
+            public const string View = "Permissions.PurchaseItems.View";
+            public const string Print = "Permissions.PurchaseItems.Print";
+          
+        }
+        [DisplayName("SaleItems")]
+        [Description("SaleItems Permissions")]
+        public static class SaleItems
+        {
+            public const string View = "Permissions.SaleItems.View";
+            public const string Print = "Permissions.SaleItems.Print";
+
+        }
 
         [DisplayName("CustomerPayments")]
         [Description("CustomerPayments Permissions")]

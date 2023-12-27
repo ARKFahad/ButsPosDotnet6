@@ -2,6 +2,7 @@
 using Application.Core.Constants;
 using Application.Core.Data;
 using Application.Core.Entities;
+using Application.Core.Exceptions;
 using Application.Core.PermissionHelpers;
 using Application.RequestModel;
 using Application.Services;
@@ -27,6 +28,7 @@ namespace Application.Api.Controllers
         private readonly IBaseQueryService<PayReceive, PayReceiveRequestModel, PayReceiveViewModel> _payReceiveQueryService;
         private readonly IBaseCommandService<PayReceive> _payReceiveCommandService;
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IPdfService _pdfService;
         private readonly GHP_POS_DBContext _context;
         private readonly IConfiguration _configuration;
         private readonly ICommonService _commonService;
@@ -34,6 +36,7 @@ namespace Application.Api.Controllers
             IBaseCommandService<PayReceive> payReceiveCommandService,
             IHttpContextAccessor contextAccessor,
             GHP_POS_DBContext context,
+            IPdfService pdfService,
             IConfiguration configuration,
             ICommonService commonService)
         {
@@ -41,6 +44,7 @@ namespace Application.Api.Controllers
             _payReceiveQueryService = payReceiveQueryService;
             _contextAccessor = contextAccessor;
             _context = context;
+            _pdfService = pdfService;
             _configuration = configuration;
             _commonService = commonService;
         }
@@ -137,6 +141,31 @@ namespace Application.Api.Controllers
                     return await Result<PayReceive>.FailAsync(exception.ToString(), exception.Message);
                 }
             }
+        }
+        [HttpGet("/api/payReceive/voucher/{id}")]
+        public IActionResult PayReceiveVoucher(string id)
+        {
+            var payReceive = _context.PayReceives.Find(id);
+            if (payReceive == null) throw new NotFoundResultException("Not Found");
+            var accountHead = _context.AccountHeads.Find(payReceive.AccountId);
+            var paymentMethod = _context.PaymentMethods.Find(payReceive.PaymentMethodId);
+            var branch = _context.Branches.Find(payReceive.BranchId);
+            try
+            {
+                byte[] bytes;
+                using (var stream = new MemoryStream())
+                {
+                    _pdfService.PrintPayReceiveVoucherToPdf(stream, branch, payReceive, accountHead, paymentMethod);
+                    bytes = stream.ToArray();
+                    //bytes =_pdfService.AddFooterInfoForA5Page(bytes);
+                }
+                return File(bytes, MimeTypes.ApplicationPdf);
+            }
+            catch (Exception exc)
+            {
+                throw;
+            }
+
         }
     }
 }

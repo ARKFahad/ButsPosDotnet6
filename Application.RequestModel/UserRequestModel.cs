@@ -25,7 +25,7 @@ namespace Application.RequestModel
         }
         public override IQueryable<User> IncludeParents(IQueryable<User> queryable)
         {
-            return queryable.Include(x=>x.Role).Include(x=>x.Branch);
+            return queryable.Include(x=>x.Role);
         }
     }
 }
