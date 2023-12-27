@@ -19,87 +19,130 @@ namespace Application.Services
             _commonService = commonService;
         }
 
-        protected void DrawHorizontalLineProtrait(PdfWriter pdfWriter)
+        protected void DrawHorizontalLineProtrait(PdfWriter writer)
         {
-            PdfContentByte cb = pdfWriter.DirectContent;
-            cb.MoveTo(30, 735);
-            cb.LineTo(580, 735);
-            cb.Stroke();
+            // Get the PdfContentByte from the PdfWriter
+            PdfContentByte contentByte = writer.DirectContent;
+
+            // Set the starting point of the line
+            float startX = 30;
+            float startY = 735;
+
+            // Set the ending point of the line
+            float endX = 580;
+            float endY = 735;
+
+            // Move to the starting point
+            contentByte.MoveTo(startX, startY);
+
+            // Draw a line to the ending point
+            contentByte.LineTo(endX, endY);
+
+            // Stroke the line (draw it)
+            contentByte.Stroke();
         }
 
-        protected void DrawHorizontalLineLandscape(PdfWriter pdfWriter)
+        protected void DrawHorizontalLineLandscape(PdfWriter writer)
         {
-            PdfContentByte cb = pdfWriter.DirectContent;
-            cb.MoveTo(30, 485);
-            cb.LineTo(810, 485);
-            cb.Stroke();
+            // Get the PdfContentByte from the PdfWriter
+            PdfContentByte contentByte = writer.DirectContent;
+
+            // Set the starting point of the line
+            float startX = 30;
+            float startY = 485;
+
+            // Set the ending point of the line
+            float endX = 810;
+            float endY = 485;
+
+            // Move to the starting point
+            contentByte.MoveTo(startX, startY);
+
+            // Draw a line to the ending point
+            contentByte.LineTo(endX, endY);
+
+            // Stroke the line (draw it)
+            contentByte.Stroke();
         }
 
-        public byte[] AddPageNumbers(byte[] pdf)
+        public byte[] AddPageNumbers(byte[] originalPdf)
         {
-            MemoryStream ms = new MemoryStream();
-            // we create a reader for a certain document
-            PdfReader reader = new PdfReader(pdf);
-            // we retrieve the total number of pages
-            int n = reader.NumberOfPages;
-            // we retrieve the size of the first page
-            Rectangle psize = reader.GetPageSize(1);
+            MemoryStream modifiedPdfStream = new MemoryStream();
+            // Create a reader for the original document
+            PdfReader originalReader = new PdfReader(originalPdf);
 
-            // step 1: creation of a document-object
-            Document document = new Document(psize, 50, 50, 50, 50);
-            // step 2: we create a writer that listens to the document
-            PdfWriter writer = PdfWriter.GetInstance(document, ms);
-            // step 3: we open the document
+            // Retrieve the total number of pages in the original document
+            int totalPages = originalReader.NumberOfPages;
 
-            document.Open();
-            // step 4: we add content
-            PdfContentByte cb = writer.DirectContent;
+            // Retrieve the size of the first page
+            Rectangle pageSize = originalReader.GetPageSize(1);
 
-            int p = 0;
-            // Console.WriteLine("There are " + n + " pages in the document.");
-            for (int page = 1; page <= reader.NumberOfPages; page++)
+            // Step 1: Creation of a document object for the modified PDF
+            Document modifiedDocument = new Document(pageSize, 50, 50, 50, 50);
+
+            // Step 2: Create a writer that listens to the modified document
+            PdfWriter writer = PdfWriter.GetInstance(modifiedDocument, modifiedPdfStream);
+
+            // Step 3: Open the modified document
+            modifiedDocument.Open();
+
+            // Step 4: Add content to the modified document
+            PdfContentByte contentByte = writer.DirectContent;
+
+            int currentPageNumber = 0;
+
+            for (int page = 1; page <= originalReader.NumberOfPages; page++)
             {
-                document.NewPage();
-                p++;
+                modifiedDocument.NewPage();
+                currentPageNumber++;
 
-                PdfImportedPage importedPage = writer.GetImportedPage(reader, page);
-                cb.AddTemplate(importedPage, 0, 0);
+                PdfImportedPage importedPage = writer.GetImportedPage(originalReader, page);
+                contentByte.AddTemplate(importedPage, 0, 0);
 
-                BaseFont bf = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+                BaseFont baseFont = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
 
-                cb.BeginText();
-                cb.SetFontAndSize(bf, 10);
+                contentByte.BeginText();
+                contentByte.SetFontAndSize(baseFont, 10);
 
-                cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, "Checked By", 30, 30, 0);
-                cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, "Approved By", 570, 30, 0);
-                cb.EndText();
+                contentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, "Checked By", 30, 30, 0);
+                contentByte.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, "Approved By", 570, 30, 0);
+                contentByte.EndText();
 
-                cb.BeginText();
-                cb.SetFontAndSize(bf, 10);
+                contentByte.BeginText();
+                contentByte.SetFontAndSize(baseFont, 10);
 
-                cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, "Printing Date : " + DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt"), 30, 10, 0);
-                cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, "Page " + p + " of " + n, 340, 10, 0);
-                cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, "Powered By: BUTS", 570, 10, 0);
-                cb.EndText();
+                contentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, "Printing Date : " + DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt"), 30, 10, 0);
+                contentByte.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, "Page " + currentPageNumber + " of " + totalPages, 340, 10, 0);
+                contentByte.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, "Powered By: BUTS", 570, 10, 0);
+                contentByte.EndText();
             }
-            // step 5: we close the document
-            document.Close();
-            return ms.ToArray();
+
+            // Step 5: Close the modified document
+            modifiedDocument.Close();
+
+            return modifiedPdfStream.ToArray();
         }
 
         protected virtual Font GetFont()
         {
-            var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "pdf", Path.GetFileName("RobotoRegular.ttf"));
-            var baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            //var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "pdf", Path.GetFileName("RobotoRegular.ttf"));
+            // Set the path to the Roboto Regular font file
+            var fontFilePath = Path.Combine(Directory.GetCurrentDirectory(), "pdf", "RobotoRegular.ttf");
+
+            // Create a BaseFont using the specified font file
+            var baseFont = BaseFont.CreateFont(fontFilePath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+
+            // Create a Font object with the specified BaseFont and size
             var font = new Font(baseFont, 10, Font.NORMAL);
+
             return font;
         }
 
-        protected virtual PdfPCell GetPdfCell(object text, Font font)
+        protected virtual PdfPCell GetPdfCell(object content, Font cellFont)
         {
-            return new PdfPCell(new Phrase(text.ToString(), font));
+            // Create a PdfPCell with the specified content and font
+            return new PdfPCell(new Phrase(content.ToString(), cellFont));
         }
-
 
         //Common Report Header With FromDate and ToDate
         protected virtual void PrintReportHeader(PdfWriter pdfWriter, string reportHeader, Branch branch, Font headerTitleFont, Font addressFont, Font reportTitleFont, Document doc, DateTime? fromDate, DateTime? toDatde)
