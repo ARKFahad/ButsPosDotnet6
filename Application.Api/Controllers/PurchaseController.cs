@@ -588,7 +588,7 @@ namespace Application.Api.Controllers
             return subTotal;
         }
 
-        [HttpGet("/api/purchase/invoice/{id}")]
+        [HttpGet("invoice/{id}")]
         public IActionResult PurchaseInvoice(string id)
         {
             var purchase = _context.Purchases.Find(id);

@@ -4993,17 +4993,17 @@ namespace Application.Services
             reportTitleFont.SetStyle(Font.BOLD);
             reportTitleFont.Color = BaseColor.Black;
 
-            //titleFont
-            var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "pdf", Path.GetFileName("RobotoRegular.ttf"));
-            var baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-            var font = new Font(baseFont, 8, Font.NORMAL);
-
-            var titleFont = font;
+            var titleFont = GetFont();
+            titleFont.SetFamily("Times New Roman");
             titleFont.SetStyle(Font.BOLD);
+            titleFont.Color = BaseColor.Black;
+            titleFont.Size = 8;
+
             reportTitleFont.SetFamily("Times New Roman");
             reportTitleFont.Size = 8;
             reportTitleFont.SetStyle(Font.BOLD);
             reportTitleFont.Color = BaseColor.Black;
+
             //defaultFont
             var defaultFont = GetFont();
             defaultFont.SetFamily("Times New Roman");
@@ -5014,14 +5014,11 @@ namespace Application.Services
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
 
-
             //headers
             var headerTable = PrintInvoiceHeader("Purchase Invoice", branch, headerTitleFont, addressFont, reportTitleFont);
 
             // Report
             PrintPurchaseInvoice(stream, headerTable, titleFont, supplier, branch, purchase, purchaseItems, defaultFont, attributesFont);
-
-
 
             //doc.Close();
         }
@@ -5035,50 +5032,23 @@ namespace Application.Services
             {
                 //  RunDirection = GetDirection(lang),
                 WidthPercentage = 100f,
-
-
             };
+
             var widths = new Dictionary<int, int[]>
             {
                 { numColumns, new[] { 100 } }
             };
+
             invoiceInfoTable.SetTotalWidth(new float[] { 100 });
 
             invoiceInfoTable.SetWidths(widths[numColumns]);
-            var cellInvoiceInfo = GetPdfCell("", font);
-            cellInvoiceInfo.Phrase.Add(new Phrase(purchase.CreatedOn.ToString("dd/MM/yyyy") + "   " + purchase.CreatedOn.ToString("hh:mm tt"), titleFont));
-            cellInvoiceInfo.HorizontalAlignment = Element.ALIGN_LEFT;
-            cellInvoiceInfo.Border = Rectangle.NO_BORDER;
-            invoiceInfoTable.AddCell(cellInvoiceInfo);
 
-            cellInvoiceInfo = GetPdfCell("", font);
-            cellInvoiceInfo.Phrase.Add(new Phrase("Bill No:" + purchase.PurchaseNo, titleFont));
-            cellInvoiceInfo.HorizontalAlignment = Element.ALIGN_LEFT;
-            cellInvoiceInfo.Border = Rectangle.NO_BORDER;
-            invoiceInfoTable.AddCell(cellInvoiceInfo);
-
-            cellInvoiceInfo = GetPdfCell("", font);
-            cellInvoiceInfo.Phrase.Add(new Phrase("Name: " + supplier.Name, titleFont));
-            cellInvoiceInfo.HorizontalAlignment = Element.ALIGN_LEFT;
-            cellInvoiceInfo.Border = Rectangle.NO_BORDER;
-            cellInvoiceInfo.Colspan = 2;
-            invoiceInfoTable.AddCell(cellInvoiceInfo);
-
-            cellInvoiceInfo = GetPdfCell("", font);
-            cellInvoiceInfo.Phrase.Add(new Phrase("Contact: " + supplier.Contact, titleFont));
-            cellInvoiceInfo.HorizontalAlignment = Element.ALIGN_LEFT;
-            cellInvoiceInfo.Border = Rectangle.NO_BORDER;
-            cellInvoiceInfo.Colspan = 2;
-            invoiceInfoTable.AddCell(cellInvoiceInfo);
-
-            cellInvoiceInfo = GetPdfCell("", font);
-            cellInvoiceInfo.Phrase.Add(new Phrase("Served By: " + _context.Users.Find(purchase.CreatedBy)?.Username, titleFont));
-            cellInvoiceInfo.HorizontalAlignment = Element.ALIGN_LEFT;
-            cellInvoiceInfo.Border = Rectangle.NO_BORDER;
-            invoiceInfoTable.AddCell(cellInvoiceInfo);
-
-            cellInvoiceInfo.Phrase.Add(new Phrase(Environment.NewLine));
-            cellInvoiceInfo.Phrase.Add(new Phrase(Environment.NewLine));
+            invoiceInfoTable.AddCell(new PdfPCell(new Phrase(purchase.CreatedOn.ToString("dd/MM/yyyy") + "   " + purchase.CreatedOn.ToString("hh:mm tt"), titleFont)) { HorizontalAlignment = Element.ALIGN_LEFT, Border = Rectangle.NO_BORDER });
+            invoiceInfoTable.AddCell(new PdfPCell(new Phrase("Bill No:" + purchase.PurchaseNo, titleFont)) { HorizontalAlignment = Element.ALIGN_LEFT, Border = Rectangle.NO_BORDER });
+            invoiceInfoTable.AddCell(new PdfPCell(new Phrase("Name: " + supplier.Name, titleFont)) { Colspan = 2, HorizontalAlignment = Element.ALIGN_LEFT, Border = Rectangle.NO_BORDER });
+            invoiceInfoTable.AddCell(new PdfPCell(new Phrase("Contact: " + supplier.Contact, titleFont)) { Colspan = 2, HorizontalAlignment = Element.ALIGN_LEFT, Border = Rectangle.NO_BORDER });
+            invoiceInfoTable.AddCell(new PdfPCell(new Phrase("Served By: " + _context.Users.Find(purchase.CreatedBy)?.Username, titleFont)) { HorizontalAlignment = Element.ALIGN_LEFT, Border = Rectangle.NO_BORDER });
+            invoiceInfoTable.AddCell(new PdfPCell(new Phrase(Environment.NewLine, titleFont)) { HorizontalAlignment = Element.ALIGN_LEFT, Border = Rectangle.NO_BORDER });
 
             //print purchase items
             var purchaseItemTable = new PdfPTable(5)
@@ -5086,6 +5056,7 @@ namespace Application.Services
                 // RunDirection = GetDirection(lang),
                 WidthPercentage = 100f
             };
+
             purchaseItemTable.SetTotalWidth(new float[] { 33, 12, 12, 20, 23 });
 
             var widthsOfPurchaseItemTable = new Dictionary<int, int[]>
@@ -5093,122 +5064,39 @@ namespace Application.Services
                // { 5, new[] { 5,39,13,13,30 } }
                { 5, new[] { 33,12,12,20,23 } }
             };
+
             purchaseItemTable.SetWidths(widthsOfPurchaseItemTable[5]);
 
-            var cellPurchaseItemTable = GetPdfCell("Description", titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_LEFT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("Description", titleFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("Qty", titleFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("BQty", titleFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("Price", titleFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("Amount", titleFont)) { HorizontalAlignment = Element.ALIGN_CENTER });
 
-            cellPurchaseItemTable = GetPdfCell("Qty", titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-            cellPurchaseItemTable = GetPdfCell("BQty", titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-            cellPurchaseItemTable = GetPdfCell("Price", titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-            cellPurchaseItemTable = GetPdfCell("Amount", titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-
-
-            var r = 0;
+            var sl = 0;
             foreach (var po in purchaseItems)
             {
-                r++;
+                sl++;
 
-                //ItemName
-                cellPurchaseItemTable = GetPdfCell(po.Description, font);
-                cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_LEFT;
-                purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-
-                //Quantity
-                cellPurchaseItemTable = GetPdfCell(po.Quantity, font);
-                cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-                //BonusQuantity
-                cellPurchaseItemTable = GetPdfCell(po.BonusQuantity, font);
-                cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-                //UnitPrice
-                var unitprice = po.Price;
-                unitprice = Math.Round(unitprice, 2);
-                cellPurchaseItemTable = GetPdfCell(unitprice, font);
-                cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-                //TotalPrice
-                var TotalPrice = po.Amount;
-                TotalPrice = Math.Round(TotalPrice, 2);
-                cellPurchaseItemTable = GetPdfCell(TotalPrice, font);
-                cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-
+                purchaseItemTable.AddCell(new PdfPCell(new Phrase(po.Description, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
+                purchaseItemTable.AddCell(new PdfPCell(new Phrase(po.Quantity.ToString("#,##0"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                purchaseItemTable.AddCell(new PdfPCell(new Phrase(po.BonusQuantity.ToString("#,##0"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                purchaseItemTable.AddCell(new PdfPCell(new Phrase(po.Price.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                purchaseItemTable.AddCell(new PdfPCell(new Phrase(po.Amount.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
             }
 
-            //
-            cellPurchaseItemTable = GetPdfCell("", font);
-            cellPurchaseItemTable.Border = Rectangle.NO_BORDER;
-            cellPurchaseItemTable.Colspan = 3;
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-
             //Subtotal
-            cellPurchaseItemTable = GetPdfCell("Subtotal ", titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_LEFT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-            //Subtotal
-            cellPurchaseItemTable = GetPdfCell(purchase.Subtotal, titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-
-
-            //
-            cellPurchaseItemTable = GetPdfCell("", font);
-            cellPurchaseItemTable.Border = Rectangle.NO_BORDER;
-            cellPurchaseItemTable.Colspan = 3;
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("", titleFont)) { Colspan = 3, HorizontalAlignment = Element.ALIGN_RIGHT, Border = Rectangle.NO_BORDER });
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("Subtotal", titleFont)) { HorizontalAlignment = Element.ALIGN_LEFT });
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase(purchase.Subtotal.ToString("#,##0.00"), titleFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
             //Discount
-            cellPurchaseItemTable = GetPdfCell("Discount ", titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_LEFT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-            //Discount
-            cellPurchaseItemTable = GetPdfCell(purchase.Discount, titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-            //var redColorTextFont = FontFactory.GetFont("Times New Roman", 10, BaseColor.Red);
-            cellPurchaseItemTable = GetPdfCell("", titleFont);
-            cellPurchaseItemTable.Border = Rectangle.NO_BORDER;
-            cellPurchaseItemTable.Colspan = 3;
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("", font)) { Colspan = 3, HorizontalAlignment = Element.ALIGN_RIGHT, Border = Rectangle.NO_BORDER });
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("Discount", titleFont)) { HorizontalAlignment = Element.ALIGN_LEFT });
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase(purchase.Discount.ToString("#,##0.00"), titleFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
             //Net Amount
-            cellPurchaseItemTable = GetPdfCell("Net Amount ", titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_LEFT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
-            //Net Amount
-            cellPurchaseItemTable = GetPdfCell(purchase.NetAmount, titleFont);
-            cellPurchaseItemTable.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseItemTable.AddCell(cellPurchaseItemTable);
-
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("", font)) { Colspan = 3, HorizontalAlignment = Element.ALIGN_RIGHT, Border = Rectangle.NO_BORDER });
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase("Net Amount", titleFont)) { HorizontalAlignment = Element.ALIGN_LEFT });
+            purchaseItemTable.AddCell(new PdfPCell(new Phrase(purchase.NetAmount.ToString("#,##0.00"), titleFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
 
 
             var tableHeight = CalculatePdfPTableHeight(purchaseItemTable);
@@ -5224,7 +5112,6 @@ namespace Application.Services
             doc.Add(invoiceInfoTable);
             doc.Add(purchaseItemTable);
             doc.Close();
-
         }
 
 
