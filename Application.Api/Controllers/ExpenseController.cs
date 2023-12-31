@@ -9,16 +9,9 @@ using Application.Services;
 using Application.ViewModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using PbApp.Service;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Application.Api.Controllers
 {
@@ -34,6 +27,7 @@ namespace Application.Api.Controllers
         private readonly IPdfService _pdfService;
         private readonly ICommonService _commonService;
         private readonly IConfiguration _configuration;
+
         public ExpenseController(IBaseQueryService<Expense, ExpenseRequestModel, ExpenseViewModel> expenseQueryService,
             IBaseCommandService<Expense> expenseCommandService, GHP_POS_DBContext context,
             IHttpContextAccessor contextAccessor, IPdfService pdfService,
@@ -48,6 +42,7 @@ namespace Application.Api.Controllers
             _configuration = configuration;
             _commonService = commonService;
         }
+
         [Authorize(Policy = Permissions.Expenses.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -64,6 +59,7 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<ExpenseViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [Authorize(Policy = Permissions.Expenses.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet]
@@ -90,6 +86,7 @@ namespace Application.Api.Controllers
         //     string referenceNo = await _service.GetReferanceIdAsync();
         //     return Ok(new { ReferenceNo = referenceNo });
         // }
+
         [Authorize(Policy = Permissions.Expenses.Add)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -98,39 +95,39 @@ namespace Application.Api.Controllers
             using (var dbContextTransaction = await _context.Database.BeginTransactionAsync())
             {
                 try
-            {
-                Expense model = new Expense();
-                var dbExpenseType =await _context.ExpenseTypes.FindAsync(expensemodel.ExpenseTypeId);
-                model.Id = Guid.NewGuid().ToString();
-                var count = _context.Expenses.Count() + 1;
-                model.ExpenseNo = "E" + count.ToString().PadLeft(7, '0');
-                DateTime entryDate;
-                var isValidDate = DateTime.TryParseExact(expensemodel.EntryDate, "dd/MM/yyyy", null, DateTimeStyles.None, out entryDate);
-                model.BranchId = expensemodel.BranchId;
-                model.ExpenseTypeId = expensemodel.ExpenseTypeId;
-                model.PaymentMethodId = expensemodel.PaymentMethodId;
-                model.Amount = expensemodel.Amount;
-                model.Remark = expensemodel.Remark;
-                model.CreatedOn = DateTime.Now;
-                model.UpdatedOn = DateTime.Now;
-                model.EntryDate = isValidDate ? entryDate : DateTime.Now;
-                model.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
-                model.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
-                await _context.Expenses.AddAsync(model);
+                {
+                    Expense model = new Expense();
+                    var dbExpenseType = await _context.ExpenseTypes.FindAsync(expensemodel.ExpenseTypeId);
+                    model.Id = Guid.NewGuid().ToString();
+                    var count = _context.Expenses.Count() + 1;
+                    model.ExpenseNo = "E" + count.ToString().PadLeft(7, '0');
+                    DateTime entryDate;
+                    var isValidDate = DateTime.TryParseExact(expensemodel.EntryDate, "dd/MM/yyyy", null, DateTimeStyles.None, out entryDate);
+                    model.BranchId = expensemodel.BranchId;
+                    model.ExpenseTypeId = expensemodel.ExpenseTypeId;
+                    model.PaymentMethodId = expensemodel.PaymentMethodId;
+                    model.Amount = expensemodel.Amount;
+                    model.Remark = expensemodel.Remark;
+                    model.CreatedOn = DateTime.Now;
+                    model.UpdatedOn = DateTime.Now;
+                    model.EntryDate = isValidDate ? entryDate : DateTime.Now;
+                    model.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                    model.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+                    await _context.Expenses.AddAsync(model);
 
                     var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
                     if (isAccountsActive)
                     {
                         var paymentMethod = await _context.PaymentMethods.FindAsync(model.PaymentMethodId);
                         if (paymentMethod == null) throw new Exception("Payment Method not Selected");
-                       
-                            //cash in hand/bank a/c credit
-                       await _commonService.HitAccount(_context, model.BranchId, model.ExpenseNo, "Expense",
-                              paymentMethod.AccountId, 0, model.Amount,model.EntryDate);
-                        
+
+                        //cash in hand/bank a/c credit
+                        await _commonService.HitAccount(_context, model.BranchId, model.ExpenseNo, "Expense",
+                               paymentMethod.AccountId, 0, model.Amount, model.EntryDate);
+
                         //expense a/c debit
                         await _commonService.HitAccount(_context, model.BranchId, model.ExpenseNo, "Expense",
-                           dbExpenseType.AccountId, model.Amount, 0,model.EntryDate);
+                           dbExpenseType.AccountId, model.Amount, 0, model.EntryDate);
                     }
 
                     await _context.SaveChangesAsync();
@@ -144,9 +141,10 @@ namespace Application.Api.Controllers
                 }
             }
         }
+
         [Authorize(Policy = Permissions.Expenses.Update)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpPost("/api/Expense/update")]
+        [HttpPost("update")]
         public virtual async Task<Result> Put([FromBody] Expense model)
         {
             try
@@ -154,14 +152,15 @@ namespace Application.Api.Controllers
                 model.UpdatedOn = DateTime.UtcNow;
                 model.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                 await _expenseCommandService.UpdateAsync(model);
+
                 return await Result<Expense>.SuccessAsync(model, "Expense Updated Successfully");
             }
             catch (Exception exception)
             {
                 return await Result<Expense>.FailAsync(exception.ToString(), exception.Message);
             }
-
         }
+
         [HttpPost]
         [Route("print")]
         public virtual async Task<IActionResult> Print(ExpenseRequestModel request)
@@ -173,8 +172,8 @@ namespace Application.Api.Controllers
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                   
-                    _pdfService.PrintExpenseReportToPdf(stream, _context.Branches.Find(request.BranchId), content.Item1.ToList(), "Expense Report ",request.fromDate,request.ToDate);
+
+                    _pdfService.PrintExpenseReportToPdf(stream, _context.Branches.Find(request.BranchId), content.Item1.ToList(), "Expense Report ", request.fromDate, request.ToDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
@@ -186,6 +185,7 @@ namespace Application.Api.Controllers
                 return Ok(exception.ToString());
             }
         }
+
         [Authorize(Policy = Permissions.Expenses.Remove)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [Route("{id}")]
@@ -202,6 +202,7 @@ namespace Application.Api.Controllers
                     expense.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     await _expenseCommandService.UpdateAsync(expense);
                 }
+
                 return await Result<string>.SuccessAsync(id, "Expense Deleted Successfully");
             }
             catch (Exception exception)
@@ -209,7 +210,8 @@ namespace Application.Api.Controllers
                 return await Result<string>.FailAsync(exception.ToString(), exception.Message);
             }
         }
-        [HttpGet("/api/expense/voucher/{id}")]
+
+        [HttpGet("voucher/{id}")]
         public IActionResult ExpenseVoucher(string id)
         {
             var expense = _context.Expenses.Find(id);
@@ -226,6 +228,7 @@ namespace Application.Api.Controllers
                     bytes = stream.ToArray();
                     // bytes =_pdfService.AddFooterInfoForA5Page(bytes);
                 }
+
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
             catch (Exception exc)

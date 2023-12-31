@@ -2937,13 +2937,11 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(expenseReportLines));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -2970,7 +2968,7 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
@@ -2997,9 +2995,6 @@ namespace Application.Services
 
         protected virtual void PrintExpenseReport(Font titleFont, Document doc, IList<ExpenseViewModel> expenseReportLines, Font font, Font attributesFont, int supplierId = 0)
         {
-
-
-
             var numColumns = 5;
             var expenseReportTable = new PdfPTable(numColumns)
             {
@@ -3020,38 +3015,31 @@ namespace Application.Services
             cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             expenseReportTable.AddCell(cellExpenseReportItem);
 
-
             cellExpenseReportItem = GetPdfCell("Date", font);
             cellExpenseReportItem.BackgroundColor = BaseColor.LightGray;
             cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             expenseReportTable.AddCell(cellExpenseReportItem);
+
             //Item
             cellExpenseReportItem = GetPdfCell("Expense Type", font);
             cellExpenseReportItem.BackgroundColor = BaseColor.LightGray;
             cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             expenseReportTable.AddCell(cellExpenseReportItem);
-            //Category
-            //cellExpenseReportItem = GetPdfCell("Branch", font);
-            //cellExpenseReportItem.BackgroundColor = BaseColor.LightGray;
-            //cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            //expenseReportTable.AddCell(cellExpenseReportItem);
+
             //Brand
             cellExpenseReportItem = GetPdfCell("Description", font);
             cellExpenseReportItem.BackgroundColor = BaseColor.LightGray;
             cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             expenseReportTable.AddCell(cellExpenseReportItem);
+
             //Expense Quantity
             cellExpenseReportItem = GetPdfCell("Amount", font);
             cellExpenseReportItem.BackgroundColor = BaseColor.LightGray;
             cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             expenseReportTable.AddCell(cellExpenseReportItem);
-            ////Expense Value
-            //cellExpenseReportItem = GetPdfCell("Expense Value", font);
-            //cellExpenseReportItem.BackgroundColor = BaseColor.LightGray;
-            //cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            //expenseReportTable.AddCell(cellExpenseReportItem);
 
             expenseReportTable.HeaderRows = 1;
+
             var r = 0;
             foreach (var pl in expenseReportLines)
             {
@@ -3068,18 +3056,10 @@ namespace Application.Services
                 cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 expenseReportTable.AddCell(cellExpenseReportItem);
 
-
-
                 //ItemName
                 cellExpenseReportItem = GetPdfCell(pl.ExpenseType.Name, font);
-
                 cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 expenseReportTable.AddCell(cellExpenseReportItem);
-
-                //CategoryName
-                //cellExpenseReportItem = GetPdfCell(pl.Branch, font);
-                //cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                //expenseReportTable.AddCell(cellExpenseReportItem);
 
                 //BrandName
                 cellExpenseReportItem = GetPdfCell(pl.Remark, font);
@@ -3087,14 +3067,9 @@ namespace Application.Services
                 expenseReportTable.AddCell(cellExpenseReportItem);
 
                 //CurrentExpense
-                cellExpenseReportItem = GetPdfCell(pl.Amount, font);
+                cellExpenseReportItem = GetPdfCell(pl.Amount.ToString("#,##0.00"), font);
                 cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 expenseReportTable.AddCell(cellExpenseReportItem);
-
-                ////Price
-                //cellExpenseReportItem = GetPdfCell(Math.Round(pl.PriceExcludeDiscount, 2), font);
-                //cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                //expenseReportTable.AddCell(cellExpenseReportItem);
 
             }
             //..................total..................................
@@ -3104,18 +3079,11 @@ namespace Application.Services
             cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             expenseReportTable.AddCell(cellExpenseReportItem);
 
-
-
-
             //CurrentExpense
-            cellExpenseReportItem = GetPdfCell(expenseReportLines.Sum(x => x.Amount), font);
+            cellExpenseReportItem = GetPdfCell(expenseReportLines.Sum(x => x.Amount).ToString("#,##0.00"), font);
             cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             expenseReportTable.AddCell(cellExpenseReportItem);
 
-            ////Price
-            //cellExpenseReportItem = GetPdfCell(Math.Ceiling(expenseReportLines.Sum(x => x.PriceExcludeDiscount)), font);
-            //cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            //expenseReportTable.AddCell(cellExpenseReportItem);
             doc.Add(expenseReportTable);
         }
 
@@ -5507,14 +5475,12 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(expense));
 
             var pageSize = PageSize.A5;
-
-
-
             var doc = new Document(pageSize);
             //var doc = new Document(new iTextSharp.text.Rectangle(410f, 288f).Rotate());
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
             headerTitleFont.Size = 12;
@@ -5540,7 +5506,7 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
@@ -5557,6 +5523,10 @@ namespace Application.Services
 
         protected virtual void PrintExpenseVoucherReport(Stream stream, ExpenseType expenseType, Branch branch, Expense expense, PaymentMethod paymentMethod, Font reportTitleFont, Document doc, Font defaultFont, Font attributesFont)
         {
+
+            var font8Bold = GetFont();
+            font8Bold.Size = 8;
+            font8Bold.SetStyle(Font.BOLD);
 
             //Horizontal Line
             //Paragraph line = new Paragraph(new Chunk(new iTextSharp.text.pdf.draw.LineSeparator(0.0F, 100.0F, BaseColor.Black, Element.ALIGN_LEFT, 1)));
@@ -5605,6 +5575,7 @@ namespace Application.Services
             cellExpenseVoucherReportItem.BackgroundColor = BaseColor.LightGray;
             cellExpenseVoucherReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             expenseVoucherReportTable.AddCell(cellExpenseVoucherReportItem);
+
             //Item
             cellExpenseVoucherReportItem = GetPdfCell("Account Name/Description", defaultFont);
             cellExpenseVoucherReportItem.BackgroundColor = BaseColor.LightGray;
@@ -5631,7 +5602,7 @@ namespace Application.Services
             cellExpenseVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
             expenseVoucherReportTable.AddCell(cellExpenseVoucherReportItem);
 
-            cellExpenseVoucherReportItem = GetPdfCell(expense.Amount, defaultFont);
+            cellExpenseVoucherReportItem = GetPdfCell(expense.Amount.ToString("#,##0.00"), defaultFont);
             cellExpenseVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             expenseVoucherReportTable.AddCell(cellExpenseVoucherReportItem);
 
@@ -5652,7 +5623,7 @@ namespace Application.Services
             cellExpenseVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             expenseVoucherReportTable.AddCell(cellExpenseVoucherReportItem);
 
-            cellExpenseVoucherReportItem = GetPdfCell(expense.Amount, defaultFont);
+            cellExpenseVoucherReportItem = GetPdfCell(expense.Amount.ToString("#,##0.00"), defaultFont);
             cellExpenseVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             expenseVoucherReportTable.AddCell(cellExpenseVoucherReportItem);
 
@@ -5662,11 +5633,11 @@ namespace Application.Services
             cellExpenseVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             expenseVoucherReportTable.AddCell(cellExpenseVoucherReportItem);
 
-            cellExpenseVoucherReportItem = GetPdfCell(expense.Amount, defaultFont);
+            cellExpenseVoucherReportItem = GetPdfCell(expense.Amount.ToString("#,##0.00"), defaultFont);
             cellExpenseVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             expenseVoucherReportTable.AddCell(cellExpenseVoucherReportItem);
 
-            cellExpenseVoucherReportItem = GetPdfCell(expense.Amount, defaultFont);
+            cellExpenseVoucherReportItem = GetPdfCell(expense.Amount.ToString("#,##0.00"), defaultFont);
             cellExpenseVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             expenseVoucherReportTable.AddCell(cellExpenseVoucherReportItem);
 
@@ -5699,7 +5670,7 @@ namespace Application.Services
             cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
             expenseVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
 
-            cellExpenseVoucherReportItemInfo = GetPdfCell(NumberToWords.ConvertAmount(expense.Amount), reportTitleFont);
+            cellExpenseVoucherReportItemInfo = GetPdfCell(NumberToWords.ConvertAmount(expense.Amount), font8Bold);
             cellExpenseVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
             cellExpenseVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
             expenseVoucherReportTableInfo.AddCell(cellExpenseVoucherReportItemInfo);
