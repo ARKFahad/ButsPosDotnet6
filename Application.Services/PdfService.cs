@@ -6867,7 +6867,7 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
@@ -6900,13 +6900,7 @@ namespace Application.Services
             testFont.Size = 9;
             testFont.SetStyle(Font.NORMAL);
             testFont.Color = BaseColor.Black;
-            //Test font
 
-            var testFont2 = GetFont();
-            testFont2.SetFamily("Times New Roman");
-            testFont2.Size = 8;
-            testFont2.SetStyle(Font.NORMAL);
-            testFont2.Color = BaseColor.Black;
 
             var numColumns = 9;
             var purchaseReportTable = new PdfPTable(numColumns)
@@ -6922,201 +6916,64 @@ namespace Application.Services
 
             purchaseReportTable.SetWidths(widths[numColumns]);
 
-            //SL
-            var cellPurchaseReportItem = GetPdfCell("SL", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-            //Item
-            cellPurchaseReportItem = GetPdfCell("Pur.No", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-            cellPurchaseReportItem = GetPdfCell("Date", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-            //Category
-            cellPurchaseReportItem = GetPdfCell("Supplier Name", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-            //Brand
-            cellPurchaseReportItem = GetPdfCell("Ref.No", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-            //Stock Quantity
-
-            cellPurchaseReportItem = GetPdfCell("Amount", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-            cellPurchaseReportItem = GetPdfCell("Discount", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-            cellPurchaseReportItem = GetPdfCell("Ext.Cost", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-            cellPurchaseReportItem = GetPdfCell("NetAmount", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase("SL", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase("Purchase No", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase("Date", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase("Supplier Name", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase("Ref. No", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase("Amount", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase("Discount", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase("Ext. Cost", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase("Net Amount", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
 
             purchaseReportTable.HeaderRows = 1;
-            var r = 0;
-            foreach (var pl in purchaseViewModels)
+            var sl = 0;
+            foreach (var item in purchaseViewModels)
             {
-                r++;
+                sl++;
 
-                //SL
-                cellPurchaseReportItem = GetPdfCell(r, testFont);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
+                purchaseReportTable.AddCell(new PdfPCell(new Phrase(sl.ToString(), font)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                purchaseReportTable.AddCell(new PdfPCell(new Phrase(item.PurchaseNo, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
+                purchaseReportTable.AddCell(new PdfPCell(new Phrase(item.PurchaseDate.ToString("dd/MM/yyyy"), font)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                purchaseReportTable.AddCell(new PdfPCell(new Phrase(item.SupplierName, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
+                purchaseReportTable.AddCell(new PdfPCell(new Phrase(item.ReferenceNo, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
+                purchaseReportTable.AddCell(new PdfPCell(new Phrase(item.Subtotal.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                purchaseReportTable.AddCell(new PdfPCell(new Phrase(item.Discount.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                purchaseReportTable.AddCell(new PdfPCell(new Phrase(item.AdditionalCost.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                purchaseReportTable.AddCell(new PdfPCell(new Phrase(item.NetAmount.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
 
-                cellPurchaseReportItem = GetPdfCell(pl.PurchaseNo, testFont);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                cellPurchaseReportItem = GetPdfCell(pl.PurchaseDate.ToString("dd/MM/yyyy"), testFont);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                cellPurchaseReportItem = GetPdfCell(pl.SupplierName, testFont);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                cellPurchaseReportItem = GetPdfCell(pl.ReferenceNo, testFont);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                cellPurchaseReportItem = GetPdfCell(pl.Subtotal, testFont);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                cellPurchaseReportItem = GetPdfCell(pl.Discount, testFont);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                cellPurchaseReportItem = GetPdfCell(pl.AdditionalCost, testFont);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                cellPurchaseReportItem = GetPdfCell(pl.NetAmount, testFont);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-                if (pl.PurchaseItems.Count() > 0)
+                if (item.PurchaseItems.Count() > 0)
                 {
-                    cellPurchaseReportItem = GetPdfCell("Items", testFont2);
-                    cellPurchaseReportItem.Colspan = 2;
-                    cellPurchaseReportItem.Border = Rectangle.LEFT_BORDER;
-                    cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                    purchaseReportTable.AddCell(cellPurchaseReportItem);
+                    purchaseReportTable.AddCell(new PdfPCell(new Phrase("Items", font)) { Colspan = 2, HorizontalAlignment = Element.ALIGN_CENTER, Border = Rectangle.LEFT_BORDER });
+                    purchaseReportTable.AddCell(new PdfPCell(new Phrase("Product", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+                    purchaseReportTable.AddCell(new PdfPCell(new Phrase("Exp. Date", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+                    purchaseReportTable.AddCell(new PdfPCell(new Phrase("Purchase Qty", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+                    purchaseReportTable.AddCell(new PdfPCell(new Phrase("Return Qty", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+                    purchaseReportTable.AddCell(new PdfPCell(new Phrase("Bonus Qty", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+                    purchaseReportTable.AddCell(new PdfPCell(new Phrase("Purchase Price", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
+                    purchaseReportTable.AddCell(new PdfPCell(new Phrase("Amount", font)) { HorizontalAlignment = Element.ALIGN_CENTER, BackgroundColor = BaseColor.LightGray });
 
-                    cellPurchaseReportItem = GetPdfCell("Product", testFont2);
-                    cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                    cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-                    purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                    cellPurchaseReportItem = GetPdfCell("Exp. Date", testFont2);
-                    cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                    cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-                    purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                    cellPurchaseReportItem = GetPdfCell("Purchase Qty", testFont2);
-                    cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                    cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-                    purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                    cellPurchaseReportItem = GetPdfCell("Return Qty", testFont2);
-                    cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                    cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-                    purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                    cellPurchaseReportItem = GetPdfCell("Bonus Qty", testFont2);
-                    cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                    cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-                    purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                    cellPurchaseReportItem = GetPdfCell("Purchase Price", testFont2);
-                    cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                    cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-                    purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                    cellPurchaseReportItem = GetPdfCell("Amount", testFont2);
-                    cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                    cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-                    purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                    foreach (var pItem in pl.PurchaseItems)
+                    foreach (var miniItem in item.PurchaseItems)
                     {
-                        cellPurchaseReportItem = GetPdfCell("", addressFont);
-                        cellPurchaseReportItem.Colspan = 2;
-                        cellPurchaseReportItem.Border = Rectangle.LEFT_BORDER;
-                        cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                        purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                        cellPurchaseReportItem = GetPdfCell(pItem.Option, addressFont);
-                        cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
-                        purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                        cellPurchaseReportItem = GetPdfCell(pItem.ExpireDate?.ToString("dd/MM/yyyy"), addressFont);
-                        cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-                        purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                        cellPurchaseReportItem = GetPdfCell(pItem.PurchaseQuantity, addressFont);
-                        cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                        purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                        cellPurchaseReportItem = GetPdfCell(pItem.ReturnQuantity, addressFont);
-                        cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                        purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                        cellPurchaseReportItem = GetPdfCell(pItem.BonusQuantity, addressFont);
-                        cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                        purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                        cellPurchaseReportItem = GetPdfCell(Math.Round(pItem.PurchasePrice, 2), addressFont);
-                        cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                        purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                        cellPurchaseReportItem = GetPdfCell(pItem.Amount, addressFont);
-                        cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                        purchaseReportTable.AddCell(cellPurchaseReportItem);
+                        purchaseReportTable.AddCell(new PdfPCell(new Phrase("", font)) { Colspan = 2, HorizontalAlignment = Element.ALIGN_LEFT, Border = Rectangle.LEFT_BORDER });
+                        purchaseReportTable.AddCell(new PdfPCell(new Phrase(miniItem.Option, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
+                        purchaseReportTable.AddCell(new PdfPCell(new Phrase(miniItem.ExpireDate?.ToString("dd/MM/yyyy"), font)) { HorizontalAlignment = Element.ALIGN_CENTER });
+                        purchaseReportTable.AddCell(new PdfPCell(new Phrase(miniItem.PurchaseQuantity.ToString("#,##0"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                        purchaseReportTable.AddCell(new PdfPCell(new Phrase(miniItem.ReturnQuantity.ToString("#,##0"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                        purchaseReportTable.AddCell(new PdfPCell(new Phrase(miniItem.BonusQuantity.ToString("#,##0"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                        purchaseReportTable.AddCell(new PdfPCell(new Phrase(miniItem.PurchasePrice.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                        purchaseReportTable.AddCell(new PdfPCell(new Phrase(miniItem.Amount.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
                     }
 
                 }
 
             }
-            //GrandTotal
-            cellPurchaseReportItem = GetPdfCell("Total", testFont);
-            cellPurchaseReportItem.Colspan = 5;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-            cellPurchaseReportItem = GetPdfCell(purchaseViewModels.Sum(x => x.Subtotal), testFont);
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-            cellPurchaseReportItem = GetPdfCell(purchaseViewModels.Sum(x => x.Discount), testFont);
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-            cellPurchaseReportItem = GetPdfCell(purchaseViewModels.Sum(x => x.AdditionalCost), testFont);
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-            cellPurchaseReportItem = GetPdfCell(purchaseViewModels.Sum(x => x.NetAmount), testFont);
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase("Total", testFont)) { Colspan = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase(purchaseViewModels.Sum(x => x.Subtotal).ToString("#,##0.00"), testFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase(purchaseViewModels.Sum(x => x.Discount).ToString("#,##0.00"), testFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase(purchaseViewModels.Sum(x => x.AdditionalCost).ToString("#,##0.00"), testFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            purchaseReportTable.AddCell(new PdfPCell(new Phrase(purchaseViewModels.Sum(x => x.NetAmount).ToString("#,##0.00"), testFont)) { HorizontalAlignment = Element.ALIGN_RIGHT });
 
             doc.Add(purchaseReportTable);
         }

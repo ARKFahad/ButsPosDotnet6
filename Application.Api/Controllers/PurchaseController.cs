@@ -10,18 +10,10 @@ using Application.Services;
 using Application.ViewModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using PbApp.Service;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Transactions;
 
 namespace Application.Api.Controllers
 {
@@ -41,12 +33,13 @@ namespace Application.Api.Controllers
         private readonly ICommonService _commonService;
         private readonly IConfiguration _configuration;
         private readonly IAccountService _accountService;
+
         public PurchaseController(IBaseQueryService<Purchase, PurchaseRequestModel, PurchaseViewModel> purchaseQueryService,
            IBaseCommandService<Purchase> purchaseCommandService,
            IBaseCommandService<Supplier> supplierCommnadService,
            IBaseCommandService<StockItem> stockItemCommnadService,
            IBaseCommandService<PurchaseItem> purchaseItemCommnadService,
-           IHttpContextAccessor contextAccessor, GHP_POS_DBContext context, 
+           IHttpContextAccessor contextAccessor, GHP_POS_DBContext context,
            IPdfService pdfService,
            ICommonService commonService,
            IConfiguration configuration,
@@ -64,6 +57,7 @@ namespace Application.Api.Controllers
             _configuration = configuration;
             _accountService = accountService;
         }
+
         [Authorize(Policy = Permissions.Purchases.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -73,7 +67,7 @@ namespace Application.Api.Controllers
             try
             {
                 Tuple<List<PurchaseViewModel>, int> content = await _purchaseQueryService.SearchAsync(request);
-                
+
                 return await Result<Tuple<List<PurchaseViewModel>, int>>.SuccessAsync(content, "Purchases Found");
             }
             catch (Exception exception)
@@ -81,6 +75,7 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<PurchaseViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [HttpPost]
         [Route("print")]
         public virtual async Task<IActionResult> TestPrint(PurchaseRequestModel request)
@@ -106,6 +101,7 @@ namespace Application.Api.Controllers
                 return Ok(exception.ToString());
             }
         }
+
         [Authorize(Policy = Permissions.Purchases.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet]
@@ -122,6 +118,7 @@ namespace Application.Api.Controllers
                 return await Result<PurchaseViewModel>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [Authorize(Policy = Permissions.Purchases.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [Route("purchase-no")]
@@ -147,7 +144,7 @@ namespace Application.Api.Controllers
         [HttpPost]
         public virtual async Task<Result> AddPurchase([FromBody] PurchaseAddRequestModel model)
         {
-            var currentUserId= _contextAccessor.HttpContext?.User?.GetUserId(); 
+            var currentUserId = _contextAccessor.HttpContext?.User?.GetUserId();
             var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
             var isValidDate = DateTime.TryParseExact(model.PurchaseDate, "dd/MM/yyyy", null, DateTimeStyles.None, out DateTime purchaseDate);
             using (var dbContextTransaction = await _context.Database.BeginTransactionAsync())
@@ -156,7 +153,7 @@ namespace Application.Api.Controllers
                 {
                     var dbSupplier = await _context.Suppliers.FindAsync(model.SupplierId);
                     Purchase purchase = new Purchase();
-                    var subtotal = CalculateSubtotalAndTotalVat(model.PurchaseItems,out decimal totalVat);
+                    var subtotal = CalculateSubtotalAndTotalVat(model.PurchaseItems, out decimal totalVat);
                     purchase.Id = Guid.NewGuid().ToString();
                     purchase.PurchaseNo = _purchaseCommandService.GetReferanceId("P");
                     purchase.PurchaseDate = isValidDate ? purchaseDate : DateTime.Now;
@@ -174,7 +171,7 @@ namespace Application.Api.Controllers
                     purchase.CreatedOn = DateTime.Now;
                     purchase.UpdatedOn = DateTime.Now;
                     purchase.CreatedBy = currentUserId;
-                    purchase.UpdatedBy = currentUserId;                   
+                    purchase.UpdatedBy = currentUserId;
                     foreach (var item in model.PurchaseItems)
                     {
                         DateTime expireDate;
@@ -194,7 +191,9 @@ namespace Application.Api.Controllers
                             BranchId = purchase.BranchId,
                             DiscountOnAmount = ((item.PurchaseQuantity * item.PurchasePrice) * purchase.Discount) / purchase.Subtotal
                         };
-                       purchase.PurchaseItems.Add(purchaseItem);
+
+                        purchase.PurchaseItems.Add(purchaseItem);
+
                         //saving gift item
                         if (item.GiftItems.Any())
                         {
@@ -210,6 +209,7 @@ namespace Application.Api.Controllers
                                 purchaseItem.GifItems.Add(giftItem);
                             }
                         }
+
                         //saving stock item
                         if (model.PurchaseType == (int)PurchaseType.Received)
                         {
@@ -231,9 +231,10 @@ namespace Application.Api.Controllers
                                     ExpiryDate = purchaseItem.ExpireDate,
                                     BatchNo = purchaseItem.BatchNo,
                                     CreatedOn = DateTime.Now,
-                                    CreatedBy =currentUserId
-                            });
+                                    CreatedBy = currentUserId
+                                });
                             }
+
                             if (purchaseItem.BonusQuantity > 0)
                             {
                                 for (int i = 0; i < purchaseItem.BonusQuantity; i++)
@@ -253,17 +254,17 @@ namespace Application.Api.Controllers
                                         BatchNo = purchaseItem.BatchNo,
                                         CreatedOn = DateTime.Now,
                                         CreatedBy = currentUserId
-                                });
+                                    });
                                 }
                             }
                         }
                     }
-                   
+
                     if (isAccountsActive)
                     {
                         //party a/c credit
                         await _commonService.HitAccount(_context, purchase.BranchId, purchase.PurchaseNo, "Purchase",
-                            dbSupplier.AccountId, 0, purchase.NetAmount,purchase.PurchaseDate);
+                            dbSupplier.AccountId, 0, purchase.NetAmount, purchase.PurchaseDate);
                         //inventory a/c debit
                         await _commonService.HitAccount(_context, purchase.BranchId, purchase.PurchaseNo, "Purchase",
                            AccountHeadConstants.InventoryAC, purchase.NetAmount, 0, purchase.PurchaseDate);//inventory a/c id from database
@@ -282,12 +283,12 @@ namespace Application.Api.Controllers
                 }
                 catch (Exception exception)
                 {
-                    await dbContextTransaction.RollbackAsync(); 
+                    await dbContextTransaction.RollbackAsync();
                     return await Result<string>.FailAsync(exception.ToString(), exception.Message);
                 }
             }
         }
-            
+
         [Authorize(Policy = Permissions.Purchases.Update)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPut]
@@ -298,7 +299,8 @@ namespace Application.Api.Controllers
                 Purchase purchase = await _purchaseCommandService.FindAsync(model.Id);
                 DateTime purchaseDate;
                 var isValidDate = DateTime.TryParseExact(model.PurchaseDate, "dd/MM/yyyy", null, DateTimeStyles.None, out purchaseDate);
-                var subtotal = CalculateSubtotalAndTotalVat(model.PurchaseItems, out decimal totalVat); 
+                var subtotal = CalculateSubtotalAndTotalVat(model.PurchaseItems, out decimal totalVat);
+
                 if (purchase != null)
                 {
                     purchase.PurchaseDate = isValidDate ? purchaseDate : DateTime.UtcNow;
@@ -322,16 +324,17 @@ namespace Application.Api.Controllers
                 await _supplierCommnadService.UpdateAsync(dbSupplier);
                 //deleted items remove from database
                 var modelIds = model.PurchaseItems.Select(x => x.Id).ToArray();
-                var dbPurchaseItems =await _purchaseItemCommnadService.GetAllByPredicate(x=>x.PurchaseId==purchase.Id);
+                var dbPurchaseItems = await _purchaseItemCommnadService.GetAllByPredicate(x => x.PurchaseId == purchase.Id);
                 var dbPurchaseItemIds = dbPurchaseItems.Select(x => x.Id).ToArray();
                 dbPurchaseItemIds = dbPurchaseItemIds.Except(modelIds).ToArray();
+
                 for (int i = 0; i < dbPurchaseItemIds.Length; i++)
                 {
-                    var dbPurchaseItem =await _purchaseItemCommnadService.FindAsync(dbPurchaseItemIds[i]);
+                    var dbPurchaseItem = await _purchaseItemCommnadService.FindAsync(dbPurchaseItemIds[i]);
 
                     if (dbPurchaseItem != null)
                     {
-                      await  _stockItemCommnadService.DeleteAsync(x=>x.PurchaseItemId==dbPurchaseItem.Id);
+                        await _stockItemCommnadService.DeleteAsync(x => x.PurchaseItemId == dbPurchaseItem.Id);
                         // dbPurchaseItem.Deleted = true;
                         //await _purchaseItemCommnadService.UpdateAsync(dbPurchaseItem);
                         await _purchaseItemCommnadService.DeleteAsync(dbPurchaseItem.Id);
@@ -361,15 +364,15 @@ namespace Application.Api.Controllers
                             PurchasePrice = item.PurchasePrice,
                             Amount = item.PurchaseQuantity * item.PurchasePrice
                         };
+
                         await _purchaseItemCommnadService.AddAsync(purchaseItem);
                         //adjust stock item
-
 
                         if (model.PurchaseType == (int)PurchaseType.Received)
                         {
                             for (int i = 0; i < purchaseItem.PurchaseQuantity; i++)
                             {
-                                 _context.StockItems.Add(new StockItem
+                                _context.StockItems.Add(new StockItem
                                 {
                                     Id = Guid.NewGuid().ToString(),
                                     ProductId = purchaseItem.ProductId,
@@ -386,6 +389,7 @@ namespace Application.Api.Controllers
                                     CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId()
                                 });
                             }
+
                             if (purchaseItem.BonusQuantity > 0)
                             {
                                 for (int i = 0; i < purchaseItem.BonusQuantity; i++)
@@ -408,11 +412,9 @@ namespace Application.Api.Controllers
                                     });
                                 }
                             }
-                             _context.SaveChanges();
-
+                            _context.SaveChanges();
                         }
                     }
-
                     else
                     {
                         //update existing item stock
@@ -434,7 +436,6 @@ namespace Application.Api.Controllers
                     }
                 }
 
-
                 return await Result<string>.SuccessAsync(purchase.Id, "Purchase Updated Successfully");
             }
             catch (Exception exception)
@@ -443,6 +444,7 @@ namespace Application.Api.Controllers
             }
 
         }
+
         [Authorize(Policy = Permissions.Purchases.Remove)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [Route("{id}")]
@@ -459,6 +461,7 @@ namespace Application.Api.Controllers
                     purchase.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     await _purchaseCommandService.UpdateAsync(purchase);
                 }
+
                 return await Result<string>.SuccessAsync(id, "Purchase Deleted Successfully");
             }
             catch (Exception exception)
@@ -466,6 +469,7 @@ namespace Application.Api.Controllers
                 return await Result<string>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [Authorize(Policy = Permissions.Purchases.ItemWisePurchase)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -480,6 +484,7 @@ namespace Application.Api.Controllers
                     pQueryable = pQueryable.Skip(request.Page * request.RowsPerPage).Take(request.RowsPerPage);
                 var list = await pQueryable.ToListAsync();
                 Tuple<List<ItemPurchaseViewModel>, int> content = new Tuple<List<ItemPurchaseViewModel>, int>(list, count);
+
                 return await Result<Tuple<List<ItemPurchaseViewModel>, int>>.SuccessAsync(content, "Item Wise Purchase Found");
             }
             catch (Exception exception)
@@ -513,77 +518,76 @@ namespace Application.Api.Controllers
 
         private IQueryable<ItemPurchaseViewModel> ItemWisePurchaseQueryable(ItemPurchaseRequestModel request)
         {
-            
-                var query = _context.PurchaseItems.AsQueryable();
-                if (!string.IsNullOrWhiteSpace(request.BranchId))
-                    query = query.Where(x => x.BranchId == request.BranchId);
-                //hardcoded initial value
-                if (!request.FromDate.HasValue)
-                    request.FromDate = DateTime.Now.AddYears(-5);
-                if (!request.ToDate.HasValue)
-                    request.ToDate = DateTime.Now;
-                query = query.Where(x => x.CreatedOn.Date >= request.FromDate.Value.Date && x.CreatedOn.Date <= request.ToDate.Value.Date);
-                var queryable = query.GroupBy(x => new { x.ProductId })
-                          .Select(y => new
-                          {
-                              ProductId = y.Key.ProductId,
-                              PurchaseQuantity = y.Sum(x => x.PurchaseQuantity),
-                              BonusQuantity = y.Sum(x => x.BonusQuantity),
-                              Subtotal = y.Sum(x => x.Amount),
-                              Discount = y.Sum(x => x.DiscountOnAmount),
-                              NetAmount = y.Sum(x => x.Amount) - y.Sum(x => x.DiscountOnAmount)
-                          });
 
-                if (!string.IsNullOrWhiteSpace(request.ProductId))
-                    queryable = queryable.Where(x => x.ProductId == request.ProductId);
+            var query = _context.PurchaseItems.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(request.BranchId))
+                query = query.Where(x => x.BranchId == request.BranchId);
+            //hardcoded initial value
+            if (!request.FromDate.HasValue)
+                request.FromDate = DateTime.Now.AddYears(-5);
+            if (!request.ToDate.HasValue)
+                request.ToDate = DateTime.Now;
 
-                var pQueryable = from purchaseItem in queryable
-                                 join product in _context.Products on purchaseItem.ProductId equals product.Id
-                                 join category in _context.Categories on product.CategoryId equals category.Id
-                                 join supplier in _context.Suppliers on product.SupplierId equals supplier.Id
-                                 select new ItemPurchaseViewModel()
-                                 {
-                                     ProductName = product.Name + " " + product.PackSize + " " + product.Category.Name,
-                                     SupplierId = supplier.Id,
-                                     SupplierName = supplier.Name,
-                                     PurchaseQuantity = purchaseItem.PurchaseQuantity,
-                                     BonusQuantity = purchaseItem.BonusQuantity,
-                                     Subtotal = purchaseItem.Subtotal,
-                                     Discount = purchaseItem.Discount,
-                                     NetAmount = purchaseItem.NetAmount
-                                 };
+            query = query.Where(x => x.CreatedOn.Date >= request.FromDate.Value.Date && x.CreatedOn.Date <= request.ToDate.Value.Date);
+            var queryable = query.GroupBy(x => new { x.ProductId })
+                      .Select(y => new
+                      {
+                          ProductId = y.Key.ProductId,
+                          PurchaseQuantity = y.Sum(x => x.PurchaseQuantity),
+                          BonusQuantity = y.Sum(x => x.BonusQuantity),
+                          Subtotal = y.Sum(x => x.Amount),
+                          Discount = y.Sum(x => x.DiscountOnAmount),
+                          NetAmount = y.Sum(x => x.Amount) - y.Sum(x => x.DiscountOnAmount)
+                      });
 
-                if (!string.IsNullOrWhiteSpace(request.SupplierId))
-                    pQueryable = pQueryable.Where(x => x.SupplierId == request.SupplierId);
+            if (!string.IsNullOrWhiteSpace(request.ProductId))
+                queryable = queryable.Where(x => x.ProductId == request.ProductId);
+
+            var pQueryable = from purchaseItem in queryable
+                             join product in _context.Products on purchaseItem.ProductId equals product.Id
+                             join category in _context.Categories on product.CategoryId equals category.Id
+                             join supplier in _context.Suppliers on product.SupplierId equals supplier.Id
+                             select new ItemPurchaseViewModel()
+                             {
+                                 ProductName = product.Name + " " + product.PackSize + " " + product.Category.Name,
+                                 SupplierId = supplier.Id,
+                                 SupplierName = supplier.Name,
+                                 PurchaseQuantity = purchaseItem.PurchaseQuantity,
+                                 BonusQuantity = purchaseItem.BonusQuantity,
+                                 Subtotal = purchaseItem.Subtotal,
+                                 Discount = purchaseItem.Discount,
+                                 NetAmount = purchaseItem.NetAmount
+                             };
+
+            if (!string.IsNullOrWhiteSpace(request.SupplierId))
+                pQueryable = pQueryable.Where(x => x.SupplierId == request.SupplierId);
             return pQueryable;
         }
 
-
-
-
-
-
         //utilities
-        private decimal CalculateVat(decimal purchaseVat,decimal purchasePrice)
+        private decimal CalculateVat(decimal purchaseVat, decimal purchasePrice)
         {
-
             var perc = 1 + (purchaseVat / 100);
             var a = (purchasePrice / perc);
             return (purchasePrice - a);
         }
-         private decimal CalculateSubtotalAndTotalVat(IList<PurchaseItemRequestModel> purchaseItems,out decimal totalVat)
+
+        private decimal CalculateSubtotalAndTotalVat(IList<PurchaseItemRequestModel> purchaseItems, out decimal totalVat)
         {
             totalVat = 0M;
             var subTotal = 0M;
+
             foreach (var item in purchaseItems)
             {
                 var dbProduct = _context.Products.Find(item.ProductId);
                 if (dbProduct == null) throw new NotFoundResultException("Product Not Found");
-                totalVat += CalculateVat(dbProduct.PurchaseVat,(item.PurchasePrice*item.PurchaseQuantity));
+                totalVat += CalculateVat(dbProduct.PurchaseVat, (item.PurchasePrice * item.PurchaseQuantity));
                 subTotal += (item.PurchaseQuantity * item.PurchasePrice);
             }
+
             return subTotal;
         }
+
         [HttpGet("/api/purchase/invoice/{id}")]
         public IActionResult PurchaseInvoice(string id)
         {
@@ -599,6 +603,7 @@ namespace Application.Api.Controllers
                 Amount = x.Amount,
                 BonusQuantity = x.BonusQuantity,
             }).ToList();
+
             try
             {
                 byte[] bytes;
@@ -608,14 +613,13 @@ namespace Application.Api.Controllers
                     bytes = stream.ToArray();
                     // bytes =_pdfService.AddFooterInfoForA5Page(bytes);
                 }
+
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
             catch (Exception exc)
             {
                 throw;
             }
-
         }
-
     }
 }
