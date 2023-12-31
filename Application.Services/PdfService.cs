@@ -3080,7 +3080,8 @@ namespace Application.Services
             expenseReportTable.AddCell(cellExpenseReportItem);
 
             //CurrentExpense
-            cellExpenseReportItem = GetPdfCell(expenseReportLines.Sum(x => x.Amount).ToString("#,##0.00"), font);
+            cellExpenseReportItem = GetPdfCell(expenseReportLines.Sum(x => x.Amount).ToString("#,##0.00")
+                , font);
             cellExpenseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             expenseReportTable.AddCell(cellExpenseReportItem);
 
