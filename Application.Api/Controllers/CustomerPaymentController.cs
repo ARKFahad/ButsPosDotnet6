@@ -9,16 +9,9 @@ using Application.Services;
 using Application.ViewModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using PbApp.Service;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Application.Api.Controllers
 {
@@ -35,6 +28,7 @@ namespace Application.Api.Controllers
         private readonly IPdfService _pdfService;
         private readonly IConfiguration _configuration;
         private readonly ICommonService _commonService;
+
         public CustomerPaymentController(IBaseQueryService<CustomerPayment, CustomerPaymentRequestModel, CustomerPaymentViewModel> customerPaymentQueryService,
             IBaseCommandService<CustomerPayment> customerPaymentCommandService,
             IHttpContextAccessor contextAccessor, IBaseCommandService<Customer> customerCommandService,
@@ -42,7 +36,7 @@ namespace Application.Api.Controllers
             IConfiguration configuration,
             ICommonService commonService)
         {
-            _customerPaymentCommandService=customerPaymentCommandService;
+            _customerPaymentCommandService = customerPaymentCommandService;
             _customerPaymentQueryService = customerPaymentQueryService;
             _contextAccessor = contextAccessor;
             _customerCommandService = customerCommandService;
@@ -51,6 +45,7 @@ namespace Application.Api.Controllers
             _configuration = configuration;
             _commonService = commonService;
         }
+
         [Authorize(Policy = Permissions.CustomerPayments.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -93,6 +88,7 @@ namespace Application.Api.Controllers
                 return Ok(exception.ToString());
             }
         }
+
         [Authorize(Policy = Permissions.CustomerPayments.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet]
@@ -118,6 +114,7 @@ namespace Application.Api.Controllers
         {
             return Ok(new { BillNo = _customerPaymentCommandService.GetReferanceId(character: "CP") });
         }
+
         [Authorize(Policy = Permissions.CustomerPayments.Add)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -140,28 +137,27 @@ namespace Application.Api.Controllers
                     payment.PaymentMethodId = model.PaymentMethodId;
                     payment.PaymentAmount = model.PaymentAmount;
                     payment.Remark = model.Remark;
-                    payment.CustomerPreviousBalance =dbCustomer.Balance;
-                    payment.CustomerBalance= dbCustomer.Balance - model.PaymentAmount;
+                    payment.CustomerPreviousBalance = dbCustomer.Balance;
+                    payment.CustomerBalance = dbCustomer.Balance - model.PaymentAmount;
                     payment.CreatedOn = DateTime.Now;
                     payment.UpdatedOn = DateTime.Now;
                     payment.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     payment.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     await _context.CustomerPayments.AddAsync(payment);
-                 
+
                     var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
                     if (isAccountsActive)
                     {
                         var paymentMethod = await _context.PaymentMethods.FindAsync(payment.PaymentMethodId);
                         if (paymentMethod == null) throw new Exception("Payment Method not Selected");
-                       
-                            //cash in hand/bank a/c debit
-                            await _commonService.HitAccount(_context, payment.BranchId, payment.BillNo, "Customer Due Collection",
-                               paymentMethod.AccountId, payment.PaymentAmount,0, payment.PaymentDate);
-                        
+
+                        //cash in hand/bank a/c debit
+                        await _commonService.HitAccount(_context, payment.BranchId, payment.BillNo, "Customer Due Collection",
+                           paymentMethod.AccountId, payment.PaymentAmount, 0, payment.PaymentDate);
 
                         //customer a/c credit
-                            await _commonService.HitAccount(_context, payment.BranchId, payment.BillNo, "Customer Due Collection",
-                              dbCustomer.AccountId,0, payment.PaymentAmount, payment.PaymentDate);
+                        await _commonService.HitAccount(_context, payment.BranchId, payment.BillNo, "Customer Due Collection",
+                          dbCustomer.AccountId, 0, payment.PaymentAmount, payment.PaymentDate);
                     }
                     else
                     {
@@ -172,6 +168,7 @@ namespace Application.Api.Controllers
 
                     await _context.SaveChangesAsync();
                     await dbContextTransaction.CommitAsync();
+
                     return await Result<string>.SuccessAsync(model.Id, "CustomerPayment Added Successfully");
                 }
                 catch (Exception exception)
@@ -181,6 +178,7 @@ namespace Application.Api.Controllers
                 }
             }
         }
+
         [Authorize(Policy = Permissions.CustomerPayments.Update)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("/api/customerpayment/update")]
@@ -191,6 +189,7 @@ namespace Application.Api.Controllers
                 model.UpdatedOn = DateTime.UtcNow;
                 model.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                 await _customerPaymentCommandService.UpdateAsync(model);
+
                 return await Result<CustomerPayment>.SuccessAsync(model, "CustomerPayment Updated Successfully");
             }
             catch (Exception exception)
@@ -199,6 +198,7 @@ namespace Application.Api.Controllers
             }
 
         }
+
         [Authorize(Policy = Permissions.CustomerPayments.Remove)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [Route("{id}")]
@@ -215,7 +215,7 @@ namespace Application.Api.Controllers
                     customerPayment.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     await _customerPaymentCommandService.UpdateAsync(customerPayment);
                 }
-               
+
                 return await Result<string>.SuccessAsync(id, "CustomerPayment Deleted Successfully");
             }
             catch (Exception exception)
@@ -223,6 +223,7 @@ namespace Application.Api.Controllers
                 return await Result<string>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [HttpGet("/api/customerPayment/voucher/{id}")]
         public IActionResult CustomerPaymentVoucher(string id)
         {
@@ -240,6 +241,7 @@ namespace Application.Api.Controllers
                     bytes = stream.ToArray();
                     // bytes =_pdfService.AddFooterInfoForA5Page(bytes);
                 }
+
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
             catch (Exception exc)
