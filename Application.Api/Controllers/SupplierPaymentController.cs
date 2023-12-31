@@ -196,7 +196,7 @@ namespace Application.Api.Controllers
 
         [Authorize(Policy = Permissions.SupplierPayments.Update)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpPost("/api/supplierpayment/update")]
+        [HttpPost("update")]
         public virtual async Task<Result> Put([FromBody] SupplierPayment model)
         {
             try
@@ -243,7 +243,7 @@ namespace Application.Api.Controllers
             }
         }
 
-        [HttpGet("/api/supplierPayment/voucher/{id}")]
+        [HttpGet("voucher/{id}")]
         public IActionResult SupplierPaymentVoucher(string id)
         {
             var supplierPayment = _context.SupplierPayments.Find(id);
