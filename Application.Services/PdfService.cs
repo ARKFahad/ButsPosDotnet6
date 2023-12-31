@@ -5252,14 +5252,12 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(customerPayment));
 
             var pageSize = PageSize.A5;
-
-
-
             var doc = new Document(pageSize);
             //var doc = new Document(new iTextSharp.text.Rectangle(410f, 288f).Rotate());
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
             headerTitleFont.Size = 12;
@@ -5285,7 +5283,7 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
@@ -5297,11 +5295,15 @@ namespace Application.Services
             //DrawHorizontalLineProtrait(pdfWriter);
             //Data
             PrintCustomerPaymentVoucherReport(stream, customer, branch, customerPayment, paymentMethod, reportTitleFont, doc, defaultFont, attributesFont);
+
             doc.Close();
         }
 
         protected virtual void PrintCustomerPaymentVoucherReport(Stream stream, Customer customer, Branch branch, CustomerPayment customerPayment, PaymentMethod paymentMethod, Font reportTitleFont, Document doc, Font defaultFont, Font attributesFont)
         {
+            var font8Bold = GetFont();
+            font8Bold.Size = 8;
+            font8Bold.SetStyle(Font.BOLD);
 
             //Horizontal Line
             //Paragraph line = new Paragraph(new Chunk(new iTextSharp.text.pdf.draw.LineSeparator(0.0F, 100.0F, BaseColor.Black, Element.ALIGN_LEFT, 1)));
@@ -5380,7 +5382,7 @@ namespace Application.Services
             cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
 
-            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount, defaultFont);
+            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount.ToString("#,##0.00"), defaultFont);
             cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
 
@@ -5393,7 +5395,7 @@ namespace Application.Services
             cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
             customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
 
-            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount, defaultFont);
+            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount.ToString("#,##0.00"), defaultFont);
             cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
 
@@ -5407,11 +5409,11 @@ namespace Application.Services
             cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
 
-            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount, defaultFont);
+            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount.ToString("#,##0.00"), defaultFont);
             cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
 
-            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount, defaultFont);
+            cellcustomerPaymentVoucherReportItem = GetPdfCell(customerPayment.PaymentAmount.ToString("#,##0.00"), defaultFont);
             cellcustomerPaymentVoucherReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             customerPaymentVoucherReportTable.AddCell(cellcustomerPaymentVoucherReportItem);
 
@@ -5444,7 +5446,7 @@ namespace Application.Services
             cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
             customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);
 
-            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell(NumberToWords.ConvertAmount(customerPayment.PaymentAmount), reportTitleFont);
+            cellsupplierPaymentVoucherReportItemInfo = GetPdfCell(NumberToWords.ConvertAmount(customerPayment.PaymentAmount), font8Bold);
             cellsupplierPaymentVoucherReportItemInfo.HorizontalAlignment = Element.ALIGN_LEFT;
             cellsupplierPaymentVoucherReportItemInfo.Border = Rectangle.NO_BORDER;
             customerPaymentVoucherReportTableInfo.AddCell(cellsupplierPaymentVoucherReportItemInfo);

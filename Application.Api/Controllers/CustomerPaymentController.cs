@@ -181,7 +181,7 @@ namespace Application.Api.Controllers
 
         [Authorize(Policy = Permissions.CustomerPayments.Update)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpPost("/api/customerpayment/update")]
+        [HttpPost("update")]
         public virtual async Task<Result> Put([FromBody] CustomerPayment model)
         {
             try
@@ -224,7 +224,7 @@ namespace Application.Api.Controllers
             }
         }
 
-        [HttpGet("/api/customerPayment/voucher/{id}")]
+        [HttpGet("voucher/{id}")]
         public IActionResult CustomerPaymentVoucher(string id)
         {
             var customerPayment = _context.CustomerPayments.Find(id);
