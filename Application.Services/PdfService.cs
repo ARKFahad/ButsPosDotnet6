@@ -2341,31 +2341,31 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 7,21,12,12,12,12,12,12 } }
+                { numColumns, new[] { 7,23,11,11,12,12,12,12 } }
             };
 
             purchaseReportTable.SetWidths(widths[numColumns]);
 
             //headline
-            //SL
+            //
             var cellPurchaseReportItem = GetPdfCell("", font);
             cellPurchaseReportItem.Colspan = 2;
             cellPurchaseReportItem.BorderColor = BaseColor.White;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
-            //Item
+            /*Opening*/
             cellPurchaseReportItem = GetPdfCell("Opening", font);
             cellPurchaseReportItem.Colspan = 2;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-
-            //Category
+            /*Transaction for the period*/
             cellPurchaseReportItem = GetPdfCell("Transaction for the period", font);
             cellPurchaseReportItem.Colspan = 2;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
-            //Brand
+
+            /*Balance*/
             cellPurchaseReportItem = GetPdfCell("Balance", font);
             cellPurchaseReportItem.Colspan = 2;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
@@ -2380,42 +2380,43 @@ namespace Application.Services
             purchaseReportTable.AddCell(cellPurchaseReportItem);
             //Item
             cellPurchaseReportItem = GetPdfCell("A/C Name", font);
-
             cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-
-            //Category
+            /*Opening*/
+            //Debit
             cellPurchaseReportItem = GetPdfCell("Debit", font);
             cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
-            //Brand
-            cellPurchaseReportItem = GetPdfCell("Credit", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-            //Stock Quantity
-
-
-
-
-            cellPurchaseReportItem = GetPdfCell("Debit", font);
-            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-
+            //Credit
             cellPurchaseReportItem = GetPdfCell("Credit", font);
             cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
+
+            /*Transaction for the period*/
+            //Debit
             cellPurchaseReportItem = GetPdfCell("Debit", font);
             cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
+            //Credit
+            cellPurchaseReportItem = GetPdfCell("Credit", font);
+            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
+            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            purchaseReportTable.AddCell(cellPurchaseReportItem);
 
+
+            /*Balance*/
+            //Debit
+            cellPurchaseReportItem = GetPdfCell("Debit", font);
+            cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
+            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            purchaseReportTable.AddCell(cellPurchaseReportItem);
+            //Credit
             cellPurchaseReportItem = GetPdfCell("Credit", font);
             cellPurchaseReportItem.BackgroundColor = BaseColor.LightGray;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
@@ -2423,112 +2424,106 @@ namespace Application.Services
 
 
             purchaseReportTable.HeaderRows = 1;
-            foreach (var pl in trialBalanceReportLines)
+            foreach (var item in trialBalanceReportLines)
             {
+                if (item.BalanceCredit == 0M && item.BalanceDebit == 0M) continue;
 
-
-                //SL
-                cellPurchaseReportItem = GetPdfCell(pl.Code, font);
+                //Code
+                cellPurchaseReportItem = GetPdfCell(item.Code, font);
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-                //ItemName
 
-                switch (pl.Level)
+                //A/C Name
+                switch (item.Level)
                 {
                     case 1:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blueColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blueColorFont);
                         break;
                     case 2:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, magentaColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, magentaColorFont);
                         break;
                     case 3:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, redColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, redColorFont);
                         break;
                     case 4:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blackColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blackColorFont);
                         break;
                     case 5:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blackColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blackColorFont);
                         break;
                     default:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blackColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blackColorFont);
                         break;
                 }
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-
-                cellPurchaseReportItem = GetPdfCell(pl.OpeningDebit, font);
+                //OpeningDebit
+                cellPurchaseReportItem = GetPdfCell(item.OpeningDebit.ToString("#,##0.00"), font);
+                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                purchaseReportTable.AddCell(cellPurchaseReportItem);
+                //OpeningCredit
+                cellPurchaseReportItem = GetPdfCell(item.OpeningCredit.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-                //CategoryName
-                cellPurchaseReportItem = GetPdfCell(pl.OpeningCredit, font);
+                //ThisPeriodDebit
+                cellPurchaseReportItem = GetPdfCell(item.ThisPeriodDebit.ToString("#,##0.00"), font);
+                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                purchaseReportTable.AddCell(cellPurchaseReportItem);
+                //ThisPeriodCredit
+                cellPurchaseReportItem = GetPdfCell(item.ThisPeriodCredit.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-                //BrandName
-                cellPurchaseReportItem = GetPdfCell(pl.ThisPeriodDebit, font);
+                //BalanceDebit
+                cellPurchaseReportItem = GetPdfCell(item.BalanceDebit.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-
-                cellPurchaseReportItem = GetPdfCell(pl.ThisPeriodCredit, font);
+                //BalanceCredit
+                cellPurchaseReportItem = GetPdfCell(item.BalanceCredit.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-                cellPurchaseReportItem = GetPdfCell(pl.BalanceDebit, font);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-                cellPurchaseReportItem = GetPdfCell(pl.BalanceCredit, font);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-
-
             }
+
             //..................total..................................
             var levelOneTrialBalanceReportLines = trialBalanceReportLines.Where(x => x.Level == 1);
-            //SL
+
+            //Total
             cellPurchaseReportItem = GetPdfCell("Total", font);
             cellPurchaseReportItem.Colspan = 2;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-            //CurrentStock
-            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Where(x => x.Level == 1).Sum(x => x.OpeningDebit), font);
+            //Total OpeningDebit
+            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Where(x => x.Level == 1).Sum(x => x.OpeningDebit).ToString("#,##0.00"), font);
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-            //CurrentStock
-            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Sum(x => x.OpeningCredit), font);
+            //Total OpeningCredit
+            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Sum(x => x.OpeningCredit).ToString("#,##0.00"), font);
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-            //CurrentStock
-            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Sum(x => x.ThisPeriodDebit), font);
+            //Total ThisPeriodDebit
+            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Sum(x => x.ThisPeriodDebit).ToString("#,##0.00"), font);
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-            //CurrentStock
-            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Sum(x => x.ThisPeriodCredit), font);
-            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-            purchaseReportTable.AddCell(cellPurchaseReportItem);
-            //CurrentStock
-            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Sum(x => x.BalanceDebit), font);
+            //total ThisPeriodCredit
+            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Sum(x => x.ThisPeriodCredit).ToString("#,##0.00"), font);
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-            //CurrentStock
-            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Sum(x => x.BalanceCredit), font);
+            //Total BalanceDebit
+            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Sum(x => x.BalanceDebit).ToString("#,##0.00"), font);
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
+            //Total BalanceCredit
+            cellPurchaseReportItem = GetPdfCell(levelOneTrialBalanceReportLines.Sum(x => x.BalanceCredit).ToString("#,##0.00"), font);
+            cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            purchaseReportTable.AddCell(cellPurchaseReportItem);
 
             doc.Add(purchaseReportTable);
         }
@@ -2544,13 +2539,11 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(balanceSheetReportLines));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -2606,12 +2599,16 @@ namespace Application.Services
         {
             var redColorFont = GetFont();
             redColorFont.Color = new BaseColor(113, 18, 26, 255);
+
             var blueColorFont = GetFont();
             blueColorFont.Color = BaseColor.Blue;
+
             var magentaColorFont = GetFont();
             magentaColorFont.Color = BaseColor.Magenta;
+
             var pinkColorFont = GetFont();
             pinkColorFont.Color = BaseColor.Pink;
+
             var blackColorFont = GetFont();
             blackColorFont.Color = BaseColor.Black;
 
@@ -2631,8 +2628,7 @@ namespace Application.Services
             purchaseReportTable.SetWidths(widths[numColumns]);
 
             //headline
-            //SL
-
+            //A/C Name
             var cellPurchaseReportItem = GetPdfCell("A/C Name", font);
             cellPurchaseReportItem.BorderColor = BaseColor.White;
             cellPurchaseReportItem.Colspan = 2;
@@ -2647,76 +2643,72 @@ namespace Application.Services
 
 
             purchaseReportTable.HeaderRows = 1;
-            foreach (var pl in balanceSheetReportLines)
+            foreach (var item in balanceSheetReportLines)
             {
+                if (item.Balance1 == 0M && item.Balance2 == 0M && item.Balance3 == 0M && item.Balance4 == 0M && item.Balance5 == 0M) continue;
+
                 //ItemName
-                switch (pl.Level)
+                switch (item.Level)
                 {
                     case 1:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blueColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blueColorFont);
                         break;
                     case 2:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, magentaColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, magentaColorFont);
                         break;
                     case 3:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, redColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, redColorFont);
                         break;
                     case 4:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blackColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blackColorFont);
                         break;
                     case 5:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blackColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blackColorFont);
                         break;
                     default:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blackColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blackColorFont);
                         break;
                 }
 
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-                cellPurchaseReportItem = GetPdfCell(pl.Balance5 == 0M ? "" : pl.Balance5.ToString(), font);
+                //Balance5
+                cellPurchaseReportItem = GetPdfCell(item.Balance5 == 0M ? "" : item.Balance5.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                //CategoryName
-                cellPurchaseReportItem = GetPdfCell(pl.Balance4 == 0M ? "" : pl.Balance4.ToString(), font);
+                //Balance4
+                cellPurchaseReportItem = GetPdfCell(item.Balance4 == 0M ? "" : item.Balance4.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                //BrandName
-                cellPurchaseReportItem = GetPdfCell(pl.Balance3 == 0M ? "" : pl.Balance3.ToString(), font);
+                //Balance3
+                cellPurchaseReportItem = GetPdfCell(item.Balance3 == 0M ? "" : item.Balance3.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-
-                cellPurchaseReportItem = GetPdfCell(pl.Balance2 == 0M ? "" : pl.Balance2.ToString(), font);
+                //Balance2
+                cellPurchaseReportItem = GetPdfCell(item.Balance2 == 0M ? "" : item.Balance2.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-                cellPurchaseReportItem = GetPdfCell(pl.Balance1 == 0M ? "" : pl.Balance1.ToString(), font);
+                //Balance1
+                cellPurchaseReportItem = GetPdfCell(item.Balance1 == 0M ? "" : item.Balance1.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
             }
 
             //..................total..................................
-            //SL
+            //Net Income/Loss
             cellPurchaseReportItem = GetPdfCell("Net Income/Loss", font);
             cellPurchaseReportItem.BorderColor = BaseColor.White;
             cellPurchaseReportItem.Colspan = 4;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-            //CurrentStock
+            //netIncome
             cellPurchaseReportItem = GetPdfCell(netIncome, font);
             cellPurchaseReportItem.BorderColor = BaseColor.White;
             cellPurchaseReportItem.Colspan = 2;
@@ -2737,13 +2729,11 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(incomeStatementReportLines));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -2795,16 +2785,20 @@ namespace Application.Services
             doc.Close();
         }
 
-        protected virtual void PrintIncomeStatementReport(Font titleFont, Document doc, IList<AccountHeadWithBalanceViewModel> balanceSheetReportLines, Font font, Font attributesFont, decimal netIncome = 0)
+        protected virtual void PrintIncomeStatementReport(Font titleFont, Document doc, IList<AccountHeadWithBalanceViewModel> incomeStatementReportLines, Font font, Font attributesFont, decimal netIncome = 0)
         {
             var redColorFont = GetFont();
             redColorFont.Color = new BaseColor(113, 18, 26, 255);
+
             var blueColorFont = GetFont();
             blueColorFont.Color = BaseColor.Blue;
+
             var magentaColorFont = GetFont();
             magentaColorFont.Color = BaseColor.Magenta;
+
             var pinkColorFont = GetFont();
             pinkColorFont.Color = BaseColor.Pink;
+
             var blackColorFont = GetFont();
             blackColorFont.Color = BaseColor.Black;
 
@@ -2824,104 +2818,94 @@ namespace Application.Services
             purchaseReportTable.SetWidths(widths[numColumns]);
 
             //headline
-            //SL
-
+            //A/C Name
             var cellPurchaseReportItem = GetPdfCell("A/C Name", font);
             cellPurchaseReportItem.BorderColor = BaseColor.White;
             cellPurchaseReportItem.Colspan = 2;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
-            //Item
+
+            // Empty Cell
             cellPurchaseReportItem = GetPdfCell("", font);
             cellPurchaseReportItem.BorderColor = BaseColor.White;
             cellPurchaseReportItem.Colspan = 4;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-
             purchaseReportTable.HeaderRows = 1;
-            foreach (var pl in balanceSheetReportLines)
+
+            foreach (var item in incomeStatementReportLines)
             {
-
-
+                if (item.Balance1 == 0M && item.Balance2 == 0M && item.Balance3 == 0M && item.Balance4 == 0M && item.Balance5 == 0M) continue;
 
                 //ItemName
-
-                switch (pl.Level)
+                switch (item.Level)
                 {
                     case 1:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blueColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blueColorFont);
                         break;
                     case 2:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, magentaColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, magentaColorFont);
                         break;
                     case 3:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, redColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, redColorFont);
                         break;
                     case 4:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blackColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blackColorFont);
                         break;
                     case 5:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blackColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blackColorFont);
                         break;
                     default:
-                        cellPurchaseReportItem = GetPdfCell(pl.Name, blackColorFont);
+                        cellPurchaseReportItem = GetPdfCell(item.Name, blackColorFont);
                         break;
                 }
+
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-
-                cellPurchaseReportItem = GetPdfCell(pl.Balance5 == 0M ? "" : pl.Balance5.ToString(), font);
+                //Balance5
+                cellPurchaseReportItem = GetPdfCell(item.Balance5 == 0M ? "" : item.Balance5.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                //CategoryName
-                cellPurchaseReportItem = GetPdfCell(pl.Balance4 == 0M ? "" : pl.Balance4.ToString(), font);
+                //Balance4
+                cellPurchaseReportItem = GetPdfCell(item.Balance4 == 0M ? "" : item.Balance4.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-                //BrandName
-                cellPurchaseReportItem = GetPdfCell(pl.Balance3 == 0M ? "" : pl.Balance3.ToString(), font);
+                //Balance3
+                cellPurchaseReportItem = GetPdfCell(item.Balance3 == 0M ? "" : item.Balance3.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-
-                cellPurchaseReportItem = GetPdfCell(pl.Balance2 == 0M ? "" : pl.Balance2.ToString(), font);
+                //Balance2
+                cellPurchaseReportItem = GetPdfCell(item.Balance2 == 0M ? "" : item.Balance2.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-                cellPurchaseReportItem = GetPdfCell(pl.Balance1 == 0M ? "" : pl.Balance1.ToString(), font);
+                //Balance1
+                cellPurchaseReportItem = GetPdfCell(item.Balance1 == 0M ? "" : item.Balance1.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.BorderColor = BaseColor.White;
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
             }
+
             //..................total..................................
-            //SL
+            //Net Income/Loss
             cellPurchaseReportItem = GetPdfCell("Net Income/Loss", font);
             // cellPurchaseReportItem.BorderColor = BaseColor.White;
             cellPurchaseReportItem.Colspan = 3;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
-            //CurrentStock
+            //netIncome
             cellPurchaseReportItem = GetPdfCell(netIncome, font);
             //    cellPurchaseReportItem.BorderColor = BaseColor.White;
             cellPurchaseReportItem.Colspan = 3;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
-
-
-
 
             doc.Add(purchaseReportTable);
         }
