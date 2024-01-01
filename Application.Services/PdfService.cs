@@ -4613,13 +4613,11 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(subsidiaryLedgerReportLines));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -4646,12 +4644,10 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.NORMAL);
-            defaultFont.Size = 12;
-            addressFont.Color = BaseColor.Red;
 
             //headers
             PrintReportHeader(pdfWriter, reportName, branch, headerTitleFont, addressFont, reportTitleFont, doc, fromDate, toDate);
@@ -4675,16 +4671,9 @@ namespace Application.Services
         protected virtual void PrintSubsidiaryLedgerReport(Font titleFont, Document doc, IList<SubsidiaryLedgerViewModel> subsidiaryLedgerReportLines, Font font, Font attributesFont, int supplierId = 0)
         {
             var redColorFont = GetFont();
+            redColorFont.SetStyle(Font.BOLD);
             redColorFont.Color = new BaseColor(113, 18, 26, 255);
-            redColorFont.Size = 12;
-            var blueColorFont = GetFont();
-            blueColorFont.Color = BaseColor.Blue;
-            var magentaColorFont = GetFont();
-            magentaColorFont.Color = BaseColor.Magenta;
-            var pinkColorFont = GetFont();
-            pinkColorFont.Color = BaseColor.Pink;
-            var blackColorFont = GetFont();
-            blackColorFont.Color = BaseColor.Black;
+            redColorFont.Size = 8;
 
             var numColumns = 6;
             var purchaseReportTable = new PdfPTable(numColumns)
@@ -4695,7 +4684,7 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] {15,25,15,15,15,15 } }
+                { numColumns, new[] {12,12,28,16,16,16 } }
             };
 
             purchaseReportTable.SetWidths(widths[numColumns]);
@@ -4754,6 +4743,7 @@ namespace Application.Services
             purchaseReportTable.AddCell(cellPurchaseReportItem);
 
             purchaseReportTable.HeaderRows = 1;
+
             foreach (var pl in subsidiaryLedgerReportLines)
             {
                 //Vnumber
@@ -4762,25 +4752,26 @@ namespace Application.Services
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
                 //VoucherDate
                 cellPurchaseReportItem = GetPdfCell(pl.VoucherDate.ToString("dd/MM/yyyy"), font);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
                 //Particular
                 cellPurchaseReportItem = GetPdfCell(pl.Particular, font);
-                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
                 //Debit
-                cellPurchaseReportItem = GetPdfCell(pl.Debit, font);
+                cellPurchaseReportItem = GetPdfCell(pl.Debit.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
                 //Credit
-                cellPurchaseReportItem = GetPdfCell(pl.Credit, font);
+                cellPurchaseReportItem = GetPdfCell(pl.Credit.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
                 //Balance
-                cellPurchaseReportItem = GetPdfCell(pl.Balance, font);
+                cellPurchaseReportItem = GetPdfCell(pl.Balance.ToString("#,##0.00"), font);
                 cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseReportTable.AddCell(cellPurchaseReportItem);
             }
+
             //..................total..................................
             var totalDebit = subsidiaryLedgerReportLines.Sum(x => x.Debit);
             var totalCredit = subsidiaryLedgerReportLines.Sum(x => x.Credit);
@@ -4791,15 +4782,15 @@ namespace Application.Services
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
             //Total Debit
-            cellPurchaseReportItem = GetPdfCell(totalDebit, redColorFont);
+            cellPurchaseReportItem = GetPdfCell(totalDebit.ToString("#,##0.00"), redColorFont);
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
             //Total Credit
-            cellPurchaseReportItem = GetPdfCell(totalCredit, redColorFont);
+            cellPurchaseReportItem = GetPdfCell(totalCredit.ToString("#,##0.00"), redColorFont);
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);
             //TotalDebit - TotalCredit
-            cellPurchaseReportItem = GetPdfCell(Math.Abs(totalDebit - totalCredit), redColorFont);
+            cellPurchaseReportItem = GetPdfCell(Math.Abs(totalDebit - totalCredit).ToString("#,##0.00"), redColorFont);
             cellPurchaseReportItem.Colspan = 1;
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             purchaseReportTable.AddCell(cellPurchaseReportItem);

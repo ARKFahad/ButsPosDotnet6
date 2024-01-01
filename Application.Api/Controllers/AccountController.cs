@@ -1,22 +1,12 @@
 ﻿using Application.Core.Common;
 using Application.Core.Constants;
 using Application.Core.Data;
-using Application.Core.Entities;
 using Application.RequestModel;
 using Application.Services;
-using Application.ViewModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace Application.Api.Controllers
 {
@@ -27,28 +17,33 @@ namespace Application.Api.Controllers
         private readonly GHP_POS_DBContext _context;
         private readonly IPdfService _pdfService;
         private readonly IAccountService _accountService;
+
         public AccountController(GHP_POS_DBContext context, IPdfService pdfService, IAccountService accountService)
         {
             _context = context;
             _pdfService = pdfService;
             _accountService = accountService;
         }
+
         [HttpGet("account-heads")]
         public IActionResult GetAccountHeads()
         {
             return Ok(_accountService.PrepareAccountHeadWithParents());
         }
+
         [HttpGet("balance/{accountId}/{type}/{branchId}")]
         public IActionResult GetAccountBalance(string accountId, string type, string? branchId = null)
         {
-            var balance = _accountService.CalculateBalanceByAccountId(accountId, type, _context.FiscalYears.FirstOrDefault(x=>x.IsActive)?.Id, null, null, branchId);
+            var balance = _accountService.CalculateBalanceByAccountId(accountId, type, _context.FiscalYears.FirstOrDefault(x => x.IsActive)?.Id, null, null, branchId);
             return Ok(new { Balance = balance });
         }
+
         [HttpGet("control-accounts")]
         public IActionResult GetControlAccountHeads(string? branchId)
         {
             return Ok(_accountService.PrepareControlAccountHeadWithParents(branchId));
         }
+
         [Authorize(Policy = Permissions.AccountingReports.ChartOfAccounts)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("chart-of-accounts")]
@@ -56,6 +51,7 @@ namespace Application.Api.Controllers
         {
             return Ok(_accountService.PrepareAccountHeadModels(rootAccountHeadId, level, levelsToLoad));
         }
+
         [Authorize(Policy = Permissions.AccountingReports.SubsidiaryLedger)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet]
@@ -66,13 +62,15 @@ namespace Application.Api.Controllers
             {
                 var list = _accountService.SubsidiaryLedger(accountId, fromDate, toDate, branchId);
                 var account = _context.AccountHeads.Find(accountId);
+
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                   _pdfService.PrintSubsidiaryLedgerReportToPdf(stream, _context.Branches.Find(branchId), list, "Subsidiary Ledger("+account?.Name+")", fromDate, toDate);
+                    _pdfService.PrintSubsidiaryLedgerReportToPdf(stream, _context.Branches.Find(branchId), list, "Subsidiary Ledger(" + account?.Name + ")", fromDate, toDate);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
+
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
             catch (Exception exception)
@@ -92,6 +90,7 @@ namespace Application.Api.Controllers
                 requestModel.FiscalYearId = _context.FiscalYears.FirstOrDefault(x => x.IsActive).Id;
                 var accountHeadsQueryable = _context.AccountHeads.AsQueryable();
                 var list = _accountService.TrialBalance(accountHeadsQueryable, requestModel.RootAccountHeadId, requestModel.Level, requestModel.LevelsToLoad, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
+
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
@@ -99,6 +98,7 @@ namespace Application.Api.Controllers
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
+
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
             catch (Exception exception)
@@ -106,6 +106,7 @@ namespace Application.Api.Controllers
                 return Ok(exception.ToString());
             }
         }
+
         [Authorize(Policy = Permissions.AccountingReports.TrialBalance_BalanceSheet_IncomeStatement)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("balance-sheet-print")]
@@ -121,14 +122,16 @@ namespace Application.Api.Controllers
                 var income = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.Income, AccType.Income, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
                 var expense = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.Expenditure, AccType.Expense, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
                 var accountHeadsQueryable = _context.AccountHeads.Where(x => new string[2] { AccType.Asset, AccType.Liability }.Contains(x.AccountTypeId));
-                var list = _accountService.PrepareAccountHeadModelsWithBalance(accountHeadsQueryable, requestModel.RootAccountHeadId, requestModel.Level, requestModel.LevelsToLoad, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId, income-expense);
+                var list = _accountService.PrepareAccountHeadModelsWithBalance(accountHeadsQueryable, requestModel.RootAccountHeadId, requestModel.Level, requestModel.LevelsToLoad, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId, income - expense);
+
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                    _pdfService.PrintBalanceSheetReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Balance Sheet", fromDate, requestModel.ToDate,income-expense);
+                    _pdfService.PrintBalanceSheetReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Balance Sheet", fromDate, requestModel.ToDate, income - expense);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
+
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
             catch (Exception exception)
@@ -137,6 +140,7 @@ namespace Application.Api.Controllers
             }
 
         }
+
         [Authorize(Policy = Permissions.AccountingReports.TrialBalance_BalanceSheet_IncomeStatement)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("income-statement-print")]
@@ -147,12 +151,13 @@ namespace Application.Api.Controllers
                 requestModel.FiscalYearId = _context.FiscalYears.FirstOrDefault(x => x.IsActive).Id;
                 var income = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.Income, AccType.Income, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
                 var expense = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.Expenditure, AccType.Expense, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
-                var accountHeadsQueryable = _context.AccountHeads.Where(x => new string[2] { AccType.Income, AccType.Expense}.Contains(x.AccountTypeId));
+                var accountHeadsQueryable = _context.AccountHeads.Where(x => new string[2] { AccType.Income, AccType.Expense }.Contains(x.AccountTypeId));
                 var list = _accountService.PrepareAccountHeadModelsWithBalance(accountHeadsQueryable, requestModel.RootAccountHeadId, requestModel.Level, requestModel.LevelsToLoad, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
+
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                    _pdfService.PrintIncomeStatementReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Income Statement ", requestModel.FromDate, requestModel.ToDate,income-expense);
+                    _pdfService.PrintIncomeStatementReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Income Statement ", requestModel.FromDate, requestModel.ToDate, income - expense);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
@@ -163,7 +168,7 @@ namespace Application.Api.Controllers
             {
                 return Ok(exception.ToString());
             }
-          
+
         }
 
         [Authorize(Policy = Permissions.AccountingReports.TrialBalance_BalanceSheet_IncomeStatement)]
@@ -176,14 +181,15 @@ namespace Application.Api.Controllers
                 requestModel.FiscalYearId = _context.FiscalYears.FirstOrDefault(x => x.IsActive).Id;
                 var income = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.Income, AccType.Income, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
                 var expense = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.Expenditure, AccType.Expense, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
-                var incomeHeadsQueryable = _context.AccountHeads.Where(x => x.AccountTypeId==AccType.Income);
+                var incomeHeadsQueryable = _context.AccountHeads.Where(x => x.AccountTypeId == AccType.Income);
                 var expenseHeadsQueryable = _context.AccountHeads.Where(x => x.AccountTypeId == AccType.Expense);
                 var incomeHeads = _accountService.PrepareAccountHeadModelsWithBalance(incomeHeadsQueryable, requestModel.RootAccountHeadId, requestModel.Level, requestModel.LevelsToLoad, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
                 var expenseHeads = _accountService.PrepareAccountHeadModelsWithBalance(incomeHeadsQueryable, requestModel.RootAccountHeadId, requestModel.Level, requestModel.LevelsToLoad, requestModel.FiscalYearId, requestModel.FromDate, requestModel.ToDate, requestModel.BranchId);
+
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                  //  _pdfService.PrintIncomeStatementReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Income Statement ", requestModel.FromDate, requestModel.ToDate, income - expense);
+                    //  _pdfService.PrintIncomeStatementReportToPdf(stream, _context.Branches.Find(requestModel.BranchId), list, "Income Statement ", requestModel.FromDate, requestModel.ToDate, income - expense);
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
@@ -194,7 +200,6 @@ namespace Application.Api.Controllers
             {
                 return Ok(exception.ToString());
             }
-
         }
     }
 }
