@@ -892,7 +892,7 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
@@ -930,7 +930,7 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 10,32,28,15,15 } }
+                { numColumns, new[] { 10,30,35,10,15 } }
             };
 
             stockReportTable.SetWidths(widths[numColumns]);
@@ -983,16 +983,16 @@ namespace Application.Services
 
                 //Supplier Name
                 cellStockReportItem = GetPdfCell(pl.SupplierName ?? " ", font);
-                cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                cellStockReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 stockReportTable.AddCell(cellStockReportItem);
 
                 //Quantity
-                cellStockReportItem = GetPdfCell(pl.Quantity, font);
+                cellStockReportItem = GetPdfCell(pl.Quantity.ToString("#,##0"), font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 stockReportTable.AddCell(cellStockReportItem);
 
                 //Stock Value
-                cellStockReportItem = GetPdfCell(Math.Round(pl.Value, 2), font);
+                cellStockReportItem = GetPdfCell(pl.Value.ToString("#,##0.00"), font);
                 cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 stockReportTable.AddCell(cellStockReportItem);
 
@@ -1058,7 +1058,7 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
@@ -1096,7 +1096,7 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 5,40,30,25 } }
+                { numColumns, new[] { 8,40,37,15 } }
             };
 
             stockReportTable.SetWidths(widths[numColumns]);
@@ -1131,7 +1131,7 @@ namespace Application.Services
 
                 //SL
                 cellStockReportItem = GetPdfCell(r, font);
-                cellStockReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                cellStockReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 stockReportTable.AddCell(cellStockReportItem);
 
                 //Product Details

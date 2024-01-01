@@ -1,21 +1,12 @@
 ﻿using Application.Core.Common;
 using Application.Core.Constants;
 using Application.Core.Data;
-using Application.Core.Entities;
 using Application.RequestModel;
 using Application.Services;
-using Application.ViewModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PbApp.Service;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Application.Api.Controllers
 {
@@ -31,6 +22,7 @@ namespace Application.Api.Controllers
             _context = context;
             _pdfService = pdfService;
         }
+
         [HttpGet]
         [Route("{sourceId}/{productId}")]
         public IActionResult StockCount(string sourceId, string productId)
@@ -38,8 +30,6 @@ namespace Application.Api.Controllers
             var list = _context.StockItems.Where(x => x.ProductId == productId && x.BranchId == sourceId);
             return Ok(new { InStock = list.Sum(x => x.Quantity) });
         }
-
-
 
         [Authorize(Policy = Permissions.Stocks.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -51,14 +41,15 @@ namespace Application.Api.Controllers
             {
 
                 var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId, x.BranchId })
-                          .Select(y => new
-                          {
-                              ProductId = y.Key.ProductId,
-                              SupplierId = y.Key.SupplierId,
-                              BranchId = y.Key.BranchId,
-                              Quantity = y.Sum(x => x.Quantity),
-                              Price = (y.Sum(x => x.PurchaseRate) - y.Sum(x => x.DiscountPerItem)) + y.Sum(x => x.AdditionalCostPerItem)
-                          });
+                    .Select(y => new
+                    {
+                        ProductId = y.Key.ProductId,
+                        SupplierId = y.Key.SupplierId,
+                        BranchId = y.Key.BranchId,
+                        Quantity = y.Sum(x => x.Quantity),
+                        Price = (y.Sum(x => x.PurchaseRate) - y.Sum(x => x.DiscountPerItem)) + y.Sum(x => x.AdditionalCostPerItem)
+                    });
+
                 var queryable = from stock in query
                                 join product in _context.Products on stock.ProductId equals product.Id
                                 join category in _context.Categories on product.CategoryId equals category.Id
@@ -86,7 +77,9 @@ namespace Application.Api.Controllers
                 var count = queryable.Count();
                 queryable = request.SkipAndTake(queryable);
                 var list = await queryable.ToListAsync();
+
                 Tuple<List<StockModel>, int> content = new Tuple<List<StockModel>, int>(list, count);
+
                 return await Result<Tuple<List<StockModel>, int>>.SuccessAsync(content, "Stock Found");
             }
             catch (Exception exception)
@@ -94,23 +87,23 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<StockModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [HttpPost]
         [Route("print")]
         public virtual async Task<IActionResult> Print(StockRequestModel request)
         {
             try
             {
-
-
                 var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId, x.BranchId })
-                         .Select(y => new
-                         {
-                             ProductId = y.Key.ProductId,
-                             SupplierId = y.Key.SupplierId,
-                             BranchId = y.Key.BranchId,
-                             Quantity = y.Sum(x => x.Quantity),
-                             Price = (y.Sum(x => x.PurchaseRate) - y.Sum(x => x.DiscountPerItem)) + y.Sum(x => x.AdditionalCostPerItem)
-                         });
+                    .Select(y => new
+                    {
+                        ProductId = y.Key.ProductId,
+                        SupplierId = y.Key.SupplierId,
+                        BranchId = y.Key.BranchId,
+                        Quantity = y.Sum(x => x.Quantity),
+                        Price = (y.Sum(x => x.PurchaseRate) - y.Sum(x => x.DiscountPerItem)) + y.Sum(x => x.AdditionalCostPerItem)
+                    });
+
                 var queryable = from stock in query
                                 join product in _context.Products on stock.ProductId equals product.Id
                                 join category in _context.Categories on product.CategoryId equals category.Id
@@ -134,15 +127,17 @@ namespace Application.Api.Controllers
                                     CostPrice = stock.Price / stock.Quantity,
                                     Value = stock.Price
                                 };
+
                 var count = queryable.Count();
                 var expression = request.GetExpression();
                 queryable = queryable.Where(expression);
                 queryable = queryable.OrderBy(x => x.ProductName);
                 var list = await queryable.ToListAsync();
+
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
-                    _pdfService.PrintStockReportToPdf(stream, _context.Branches.Find(request.BranchId), list, "Stock Report ");
+                    _pdfService.PrintStockReportToPdf(stream, _context.Branches.Find(request.BranchId), list, "Stock Report");
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
@@ -166,13 +161,13 @@ namespace Application.Api.Controllers
                 string[] stockProductIds = null;
                 if (!string.IsNullOrWhiteSpace(request.BranchId))
                 {
-                    stockProductIds = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId, x.BranchId }).Where(x => x.Key.BranchId == request.BranchId)
-                    .Select(y => y.Key.ProductId).ToArray();
+                    stockProductIds = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId, x.BranchId })
+                        .Where(x => x.Key.BranchId == request.BranchId)
+                        .Select(y => y.Key.ProductId).ToArray();
                 }
                 else
                 {
-                    stockProductIds = _context.StockItems.GroupBy(x => new { x.ProductId })
-                          .Select(y => y.Key.ProductId).ToArray();
+                    stockProductIds = _context.StockItems.GroupBy(x => new { x.ProductId }).Select(y => y.Key.ProductId).ToArray();
                 }
 
 
@@ -200,13 +195,16 @@ namespace Application.Api.Controllers
 
                     });
                 }
+
                 var queryable = outOfStocks.AsQueryable();
                 var count = outOfStocks.Count();
                 var expression = request.GetExpression();
                 queryable = queryable.Where(expression);
                 queryable = request.SkipAndTake(queryable);
                 var list = queryable.ToList();
+
                 Tuple<List<StockModel>, int> content = new Tuple<List<StockModel>, int>(list, count);
+
                 return await Result<Tuple<List<StockModel>, int>>.SuccessAsync(content, "Out of Stock Found");
             }
             catch (Exception exception)
@@ -224,12 +222,14 @@ namespace Application.Api.Controllers
                 List<StockModel> stocks = null;
                 if (!string.IsNullOrWhiteSpace(request.BranchId))
                 {
-                    var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId, x.BranchId }).Select(x => new
-                    {
-                        ProductId = x.Key.ProductId,
-                        SupplierId = x.Key.SupplierId,
-                        BranchId = x.Key.BranchId
-                    });
+                    var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId, x.BranchId })
+                        .Select(x => new
+                        {
+                            ProductId = x.Key.ProductId,
+                            SupplierId = x.Key.SupplierId,
+                            BranchId = x.Key.BranchId
+                        });
+
                     var queryabled = from stock in query
                                      join product in _context.Products on stock.ProductId equals product.Id
                                      join category in _context.Categories on product.CategoryId equals category.Id
@@ -250,17 +250,18 @@ namespace Application.Api.Controllers
                                          Quantity = 0
 
                                      };
+
                     stocks = queryabled.ToList();
-
-
                 }
                 else
                 {
-                    var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId }).Select(x => new
-                    {
-                        ProductId = x.Key.ProductId,
-                        SupplierId = x.Key.SupplierId,
-                    });
+                    var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId })
+                        .Select(x => new
+                        {
+                            ProductId = x.Key.ProductId,
+                            SupplierId = x.Key.SupplierId,
+                        });
+
                     var queryabled = from stock in query
                                      join product in _context.Products on stock.ProductId equals product.Id
                                      join category in _context.Categories on product.CategoryId equals category.Id
@@ -279,6 +280,7 @@ namespace Application.Api.Controllers
                                          Quantity = 0
 
                                      };
+
                     stocks = queryabled.ToList();
                 }
 
@@ -301,15 +303,15 @@ namespace Application.Api.Controllers
                 }).ToList();
 
                 var outOfStocks = products.Except(stocks, new StockComparer());
-
-
                 var queryable = outOfStocks.AsQueryable();
                 var expression = request.GetExpression();
                 queryable = queryable.Where(expression);
                 var count = queryable.Count();
                 queryable = request.SkipAndTake(queryable);
                 var list = queryable.ToList();
+
                 Tuple<List<StockModel>, int> content = new Tuple<List<StockModel>, int>(list, count);
+
                 return await Result<Tuple<List<StockModel>, int>>.SuccessAsync(content, "Out of Stock Found");
             }
             catch (Exception exception)
@@ -317,6 +319,7 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<StockModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [HttpPost]
         [Route("outofstock/print")]
         public virtual IActionResult OutOfStockPrint(StockRequestModel request)
@@ -327,12 +330,14 @@ namespace Application.Api.Controllers
                 List<StockModel> stocks = null;
                 if (!string.IsNullOrWhiteSpace(request.BranchId))
                 {
-                    var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId, x.BranchId }).Select(x => new
-                    {
-                        ProductId = x.Key.ProductId,
-                        SupplierId = x.Key.SupplierId,
-                        BranchId = x.Key.BranchId
-                    });
+                    var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId, x.BranchId })
+                        .Select(x => new
+                        {
+                            ProductId = x.Key.ProductId,
+                            SupplierId = x.Key.SupplierId,
+                            BranchId = x.Key.BranchId
+                        });
+
                     var queryabled = from stock in query
                                      join product in _context.Products on stock.ProductId equals product.Id
                                      join category in _context.Categories on product.CategoryId equals category.Id
@@ -354,16 +359,16 @@ namespace Application.Api.Controllers
 
                                      };
                     stocks = queryabled.ToList();
-
-
                 }
                 else
                 {
-                    var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId }).Select(x => new
-                    {
-                        ProductId = x.Key.ProductId,
-                        SupplierId = x.Key.SupplierId,
-                    });
+                    var query = _context.StockItems.GroupBy(x => new { x.ProductId, x.SupplierId })
+                        .Select(x => new
+                        {
+                            ProductId = x.Key.ProductId,
+                            SupplierId = x.Key.SupplierId,
+                        });
+
                     var queryabled = from stock in query
                                      join product in _context.Products on stock.ProductId equals product.Id
                                      join category in _context.Categories on product.CategoryId equals category.Id
@@ -382,9 +387,9 @@ namespace Application.Api.Controllers
                                          Quantity = 0
 
                                      };
+
                     stocks = queryabled.ToList();
                 }
-
 
                 var products = _context.Products.Include(x => x.Supplier).Include(x => x.Category).Where(x => x.Deleted == false).Select(x =>
                 new StockModel()
@@ -400,7 +405,6 @@ namespace Application.Api.Controllers
                     SupplierId = x.SupplierId,
                     SupplierName = x.Supplier.Name,
                     Quantity = 0
-
                 }).ToList();
 
                 var outOfStocks = products.Except(stocks, new StockComparer()).ToList();
@@ -408,6 +412,7 @@ namespace Application.Api.Controllers
                 var expression = request.GetExpression();
                 queryable = queryable.Where(expression);
                 var outOfStocksList = queryable.ToList();
+
                 byte[] bytes;
                 using (var stream = new MemoryStream())
                 {
@@ -433,24 +438,26 @@ namespace Application.Api.Controllers
             try
             {
                 var queryable = _context.StockItems.Include(x => x.Supplier).Include(x => x.Product).ThenInclude(x => x.Category)
-            .Where(si => si.BranchId == branchId && (string.IsNullOrWhiteSpace(productName) || si.Product.Name.StartsWith(productName)))
-            .GroupBy(si => new { si.ProductId, si.SupplierId })
-            .Select(g => new StockModel
-            {
-                ProductId = g.Key.ProductId,
-                ProductName = g.First().Product.Name,
-                ProductPackSize = g.First().Product.PackSize,
-                CategoryId = g.First().Product.Category.Id,
-                ProductCategory = g.First().Product.Category.Name,
-                ProductBarcode = g.First().Product.Barcode,
-                Mrp = g.First().Product.Mrp,
-                SupplierId = g.Key.SupplierId,
-                SupplierName = g.First().Supplier.Name,
-                Quantity = g.Sum(si => si.Quantity),
-                Value = (g.Sum(si => si.PurchaseRate) - g.Sum(si => si.DiscountPerItem)) + g.Sum(si => si.AdditionalCostPerItem)
-            })
-            .Take(15);
+                    .Where(si => si.BranchId == branchId && (string.IsNullOrWhiteSpace(productName) || si.Product.Name.StartsWith(productName)))
+                    .GroupBy(si => new { si.ProductId, si.SupplierId })
+                    .Select(g => new StockModel
+                    {
+                        ProductId = g.Key.ProductId,
+                        ProductName = g.First().Product.Name,
+                        ProductPackSize = g.First().Product.PackSize,
+                        CategoryId = g.First().Product.Category.Id,
+                        ProductCategory = g.First().Product.Category.Name,
+                        ProductBarcode = g.First().Product.Barcode,
+                        Mrp = g.First().Product.Mrp,
+                        SupplierId = g.Key.SupplierId,
+                        SupplierName = g.First().Supplier.Name,
+                        Quantity = g.Sum(si => si.Quantity),
+                        Value = (g.Sum(si => si.PurchaseRate) - g.Sum(si => si.DiscountPerItem)) + g.Sum(si => si.AdditionalCostPerItem)
+                    })
+                    .Take(15);
+
                 Tuple<List<StockModel>, int> content = new Tuple<List<StockModel>, int>(await queryable.ToListAsync(), 0);
+
                 return await Result<Tuple<List<StockModel>, int>>.SuccessAsync(content, "Stock Found");
             }
             catch (Exception exception)
@@ -458,14 +465,9 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<StockModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
-
-
-
-
-
-
     }
 }
+
 public class StockComparer : IEqualityComparer<StockModel>
 {
     public bool Equals(StockModel x, StockModel y)
