@@ -8,16 +8,8 @@ using Application.Services;
 using Application.ViewModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using PbApp.Service;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Application.Api.Controllers
 {
@@ -31,8 +23,9 @@ namespace Application.Api.Controllers
         private readonly IBaseQueryService<SaleReturn, SaleReturnRequestModel, SaleReturnViewModel> _saleReturnQueryService;
         private readonly IConfiguration _configuration;
         private readonly ICommonService _commonService;
+
         public SaleReturnController(
-           GHP_POS_DBContext context, IHttpContextAccessor contextAccessor, IPdfService pdfService, 
+           GHP_POS_DBContext context, IHttpContextAccessor contextAccessor, IPdfService pdfService,
            IBaseQueryService<SaleReturn, SaleReturnRequestModel, SaleReturnViewModel> saleReturnQueryService,
             IConfiguration configuration,
             ICommonService commonService)
@@ -45,6 +38,7 @@ namespace Application.Api.Controllers
             _configuration = configuration;
             _commonService = commonService;
         }
+
         [Authorize(Policy = Permissions.SaleReturns.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -61,6 +55,7 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<SaleReturnViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [Authorize(Policy = Permissions.SaleReturns.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -80,6 +75,7 @@ namespace Application.Api.Controllers
                     bytes = stream.ToArray();
                     bytes = _pdfService.AddPageNumbers(bytes);
                 }
+
                 return File(bytes, MimeTypes.ApplicationPdf);
             }
             catch (Exception exception)
@@ -87,6 +83,7 @@ namespace Application.Api.Controllers
                 return Ok(exception.ToString());
             }
         }
+
         [HttpPost]
         [Route("returnItem")]
         public async Task<IActionResult> ReturnSoldItem(SaleReturnModel model)
@@ -102,41 +99,47 @@ namespace Application.Api.Controllers
                 {
                     var dbCustomer = await _context.Customers.FindAsync(model.CustomerId);
                     var sale = _context.Sales.Find(model.Id);
+
                     foreach (var item in model.SaleItems)
                     {
                         var saleItem = _context.SaleItems.Find(item.Id);
-                        referenceNo = "Return-"+model.SaleNo;
+                        referenceNo = "Return-" + model.SaleNo;
                         totalItem += item.ReturnQty;
                         totalValue += (item.Price * item.ReturnQty);
                         totalCogsOfReturnItems += (item.ReturnQty * saleItem.CogsPerItem);
                         var modifiedQuantity = saleItem.Quantity - item.ReturnQty;
+
                         if (modifiedQuantity < 0)
                             throw new Exception("Return Failed Due To Invalid Quantity");
+
                         saleItem.ReturnQuantity = item.ReturnQty;
                         _context.SaleItems.Update(saleItem);
+
                         for (var i = 1; i <= item.ReturnQty; i++)
-                        {  
+                        {
                             await _context.StockItems.AddAsync(new StockItem
                             {
-                            Id = Guid.NewGuid().ToString(),
-                            ProductId = item.ProductId,
-                            Quantity = 1,
-                            PurchaseRate = item.ItemCogs,
-                            BranchId = sale.BranchId,
-                            CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId(),
-                            SupplierId = saleItem.SupplierId
-                        });
+                                Id = Guid.NewGuid().ToString(),
+                                ProductId = item.ProductId,
+                                Quantity = 1,
+                                PurchaseRate = item.ItemCogs,
+                                BranchId = sale.BranchId,
+                                CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId(),
+                                SupplierId = saleItem.SupplierId
+                            });
                         }
                     }
+
                     var discount = (totalValue * sale.DiscountInPercentage) / 100;
                     var totalValueWithoutDiscount = totalValue - discount;
+
                     SaleReturn saleReturn = new SaleReturn();
                     saleReturn.Id = Guid.NewGuid().ToString();
                     saleReturn.CustomerId = model.CustomerId;
                     saleReturn.ReferenceNo = referenceNo;
                     saleReturn.BranchId = model.BranchId;
                     saleReturn.TotalItem = totalItem;
-                    saleReturn.Discount=discount;
+                    saleReturn.Discount = discount;
                     saleReturn.TotalValue = totalValueWithoutDiscount;
                     saleReturn.TotalCogsOfReturnItems = totalCogsOfReturnItems;
                     saleReturn.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
@@ -144,7 +147,9 @@ namespace Application.Api.Controllers
                     saleReturn.SaleReturnDate = DateTime.Now;
                     saleReturn.CreatedOn = DateTime.Now;
                     saleReturn.UpdatedOn = DateTime.Now;
+
                     await _context.SaleReturns.AddAsync(saleReturn);
+
                     foreach (var item in model.SaleItems)
                     {
                         if (item.ReturnQty > 0)
@@ -161,49 +166,50 @@ namespace Application.Api.Controllers
                             saleReturnItem.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                             saleReturnItem.CreatedOn = DateTime.Now;
                             saleReturnItem.UpdatedOn = DateTime.Now;
+
                             await _context.SaleReturnItems.AddAsync(saleReturnItem);
-                          
-                        }                     
+                        }
                     }
-                    sale.TotalSaleReturnedAmount += saleReturn.TotalValue;                  
+                    sale.TotalSaleReturnedAmount += saleReturn.TotalValue;
                     var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
+
                     if (isAccountsActive)
                     {
-                      //  if (sale.DueAmount > 0)
-                      //  {
+                        //  if (sale.DueAmount > 0)
+                        //  {
                         //    sale.CustomerBalance -= totalValue;
-                            //customer a/c credit
-                          //  await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
-                            //  dbCustomer.AccountId, 0, saleReturn.TotalValue, saleReturn.CreatedOn);
-                      //  }
-                       // else
-                      //  {
-                            //cash a/c credit
-                            await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
-                               AccountHeadConstants.CashInHand, 0, saleReturn.TotalValue, saleReturn.CreatedOn);
-                       // }
-                            //sale a/c debit
-                            await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
-                               AccountHeadConstants.Sales, saleReturn.TotalValue,0,saleReturn.CreatedOn);
-                            
-                            //inventory a/c debit
-                            await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
-                                AccountHeadConstants.InventoryAC, saleReturn.TotalCogsOfReturnItems, 0, saleReturn.CreatedOn);
-                            //cogs a/c credit
-                            await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
-                               AccountHeadConstants.COGS, 0, saleReturn.TotalCogsOfReturnItems, saleReturn.CreatedOn);                       
+                        //customer a/c credit
+                        //  await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                        //  dbCustomer.AccountId, 0, saleReturn.TotalValue, saleReturn.CreatedOn);
+                        //  }
+                        // else
+                        //  {
+                        //cash a/c credit
+                        await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                           AccountHeadConstants.CashInHand, 0, saleReturn.TotalValue, saleReturn.CreatedOn);
+                        // }
+                        //sale a/c debit
+                        await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                           AccountHeadConstants.Sales, saleReturn.TotalValue, 0, saleReturn.CreatedOn);
+
+                        //inventory a/c debit
+                        await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                            AccountHeadConstants.InventoryAC, saleReturn.TotalCogsOfReturnItems, 0, saleReturn.CreatedOn);
+                        //cogs a/c credit
+                        await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                           AccountHeadConstants.COGS, 0, saleReturn.TotalCogsOfReturnItems, saleReturn.CreatedOn);
                     }
 
                     _context.Sales.Update(sale);
                     await _context.SaveChangesAsync();
                     await dbContextTransaction.CommitAsync();
 
-                    return Ok(new { Message = "Return Item Successfully", Succeeded=true });
+                    return Ok(new { Message = "Return Item Successfully", Succeeded = true });
                 }
                 catch (Exception e)
                 {
                     await dbContextTransaction.RollbackAsync();
-                    return Ok(new { SaleId = "", Message = e.Message ,Succeeded=false});  
+                    return Ok(new { SaleId = "", Message = e.Message, Succeeded = false });
                 }
             }
         }

@@ -4535,11 +4535,14 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
+
+            //Header
             PrintReportHeader(pdfWriter, "Sale Return Report", branch, headerTitleFont, addressFont, reportTitleFont, doc, fromDate, toDate);
+            //Data
             PrintSaleReturnReport(reportTitleFont, doc, item1, defaultFont, attributesFont);
 
             var salereturnReportLineNumber = 20;
@@ -5929,13 +5932,11 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(purchaseItemViewModels));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -5962,7 +5963,7 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
@@ -5989,9 +5990,6 @@ namespace Application.Services
 
         protected virtual void PrintPurchaseItemReport(Font titleFont, Document doc, List<PurchaseItemViewModel> purchaseItemViewModels, Font font, Font attributesFont, int supplierId = 0)
         {
-
-
-
             var numColumns = 9;
             var purchaseItemReportTable = new PdfPTable(numColumns)
             {
@@ -6001,7 +5999,7 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 6,10,24,10,12,9,7,10,12 } }
+                { numColumns, new[] { 6,10,24,10,12,9,7,12,10 } }
             };
 
             purchaseItemReportTable.SetWidths(widths[numColumns]);
@@ -6021,12 +6019,12 @@ namespace Application.Services
             cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
 
-            cellPurchaseItemReportItem = GetPdfCell("Purchase Price", font);
+            cellPurchaseItemReportItem = GetPdfCell("Expire Date", font);
             cellPurchaseItemReportItem.BackgroundColor = BaseColor.LightGray;
             cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
 
-            cellPurchaseItemReportItem = GetPdfCell("Expire Date", font);
+            cellPurchaseItemReportItem = GetPdfCell("Purchase Price", font);
             cellPurchaseItemReportItem.BackgroundColor = BaseColor.LightGray;
             cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
@@ -6064,38 +6062,39 @@ namespace Application.Services
                 purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
                 //ItemName
                 cellPurchaseItemReportItem = GetPdfCell(pil.PurchaseNo, font);
-                cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
 
                 cellPurchaseItemReportItem = GetPdfCell(pil.Option, font);
                 cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
 
-                cellPurchaseItemReportItem = GetPdfCell(Math.Round(pil.PurchasePrice, 2), font);
-                cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
-                purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
-
                 cellPurchaseItemReportItem = GetPdfCell(pil.ExpireDate?.ToString("dd/MM/yyyy"), font);
-                cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
 
-                cellPurchaseItemReportItem = GetPdfCell(pil.PurchaseQuantity, font);
+                cellPurchaseItemReportItem = GetPdfCell(pil.PurchasePrice.ToString("#,##0.00"), font);
                 cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
 
-                cellPurchaseItemReportItem = GetPdfCell(pil.BonusQuantity, font);
+                cellPurchaseItemReportItem = GetPdfCell(pil.PurchaseQuantity.ToString("#,##0"), font);
                 cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
 
-                cellPurchaseItemReportItem = GetPdfCell(pil.Amount, font);
+                cellPurchaseItemReportItem = GetPdfCell(pil.BonusQuantity.ToString("#,##0"), font);
+                cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
+
+                cellPurchaseItemReportItem = GetPdfCell(pil.Amount.ToString("#,##0.00"), font);
                 cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
 
                 cellPurchaseItemReportItem = GetPdfCell(pil.CreatedOn.ToString("dd/MM/yyyy"), font);
-                cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellPurchaseItemReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 purchaseItemReportTable.AddCell(cellPurchaseItemReportItem);
 
             }
+
             doc.Add(purchaseItemReportTable);
         }
 
@@ -6110,13 +6109,11 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(saleItemViewModels));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -6143,7 +6140,7 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
+            defaultFont.Size = 8;
 
             var attributesFont = GetFont();
             attributesFont.SetStyle(Font.ITALIC);
@@ -6170,9 +6167,6 @@ namespace Application.Services
 
         protected virtual void PrintSaleItemReport(Font titleFont, Document doc, List<SaleItemViewModel> saleItemViewModels, Font font, Font attributesFont, int supplierId = 0)
         {
-
-
-
             var numColumns = 8;
             var saleItemReportTable = new PdfPTable(numColumns)
             {
@@ -6182,7 +6176,7 @@ namespace Application.Services
 
             var widths = new Dictionary<int, int[]>
             {
-                { numColumns, new[] { 8,10,24,12,10,12,12,12 } }
+                { numColumns, new[] { 8,10,28,10,10,12,12,10 } }
             };
 
             saleItemReportTable.SetWidths(widths[numColumns]);
@@ -6228,10 +6222,10 @@ namespace Application.Services
             saleItemReportTable.AddCell(cellSaleItemReportItem);
 
             saleItemReportTable.HeaderRows = 1;
+
             var r = 0;
             foreach (var sil in saleItemViewModels)
             {
-                //sil = sale item list
                 r++;
 
                 //Sl
@@ -6240,31 +6234,31 @@ namespace Application.Services
                 saleItemReportTable.AddCell(cellSaleItemReportItem);
                 //SaleNo
                 cellSaleItemReportItem = GetPdfCell(sil.SaleNo, font);
-                cellSaleItemReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellSaleItemReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 saleItemReportTable.AddCell(cellSaleItemReportItem);
 
                 cellSaleItemReportItem = GetPdfCell(sil.Option, font);
                 cellSaleItemReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
                 saleItemReportTable.AddCell(cellSaleItemReportItem);
 
-                cellSaleItemReportItem = GetPdfCell(Math.Round(sil.Price, 2), font);
+                cellSaleItemReportItem = GetPdfCell(sil.Price.ToString("#,##0.00"), font);
                 cellSaleItemReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleItemReportTable.AddCell(cellSaleItemReportItem);
 
-                cellSaleItemReportItem = GetPdfCell(sil.Quantity, font);
+                cellSaleItemReportItem = GetPdfCell(sil.Quantity.ToString("#,##0"), font);
                 cellSaleItemReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleItemReportTable.AddCell(cellSaleItemReportItem);
 
-                cellSaleItemReportItem = GetPdfCell(Math.Round(sil.Amount, 2), font);
+                cellSaleItemReportItem = GetPdfCell(sil.Amount.ToString("#,##0.00"), font);
                 cellSaleItemReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleItemReportTable.AddCell(cellSaleItemReportItem);
 
-                cellSaleItemReportItem = GetPdfCell(Math.Round(sil.ItemCogs * sil.Quantity, 2), font);
+                cellSaleItemReportItem = GetPdfCell((sil.ItemCogs * sil.Quantity).ToString("#,##0.00"), font);
                 cellSaleItemReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleItemReportTable.AddCell(cellSaleItemReportItem);
 
                 cellSaleItemReportItem = GetPdfCell(sil.CreatedOn.ToString("dd/MM/yyyy"), font);
-                cellSaleItemReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellSaleItemReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 saleItemReportTable.AddCell(cellSaleItemReportItem);
 
             }
