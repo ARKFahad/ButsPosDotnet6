@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Application.Core.Constants
+﻿namespace Application.Core.Constants
 {
-   public static class AccountHeadConstants
+    public static class AccountHeadConstants
     {
         public const string RetainedEarnings = "C386a894-Fb2f-4e9f-937a-Ec5685482a74";
         public const string MASUDULHASAN = "19";
@@ -14,6 +8,7 @@ namespace Application.Core.Constants
         public const string Income = "20";
         public const string Expenditure = "23";
         public const string Debtors = "7b6ab461-4a10-4bbc-94a6-13d73ddfd4d4";
+        public const string SundryCreditors = "15";
         public const string LiabilitiesAndEquity = "10";
         public const string Equity = "12";
         public const string InventoryAC = "3c349cda-Faa6-40ca-A7cd-85ab0e4206a4";
@@ -21,6 +16,6 @@ namespace Application.Core.Constants
         public const string CashInHand = "4";
         public const string CashAtEximBank = "F8ae06c0-392f-47c3-Bc49-Bc77d365a863";
         public const string DamageLostGoods = "81a34b03-12f9-447e-86bc-C0984cbf40c8";
-        
+
     }
 }

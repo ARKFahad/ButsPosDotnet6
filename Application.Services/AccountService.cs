@@ -4,11 +4,6 @@ using Application.Core.Entities;
 using Application.ViewModel;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -187,7 +182,7 @@ namespace Application.Services
                 {
                     loadSubAccounts = false;
                 }
-                if (loadSubAccounts) 
+                if (loadSubAccounts)
                 {
                     var subAccounts = PrepareAccountHeadModelsWithBalance(queryable, account.Id, level + 1, levelsToLoad, fiscalYearId, fromDate, toDate, branchId, profitLoss);
                     result.AddRange(subAccounts);
@@ -401,6 +396,61 @@ namespace Application.Services
 
             }
             _context.SaveChanges();
+        }
+
+
+        // Customer Transaction
+        public IList<TransactionViewModel> CustomerTransaction(IQueryable<AccountHead> queryableAccountHeads, string fiscalYearId, DateTime? fromDate, DateTime? toDate, string? branchId = null)
+        {
+            var result = new List<TransactionViewModel>();
+            //string customersAccountParentId = AccountHeadConstants.Debtors;
+            var allCustomersAccountHeads = GetAllSubAccountsByParentAccountId(AccountHeadConstants.Debtors, queryableAccountHeads, branchId);
+            foreach (var account in allCustomersAccountHeads)
+            {
+                var customerTransactionReportLines = PrepareCustomerTransactionReportLine(account, fiscalYearId, fromDate, toDate, branchId);
+                result.Add(customerTransactionReportLines);
+            }
+
+            return result;
+        }
+
+        public TransactionViewModel PrepareCustomerTransactionReportLine(AccountHead account, string fiscalYearId, DateTime? fromDate, DateTime? toDate, string? branchId = null)
+        {
+            var fiscalYear = _context.FiscalYears.Find(fiscalYearId);
+            var accountIds = GetAllLevelSubAccounts(account.Id);
+            var allTransactions = _context.AccountEntries.Where(x => accountIds.Contains(x.AccountId))
+                .Where(x => x.FiscalYearId == fiscalYearId);
+            if (!string.IsNullOrWhiteSpace(branchId))
+            {
+                allTransactions = allTransactions.Where(x => x.BranchId == branchId);
+            }
+            //opening balance
+            var openingBalanceTransactions = allTransactions.Where(x => x.IsOpeningBalance);
+            var accountTransactions = allTransactions.Where(x => !x.IsOpeningBalance);
+            IQueryable<AccountEntry> transactionsUptoFromDate = new List<AccountEntry>().AsQueryable();
+            if (fromDate.HasValue)
+                transactionsUptoFromDate = accountTransactions.Where(x => x.TransactionDate.Date >= fiscalYear.StartDate.Date && x.TransactionDate.Date < fromDate.Value.Date);
+            //this period transactions
+            if (fromDate.HasValue && toDate.HasValue)
+                accountTransactions = accountTransactions.Where(x => x.TransactionDate.Date >= fromDate.Value.Date && x.TransactionDate.Date <= toDate.Value.Date);
+            var thisPeriodDebit = accountTransactions.Sum(x => x.Debit);
+            var thisPeriodCredit = accountTransactions.Sum(x => x.Credit);
+            var openingCredit = openingBalanceTransactions.Sum(x => x.Credit) +
+                    (transactionsUptoFromDate.Any() ? transactionsUptoFromDate.Sum(x => x.Credit) : 0M);
+            var openingDebit = openingBalanceTransactions.Sum(x => x.Debit) +
+                    (transactionsUptoFromDate.Any() ? transactionsUptoFromDate.Sum(x => x.Debit) : 0M);
+
+            return new TransactionViewModel
+            {
+                Id = account.Id,
+                Code = account.Code,
+                Name = account.Name,
+                Level = account.Level,
+                ThisPeriodPaid = thisPeriodDebit,
+                ThisPeriodPurchase = thisPeriodCredit,
+                OpeningBalance = openingDebit - openingCredit,
+                Balance = (thisPeriodDebit - thisPeriodCredit) + (openingDebit - openingCredit),
+            };
         }
 
     }

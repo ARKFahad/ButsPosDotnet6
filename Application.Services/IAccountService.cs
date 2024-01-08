@@ -1,10 +1,5 @@
 ﻿using Application.Core.Entities;
 using Application.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -21,6 +16,7 @@ namespace Application.Services
         IList<AccountHead> GetAllSubAccountsByParentAccountId(string? parentAccountId, IQueryable<AccountHead> accountHeads, string? branchId = null);
         TrialBalanceViewModel PrepareTrialBalanceReportLine(AccountHead account, string fiscalYearId, DateTime? fromDate, DateTime? toDate, string? branchId = null);
         void PrepareNewFiscalYear(string newFiscalYearId, string branchId);
+        IList<TransactionViewModel> CustomerTransaction(IQueryable<AccountHead> queryable, string fiscalYearId, DateTime? fromDate, DateTime? toDate, string? branchId = null);
 
     }
 }

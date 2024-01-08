@@ -1,6 +1,4 @@
-﻿
-
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace Application.Core.Constants
 {
@@ -15,13 +13,15 @@ namespace Application.Core.Constants
             public const string Reports = "Permissions.MasterMenus.Reports";
             public const string Accounts = "Permissions.MasterMenus.Accounts";
         }
+
         [DisplayName("Dashboard")]
         [Description("Dashboard Permissions")]
         public static class Dashboard
         {
             public const string View = "Permissions.Dashboard.View";
-            
+
         }
+
         [DisplayName("Users")]
         [Description("Users Permissions")]
         public static class Users
@@ -31,8 +31,6 @@ namespace Application.Core.Constants
             public const string Edit = "Permissions.Users.Edit";
             public const string Delete = "Permissions.Users.Delete";
         }
-
-       
 
         [DisplayName("Roles")]
         [Description("Roles Permissions")]
@@ -44,8 +42,6 @@ namespace Application.Core.Constants
             public const string Delete = "Permissions.Roles.Delete";
         }
 
-     
-
         [DisplayName("Role Claims")]
         [Description("Role Claims Permissions")]
         public static class RoleClaims
@@ -55,10 +51,6 @@ namespace Application.Core.Constants
             public const string Edit = "Permissions.RoleClaims.Edit";
             public const string Delete = "Permissions.RoleClaims.Delete";
         }
-
-       
-
-     
 
         [DisplayName("Categories")]
         [Description("Categories Permissions")]
@@ -70,7 +62,7 @@ namespace Application.Core.Constants
             public const string Update = "Permissions.Categories.Update";
             public const string Remove = "Permissions.Categories.Remove";
         }
-       
+
         [DisplayName("Branches")]
         [Description("Branches Permissions")]
         public static class Branches
@@ -81,7 +73,6 @@ namespace Application.Core.Constants
             public const string Update = "Permissions.Branches.Update";
             public const string Remove = "Permissions.Branches.Remove";
         }
-
 
         [DisplayName("Products")]
         [Description("Products Permissions")]
@@ -115,6 +106,7 @@ namespace Application.Core.Constants
             public const string Update = "Permissions.Customers.Update";
             public const string Remove = "Permissions.Customers.Remove";
         }
+
         [DisplayName("GenericNames")]
         [Description("GenericNames Permissions")]
         public static class GenericNames
@@ -136,6 +128,7 @@ namespace Application.Core.Constants
             public const string Update = "Permissions.Countries.Update";
             public const string Remove = "Permissions.Countries.Remove";
         }
+
         [DisplayName("MeasurementUnits")]
         [Description("MeasurementUnits Permissions")]
         public static class MeasurementUnits
@@ -157,14 +150,16 @@ namespace Application.Core.Constants
             public const string Remove = "Permissions.Purchases.Remove";
             public const string ItemWisePurchase = "Permissions.Purchases.ItemWisePurchase";
         }
+
         [DisplayName("PurchaseItems")]
         [Description("PurchaseItems Permissions")]
         public static class PurchaseItems
         {
             public const string View = "Permissions.PurchaseItems.View";
             public const string Print = "Permissions.PurchaseItems.Print";
-          
+
         }
+
         [DisplayName("SaleItems")]
         [Description("SaleItems Permissions")]
         public static class SaleItems
@@ -203,6 +198,7 @@ namespace Application.Core.Constants
             public const string Update = "Permissions.PaymentMethods.Update";
             public const string Remove = "Permissions.PaymentMethods.Remove";
         }
+
         [DisplayName("ExpenseTypes")]
         [Description("ExpenseTypes Permissions")]
         public static class ExpenseTypes
@@ -212,6 +208,7 @@ namespace Application.Core.Constants
             public const string Update = "Permissions.ExpenseTypes.Update";
             public const string Remove = "Permissions.ExpenseTypes.Remove";
         }
+
         [DisplayName("Expenses")]
         [Description("Expenses Permissions")]
         public static class Expenses
@@ -221,8 +218,6 @@ namespace Application.Core.Constants
             public const string Update = "Permissions.Expenses.Update";
             public const string Remove = "Permissions.Expenses.Remove";
         }
-
-      
 
         [DisplayName("Sales")]
         [Description("Sales Permissions")]
@@ -234,6 +229,7 @@ namespace Application.Core.Constants
             public const string Remove = "Permissions.Sales.Remove";
             public const string ItemWiseSaleProfitLoss = "Permissions.Sales.ItemWiseSaleProfitLoss";
         }
+
         [DisplayName("SaleReturns")]
         [Description("SaleReturns Permissions")]
         public static class SaleReturns
@@ -241,6 +237,7 @@ namespace Application.Core.Constants
             public const string View = "Permissions.SaleReturns.View";
             public const string Add = "Permissions.SaleReturns.Add";
         }
+
         [DisplayName("PurchaseReturns")]
         [Description("PurchaseReturns Permissions")]
         public static class PurchaseReturns
@@ -268,6 +265,7 @@ namespace Application.Core.Constants
             public const string Update = "Permissions.DamageLosts.Update";
             public const string Remove = "Permissions.DamageLosts.Remove";
         }
+
         [DisplayName("StockAdjustments")]
         [Description("StockAdjustments Permissions")]
         public static class StockAdjustments
@@ -282,6 +280,7 @@ namespace Application.Core.Constants
         {
             public const string View = "Permissions.Stocks.View";
         }
+
         [DisplayName("Reports")]
         [Description("Reports Permissions")]
         public static class Reports
@@ -292,6 +291,7 @@ namespace Application.Core.Constants
             public const string Balance = "Permissions.Reports.Balance";
 
         }
+
         //accounts
         [DisplayName("AccountHeads")]
         [Description("AccountHeads Permissions")]
@@ -322,6 +322,7 @@ namespace Application.Core.Constants
             public const string Update = "Permissions.JournalEntries.Update";
             public const string Remove = "Permissions.JournalEntries.Remove";
         }
+
         [DisplayName("AccountingReports")]
         [Description("AccountingReports Permissions")]
         public static class AccountingReports
@@ -329,11 +330,13 @@ namespace Application.Core.Constants
             public const string ChartOfAccounts = "Permissions.AccountingReports.ChartOfAccounts";
             public const string SubsidiaryLedger = "Permissions.AccountingReports.SubsidiaryLedger";
             public const string TrialBalance_BalanceSheet_IncomeStatement = "Permissions.AccountingReports.TrialBalance_BalanceSheet_IncomeStatement";
-            
-
         }
 
-
-
+        [DisplayName("TransactionReports")]
+        [Description("TransactionReports Permissions")]
+        public static class TransactionReports
+        {
+            public const string CustomerTransaction_SupplierTransaction = "Permissions.TransactionReports.CustomerTransaction_SupplierTransaction";
+        }
     }
 }

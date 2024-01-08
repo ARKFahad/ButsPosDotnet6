@@ -7094,6 +7094,271 @@ namespace Application.Services
 
             doc.Add(stockAdjustmentReportTable);
         }
+
+        // Customer Transaction
+        public void PrintCustomerTransactionReportToPdf(MemoryStream stream, Branch? branch, IList<TransactionViewModel> customerTransactionViewModels, string reportName, DateTime? fromDate, DateTime? toDate)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (customerTransactionViewModels == null)
+                throw new ArgumentNullException(nameof(customerTransactionViewModels));
+
+            var pageSize = PageSize.A4;
+            var doc = new Document(pageSize);
+            var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
+            doc.Open();
+
+            //headerTitlefonts
+            var headerTitleFont = GetFont();
+            headerTitleFont.SetFamily("Times New Roman");
+            headerTitleFont.Size = 12;
+            headerTitleFont.SetStyle(Font.BOLD);
+            headerTitleFont.Color = BaseColor.Black;
+
+            //addressFont
+            var addressFont = GetFont();
+            addressFont.SetFamily("Times New Roman");
+            addressFont.Size = 8;
+            addressFont.SetStyle(Font.NORMAL);
+            addressFont.Color = BaseColor.Black;
+
+            //reportTitleFont
+            var reportTitleFont = GetFont();
+            reportTitleFont.SetFamily("Times New Roman");
+            reportTitleFont.Size = 11;
+            reportTitleFont.SetStyle(Font.BOLD);
+            reportTitleFont.Color = BaseColor.Black;
+
+            //defaultFont
+            var defaultFont = GetFont();
+            defaultFont.SetFamily("Times New Roman");
+            defaultFont.SetStyle(Font.NORMAL);
+            defaultFont.Color = BaseColor.Black;
+            defaultFont.Size = 8;
+
+            var attributesFont = GetFont();
+            attributesFont.SetStyle(Font.NORMAL);
+
+
+            //headers
+            PrintReportHeader(pdfWriter, reportName, branch, headerTitleFont, addressFont, reportTitleFont, doc, fromDate, toDate);
+            //Line
+            //  DrawHorizontalLineProtrait(pdfWriter);
+            //Data
+            PrintCustomerTransactionReport(reportTitleFont, doc, customerTransactionViewModels, defaultFont, attributesFont);
+
+            var stockReportLineNumber = 20;
+            var stockReportLineNumberCount = customerTransactionViewModels.Count;
+            stockReportLineNumber++;
+
+            if (stockReportLineNumber <= stockReportLineNumberCount)
+            {
+                doc.NewPage();
+            }
+
+            doc.Close();
+        }
+
+
+        protected virtual void PrintCustomerTransactionReport(Font titleFont, Document doc, IList<TransactionViewModel> customerTransactionViewModels, Font font, Font attributesFont, int supplierId = 0)
+        {
+            var redColorFont = GetFont();
+            redColorFont.Color = new BaseColor(113, 18, 26, 255);
+            redColorFont.Size = 8;
+
+            var blueColorFont = GetFont();
+            blueColorFont.Color = BaseColor.Blue;
+            blueColorFont.Size = 8;
+
+            var magentaColorFont = GetFont();
+            magentaColorFont.Color = BaseColor.Magenta;
+            magentaColorFont.Size = 8;
+
+            var pinkColorFont = GetFont();
+            pinkColorFont.Color = BaseColor.Pink;
+            pinkColorFont.Size = 8;
+
+            var blackColorFont = GetFont();
+            blackColorFont.Color = BaseColor.Black;
+            blackColorFont.Size = 8;
+
+
+            var numColumns = 6;
+            var customerTransactionReportTable = new PdfPTable(numColumns)
+            {
+                //  RunDirection = GetDirection(lang),
+                WidthPercentage = 100f
+            };
+
+            var widths = new Dictionary<int, int[]>
+            {
+                { numColumns, new[] { 8,25,10,12,12,12 } }
+            };
+
+            customerTransactionReportTable.SetWidths(widths[numColumns]);
+
+            //headline
+            //
+            var cellCustomerTransactionReportItem = GetPdfCell("", font);
+            cellCustomerTransactionReportItem.Colspan = 2;
+            cellCustomerTransactionReportItem.BorderColor = BaseColor.White;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+            /*Opening*/
+            cellCustomerTransactionReportItem = GetPdfCell("", font);
+            //cellCustomerTransactionReportItem.Colspan = 2;
+            cellCustomerTransactionReportItem.BorderColor = BaseColor.White;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+            /*Transaction for the period*/
+            cellCustomerTransactionReportItem = GetPdfCell("Transaction for the period", font);
+            cellCustomerTransactionReportItem.Colspan = 2;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+            /*Balance*/
+            cellCustomerTransactionReportItem = GetPdfCell("", font);
+            cellCustomerTransactionReportItem.BorderColor = BaseColor.White;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+
+            //table header
+            //SL
+            cellCustomerTransactionReportItem = GetPdfCell("A/C Code", font);
+            cellCustomerTransactionReportItem.BackgroundColor = BaseColor.LightGray;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+            //Item
+            cellCustomerTransactionReportItem = GetPdfCell("A/C Name", font);
+            cellCustomerTransactionReportItem.BackgroundColor = BaseColor.LightGray;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+            /*Opening*/
+            //Opening
+            cellCustomerTransactionReportItem = GetPdfCell("Opening", font);
+            //cellCustomerTransactionReportItem.Colspan = 2;
+            cellCustomerTransactionReportItem.BackgroundColor = BaseColor.LightGray;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+
+            /*Transaction for the period*/
+            //Purchase
+            cellCustomerTransactionReportItem = GetPdfCell("Purchase", font);
+            cellCustomerTransactionReportItem.BackgroundColor = BaseColor.LightGray;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+            //Paid
+            cellCustomerTransactionReportItem = GetPdfCell("Paid", font);
+            cellCustomerTransactionReportItem.BackgroundColor = BaseColor.LightGray;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+
+
+            /*Balance*/
+            //Balance
+            cellCustomerTransactionReportItem = GetPdfCell("Balance", font);
+            cellCustomerTransactionReportItem.BackgroundColor = BaseColor.LightGray;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+            customerTransactionReportTable.HeaderRows = 1;
+            foreach (var item in customerTransactionViewModels)
+            {
+                //if (item.Balance == 0M) continue;
+
+                //Code
+                cellCustomerTransactionReportItem = GetPdfCell(item.Code, font);
+                cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
+                customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+                //A/C Name
+                switch (item.Level)
+                {
+                    case 1:
+                        cellCustomerTransactionReportItem = GetPdfCell(item.Name, blueColorFont);
+                        break;
+                    case 2:
+                        cellCustomerTransactionReportItem = GetPdfCell(item.Name, magentaColorFont);
+                        break;
+                    case 3:
+                        cellCustomerTransactionReportItem = GetPdfCell(item.Name, redColorFont);
+                        break;
+                    case 4:
+                        cellCustomerTransactionReportItem = GetPdfCell(item.Name, blackColorFont);
+                        break;
+                    case 5:
+                        cellCustomerTransactionReportItem = GetPdfCell(item.Name, blackColorFont);
+                        break;
+                    default:
+                        cellCustomerTransactionReportItem = GetPdfCell(item.Name, blackColorFont);
+                        break;
+                }
+
+                cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+                //OpeningBalance
+                cellCustomerTransactionReportItem = GetPdfCell(item.OpeningBalance.ToString("#,##0.00"), font);
+                //cellCustomerTransactionReportItem.Colspan = 2;
+                cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+
+                //ThisPeriodPurchase
+                cellCustomerTransactionReportItem = GetPdfCell(item.ThisPeriodPurchase.ToString("#,##0.00"), font);
+                cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+                //ThisPeriodPaid
+                cellCustomerTransactionReportItem = GetPdfCell(item.ThisPeriodPaid.ToString("#,##0.00"), font);
+                cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+
+                //Balance
+                cellCustomerTransactionReportItem = GetPdfCell(item.Balance.ToString("#,##0.00"), font);
+                cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+                customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+            }
+
+            //..................total..................................
+
+            //Total
+            cellCustomerTransactionReportItem = GetPdfCell("Total", font);
+            cellCustomerTransactionReportItem.Colspan = 2;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+            //Total OpeningBalance
+            cellCustomerTransactionReportItem = GetPdfCell(customerTransactionViewModels.Sum(x => x.OpeningBalance).ToString("#,##0.00"), font);
+            //cellCustomerTransactionReportItem.Colspan = 2;
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+
+            //Total ThisPeriodPaid
+            cellCustomerTransactionReportItem = GetPdfCell(customerTransactionViewModels.Sum(x => x.ThisPeriodPurchase).ToString("#,##0.00"), font);
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+            //total ThisPeriodPurchase
+            cellCustomerTransactionReportItem = GetPdfCell(customerTransactionViewModels.Sum(x => x.ThisPeriodPaid).ToString("#,##0.00"), font);
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+            //Total Balance
+            cellCustomerTransactionReportItem = GetPdfCell(customerTransactionViewModels.Sum(x => x.Balance).ToString("#,##0.00"), font);
+            cellCustomerTransactionReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
+            customerTransactionReportTable.AddCell(cellCustomerTransactionReportItem);
+
+            doc.Add(customerTransactionReportTable);
+        }
     }
 
 }
