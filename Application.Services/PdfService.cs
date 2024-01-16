@@ -4205,6 +4205,7 @@ namespace Application.Services
             cellcustomerBalanceReportItem.BackgroundColor = BaseColor.LightGray;
             cellcustomerBalanceReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
             customerBalanceReportTable.AddCell(cellcustomerBalanceReportItem);
+
             //Expense Quantity
             cellcustomerBalanceReportItem = GetPdfCell("customer Balance", defaultFont);
             cellcustomerBalanceReportItem.BackgroundColor = BaseColor.LightGray;
