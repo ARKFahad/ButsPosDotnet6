@@ -33,6 +33,7 @@ namespace Application.Api.Controllers
         private readonly GHP_POS_DBContext _context;
         private readonly ICommonService _commonService;
         private readonly IConfiguration _configuration;
+
         public CustomerController(IBaseQueryService<Customer, CustomerRequestModel, CustomerViewModel> customerQueryService,
             IBaseCommandService<Customer> customerCommandService,
             IHttpContextAccessor contextAccessor, IPdfService pdfService,
@@ -48,6 +49,7 @@ namespace Application.Api.Controllers
             _commonService = commonService;
             _configuration = configuration;
         }
+
         [Authorize(Policy = Permissions.Customers.ViewAll)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -64,6 +66,7 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<CustomerViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [Authorize(Policy = Permissions.Customers.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet]
@@ -115,6 +118,7 @@ namespace Application.Api.Controllers
             string code = _customerCommandService.GetReferanceId("C");
             return Ok(new { Code = code });
         }
+
         [Authorize(Policy = Permissions.Customers.Add)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -199,6 +203,7 @@ namespace Application.Api.Controllers
                 }
             }
         }
+
         [Authorize(Policy = Permissions.Customers.Update)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("/api/customer/update")]
@@ -230,6 +235,7 @@ namespace Application.Api.Controllers
             }
 
         }
+
         [Authorize(Policy = Permissions.Customers.Remove)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [Route("{id}")]

@@ -17,6 +17,7 @@ namespace Application.Services
         TrialBalanceViewModel PrepareTrialBalanceReportLine(AccountHead account, string fiscalYearId, DateTime? fromDate, DateTime? toDate, string? branchId = null);
         void PrepareNewFiscalYear(string newFiscalYearId, string branchId);
         IList<TransactionViewModel> CustomerTransaction(IQueryable<AccountHead> queryable, string fiscalYearId, DateTime? fromDate, DateTime? toDate, string? branchId = null);
+        IList<TransactionViewModel> SupplierTransaction(IQueryable<AccountHead> queryable, string fiscalYearId, DateTime? fromDate, DateTime? toDate, string? branchId = null);
 
     }
 }

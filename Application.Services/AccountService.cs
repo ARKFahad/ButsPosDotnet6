@@ -443,7 +443,62 @@ namespace Application.Services
             return new TransactionViewModel
             {
                 Id = account.Id,
-                Code = account.Code,
+                Code = _context.Customers.FirstOrDefault(x => x.AccountId == account.Id)?.Code ?? "N/A",
+                Name = account.Name,
+                Level = account.Level,
+                ThisPeriodPaid = thisPeriodDebit,
+                ThisPeriodPurchase = thisPeriodCredit,
+                OpeningBalance = openingDebit - openingCredit,
+                Balance = (thisPeriodDebit - thisPeriodCredit) + (openingDebit - openingCredit),
+            };
+        }
+
+
+        // Supplier Transaction
+        public IList<TransactionViewModel> SupplierTransaction(IQueryable<AccountHead> queryableAccountHeads, string fiscalYearId, DateTime? fromDate, DateTime? toDate, string? branchId = null)
+        {
+            var result = new List<TransactionViewModel>();
+            //string suppliersAccountParentId = AccountHeadConstants.SundryCreditors;
+            var allCustomersAccountHeads = GetAllSubAccountsByParentAccountId(AccountHeadConstants.SundryCreditors, queryableAccountHeads, branchId);
+            foreach (var account in allCustomersAccountHeads)
+            {
+                var customerTransactionReportLines = PrepareSupplierTransactionReportLine(account, fiscalYearId, fromDate, toDate, branchId);
+                result.Add(customerTransactionReportLines);
+            }
+
+            return result;
+        }
+
+        public TransactionViewModel PrepareSupplierTransactionReportLine(AccountHead account, string fiscalYearId, DateTime? fromDate, DateTime? toDate, string? branchId = null)
+        {
+            var fiscalYear = _context.FiscalYears.Find(fiscalYearId);
+            var accountIds = GetAllLevelSubAccounts(account.Id);
+            var allTransactions = _context.AccountEntries.Where(x => accountIds.Contains(x.AccountId))
+                .Where(x => x.FiscalYearId == fiscalYearId);
+            if (!string.IsNullOrWhiteSpace(branchId))
+            {
+                allTransactions = allTransactions.Where(x => x.BranchId == branchId);
+            }
+            //opening balance
+            var openingBalanceTransactions = allTransactions.Where(x => x.IsOpeningBalance);
+            var accountTransactions = allTransactions.Where(x => !x.IsOpeningBalance);
+            IQueryable<AccountEntry> transactionsUptoFromDate = new List<AccountEntry>().AsQueryable();
+            if (fromDate.HasValue)
+                transactionsUptoFromDate = accountTransactions.Where(x => x.TransactionDate.Date >= fiscalYear.StartDate.Date && x.TransactionDate.Date < fromDate.Value.Date);
+            //this period transactions
+            if (fromDate.HasValue && toDate.HasValue)
+                accountTransactions = accountTransactions.Where(x => x.TransactionDate.Date >= fromDate.Value.Date && x.TransactionDate.Date <= toDate.Value.Date);
+            var thisPeriodDebit = accountTransactions.Sum(x => x.Debit);
+            var thisPeriodCredit = accountTransactions.Sum(x => x.Credit);
+            var openingCredit = openingBalanceTransactions.Sum(x => x.Credit) +
+                    (transactionsUptoFromDate.Any() ? transactionsUptoFromDate.Sum(x => x.Credit) : 0M);
+            var openingDebit = openingBalanceTransactions.Sum(x => x.Debit) +
+                    (transactionsUptoFromDate.Any() ? transactionsUptoFromDate.Sum(x => x.Debit) : 0M);
+
+            return new TransactionViewModel
+            {
+                Id = account.Id,
+                Code = _context.Suppliers.FirstOrDefault(x => x.AccountId == account.Id)?.Code ?? "N/A",
                 Name = account.Name,
                 Level = account.Level,
                 ThisPeriodPaid = thisPeriodDebit,
