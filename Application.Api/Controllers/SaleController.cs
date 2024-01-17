@@ -28,6 +28,7 @@ namespace Application.Api.Controllers
         private readonly ICommonService _commonService;
         private readonly IAccountService _accountService;
         private readonly IHubContext<BroadcastHub, IHubClient> _hubContext;
+
         public SaleController(ISaleQueryService saleQueryService,
             GHP_POS_DBContext context, IHttpContextAccessor contextAccessor, IPdfService pdfService,
             IConfiguration configuration,
@@ -44,6 +45,7 @@ namespace Application.Api.Controllers
             _accountService = accountService;
             _hubContext = hubContext;
         }
+
         [Authorize(Policy = Permissions.Sales.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -61,6 +63,7 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<SaleViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [HttpPost]
         [Route("print")]
         public virtual async Task<IActionResult> Print(SaleRequestModel request)
@@ -261,6 +264,7 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<ItemSaleProfitLossViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [HttpPost]
         [Route("item-wise-sale-profit-loss-print")]
         public virtual async Task<IActionResult> ItemWiseProfitLossPrint(ItemSaleProfitLossRequestModel request)
