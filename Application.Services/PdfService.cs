@@ -6547,13 +6547,11 @@ namespace Application.Services
                 throw new ArgumentNullException(nameof(summaryData));
 
             var pageSize = PageSize.A4;
-
-
-
             var doc = new Document(pageSize);
-
             var pdfWriter = PdfWriter.GetInstance(doc, stream);
+
             doc.Open();
+
             //headerTitlefonts
             var headerTitleFont = GetFont();
             headerTitleFont.SetFamily("Times New Roman");
@@ -6580,16 +6578,12 @@ namespace Application.Services
             defaultFont.SetFamily("Times New Roman");
             defaultFont.SetStyle(Font.NORMAL);
             defaultFont.Color = BaseColor.Black;
-            defaultFont.Size = 10;
-
-            var attributesFont = GetFont();
-            attributesFont.SetStyle(Font.ITALIC);
-
+            defaultFont.Size = 8;
 
             //headers
             PrintReportHeader(pdfWriter, reportName, branch, headerTitleFont, addressFont, reportTitleFont, doc, fromDate, toDate);
             //DayWiseSaleReport
-            PrintDayWiseSaleReport(reportTitleFont, doc, summaryData, defaultFont, attributesFont, fromDate, toDate, branch);
+            PrintDayWiseSaleReport(reportTitleFont, doc, summaryData, defaultFont, fromDate, toDate, branch);
 
             var summaryDataLineNumber = 20;
             var summaryDataLineNumberCount = summaryData.Count;
@@ -6603,7 +6597,7 @@ namespace Application.Services
             doc.Close();
         }
 
-        protected virtual void PrintDayWiseSaleReport(Font reportTitleFont, Document doc, List<SalesData> summaryData, Font defaultFont, Font attributesFont, DateTime? fromDate, DateTime? toDate, Branch branch)
+        protected virtual void PrintDayWiseSaleReport(Font reportTitleFont, Document doc, List<SalesData> summaryData, Font defaultFont, DateTime? fromDate, DateTime? toDate, Branch branch)
         {
             var numColumns = 7;
             var saleReportTable = new PdfPTable(numColumns)
@@ -6667,26 +6661,26 @@ namespace Application.Services
                 saleReportTable.AddCell(cellSaleReportItem);
                 //Sale Date
                 cellSaleReportItem = GetPdfCell(pl.Date.ToString("dd/MM/yyyy"), defaultFont);
-                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_LEFT;
+                cellSaleReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
                 saleReportTable.AddCell(cellSaleReportItem);
                 //Payable
-                cellSaleReportItem = GetPdfCell(pl.Payable, defaultFont);
+                cellSaleReportItem = GetPdfCell(pl.Payable.ToString("#,##0.00"), defaultFont);
                 cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleReportTable.AddCell(cellSaleReportItem);
                 //Paid
-                cellSaleReportItem = GetPdfCell(pl.Paid, defaultFont);
+                cellSaleReportItem = GetPdfCell(pl.Paid.ToString("#,##0.00"), defaultFont);
                 cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleReportTable.AddCell(cellSaleReportItem);
                 //Due
-                cellSaleReportItem = GetPdfCell(pl.Due, defaultFont);
+                cellSaleReportItem = GetPdfCell(pl.Due.ToString("#,##0.00"), defaultFont);
                 cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleReportTable.AddCell(cellSaleReportItem);
                 //Due
-                cellSaleReportItem = GetPdfCell(pl.ReturnAmount, defaultFont);
+                cellSaleReportItem = GetPdfCell(pl.ReturnAmount.ToString("#,##0.00"), defaultFont);
                 cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleReportTable.AddCell(cellSaleReportItem);
                 //Due
-                cellSaleReportItem = GetPdfCell(pl.Payable - pl.ReturnAmount, defaultFont);
+                cellSaleReportItem = GetPdfCell((pl.Payable - pl.ReturnAmount).ToString("#,##0.00"), defaultFont);
                 cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
                 saleReportTable.AddCell(cellSaleReportItem);
             }
@@ -6697,30 +6691,31 @@ namespace Application.Services
             cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             saleReportTable.AddCell(cellSaleReportItem);
             //TotalPayable
-            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Payable), defaultFont);
+            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Payable).ToString("#,##0.00"), defaultFont);
             cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
             cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             saleReportTable.AddCell(cellSaleReportItem);
             //TotalPaid
-            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Paid), defaultFont);
+            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Paid).ToString("#,##0.00"), defaultFont);
             cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
             cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             saleReportTable.AddCell(cellSaleReportItem);
             //TotalDue
-            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Due), defaultFont);
+            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Due).ToString("#,##0.00"), defaultFont);
             cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
             cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             saleReportTable.AddCell(cellSaleReportItem);
             //TotalDue
-            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.ReturnAmount), defaultFont);
+            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.ReturnAmount).ToString("#,##0.00"), defaultFont);
             cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
             cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             saleReportTable.AddCell(cellSaleReportItem);
             //TotalDue
-            cellSaleReportItem = GetPdfCell(summaryData.Sum(x => x.Payable) - summaryData.Sum(x => x.ReturnAmount), defaultFont);
+            cellSaleReportItem = GetPdfCell((summaryData.Sum(x => x.Payable) - summaryData.Sum(x => x.ReturnAmount)).ToString("#,##0.00"), defaultFont);
             cellSaleReportItem.BackgroundColor = BaseColor.LightGray;
             cellSaleReportItem.HorizontalAlignment = Element.ALIGN_RIGHT;
             saleReportTable.AddCell(cellSaleReportItem);
+
             //if (fromDate.HasValue && toDate.HasValue && branch != null)
             //{
             //    var saleReturnAmount = _commonService.GetSaleReturnTotal(fromDate.Value.Date, toDate.Value.Date, branch.Id);
