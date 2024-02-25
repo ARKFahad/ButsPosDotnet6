@@ -8,15 +8,9 @@ using Application.Services;
 using Application.ViewModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using PbApp.Service;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Application.Api.Controllers
 {
@@ -30,9 +24,10 @@ namespace Application.Api.Controllers
         private readonly IBaseQueryService<PurchaseReturn, PurchaseReturnRequestModel, PurchaseReturnViewModel> _purchaseReturnQueryService;
         private readonly ICommonService _commonService;
         private readonly IConfiguration _configuration;
+
         public PurchaseReturnController(
           GHP_POS_DBContext context, IHttpContextAccessor contextAccessor,
-          IPdfService pdfService, 
+          IPdfService pdfService,
           IBaseQueryService<PurchaseReturn, PurchaseReturnRequestModel, PurchaseReturnViewModel> purchaseReturnQueryService,
            ICommonService commonService,
            IConfiguration configuration)
@@ -45,6 +40,7 @@ namespace Application.Api.Controllers
             _commonService = commonService;
             _configuration = configuration;
         }
+
         [Authorize(Policy = Permissions.PurchaseReturns.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -61,6 +57,7 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<PurchaseReturnViewModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [Authorize(Policy = Permissions.PurchaseReturns.Add)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
@@ -75,22 +72,26 @@ namespace Application.Api.Controllers
             {
                 try
                 {
-                    var purchase =await _context.Purchases.Where(x=>x.Id==model.Id).FirstOrDefaultAsync();
+                    var purchase = await _context.Purchases.Where(x => x.Id == model.Id).FirstOrDefaultAsync();
                     var subtotal = purchase.Subtotal;
                     var discount = purchase.Discount;
                     var additionalCost = purchase.AdditionalCost;
-                        foreach (var item in model.PurchaseItems)
-                        
+
+                    foreach (var item in model.PurchaseItems)
                     {
                         var purchaseItem = await _context.PurchaseItems.FindAsync(item.Id);
                         var discountPerItem = (item.PurchasePrice * discount) / subtotal;
-                        var additionalCostPerItem = (item.PurchasePrice * additionalCost) /subtotal;
-                        referenceNo = "Return-"+model.PurchaseNo;
+                        var additionalCostPerItem = (item.PurchasePrice * additionalCost) / subtotal;
+
+                        referenceNo = "Return-" + model.PurchaseNo;
                         totalItem += item.ReturnQty;
-                        totalValue += ((item.PurchasePrice-discountPerItem+additionalCostPerItem) * item.ReturnQty);
+                        totalValue += ((item.PurchasePrice - discountPerItem + additionalCostPerItem) * item.ReturnQty);
+
                         var modifiedQuantity = purchaseItem.PurchaseQuantity - item.ReturnQty;
+
                         if (modifiedQuantity < 0)
                             throw new Exception("Return Failed Due To Invalid Quantity");
+
                         purchaseItem.ReturnQuantity += item.ReturnQty;
                         purchaseItem.Amount = purchaseItem.Amount - (item.PurchasePrice * item.ReturnQty);
                         purchase.Subtotal -= (item.PurchasePrice * item.ReturnQty);
@@ -98,14 +99,17 @@ namespace Application.Api.Controllers
                         purchase.AdditionalCost -= (additionalCostPerItem * item.ReturnQty);
                         purchase.NetAmount -= ((item.PurchasePrice - discountPerItem + additionalCostPerItem) * item.ReturnQty);
                         _context.PurchaseItems.Update(purchaseItem);
-                        var itemsToRemoveFromStock = _context.StockItems.Where(x => x.ProductId == item.ProductId&& x.BranchId==model.BranchId).OrderBy(x=>x.CreatedOn).Take(item.ReturnQty).ToList();
+
+                        var itemsToRemoveFromStock = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).OrderBy(x => x.CreatedOn).Take(item.ReturnQty).ToList();
                         //stock check
                         var stockCount = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).Sum(x => x.Quantity);
                         var product = _context.Products.Find(item.ProductId);
-                        if (item.ReturnQty > stockCount) throw new Exception(product?.Name+" "+product?.PackSize+" Exceeds Stock Limit"+" Available Stock : "+stockCount);
+
+                        if (item.ReturnQty > stockCount) throw new Exception(product?.Name + " " + product?.PackSize + " Exceeds Stock Limit" + " Available Stock : " + stockCount);
                         _context.StockItems.RemoveRange(itemsToRemoveFromStock);
-                       await _context.SaveChangesAsync();
+                        await _context.SaveChangesAsync();
                     }
+
                     PurchaseReturn purchasereturn = new PurchaseReturn();
                     purchasereturn.Id = Guid.NewGuid().ToString();
                     purchasereturn.SupplierId = model.SupplierId;
@@ -117,6 +121,7 @@ namespace Application.Api.Controllers
                     purchasereturn.UpdatedOn = DateTime.Now;
                     purchasereturn.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     purchasereturn.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+
                     await _context.PurchaseReturns.AddAsync(purchasereturn);
                     await _context.SaveChangesAsync();
 
@@ -124,6 +129,7 @@ namespace Application.Api.Controllers
                     {
                         var discountPerItem = (item.PurchasePrice * discount) / subtotal;
                         var additionalCostPerItem = (item.PurchasePrice * additionalCost) / subtotal;
+
                         if (item.ReturnQty > 0)
                         {
                             PurchaseReturnItem purchaseReturnItem = new PurchaseReturnItem();
@@ -138,13 +144,15 @@ namespace Application.Api.Controllers
                             await _context.SaveChangesAsync();
                         }
                     }
+
                     var dbSupplier = await _context.Suppliers.FindAsync(model.SupplierId);
                     var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
+
                     if (isAccountsActive)
                     {
                         //party a/c debit
                         await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
-                            dbSupplier.AccountId,purchasereturn.TotalValue,0,purchasereturn.CreatedOn);
+                            dbSupplier.AccountId, purchasereturn.TotalValue, 0, purchasereturn.CreatedOn);
                         //inventory a/c credit
                         await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
                            AccountHeadConstants.InventoryAC, 0, purchasereturn.TotalValue, purchasereturn.CreatedOn);//inventory a/c id from database
@@ -155,6 +163,7 @@ namespace Application.Api.Controllers
                         purchase.SupplierBalance -= totalValue;
                         dbSupplier.Balance -= totalValue;
                     }
+
                     _context.Suppliers.Update(dbSupplier);
                     _context.Purchases.Update(purchase);
                     await _context.SaveChangesAsync();
@@ -184,25 +193,30 @@ namespace Application.Api.Controllers
                     purchasereturn.SupplierId = model.SupplierId;
                     purchasereturn.ReferenceNo = model.ReferenceNo;
                     purchasereturn.BranchId = model.BranchId;
-                    purchasereturn.TotalItem = model.PurchaseItems.Sum(x=>x.ReturnQty);
-                    purchasereturn.TotalValue = model.PurchaseItems.Sum(x=>x.ReturnQty*x.PurchasePrice);
+                    purchasereturn.TotalItem = model.PurchaseItems.Sum(x => x.ReturnQty);
+                    purchasereturn.TotalValue = model.PurchaseItems.Sum(x => x.ReturnQty * x.PurchasePrice);
                     purchasereturn.CreatedOn = DateTime.Now;
                     purchasereturn.UpdatedOn = DateTime.Now;
                     purchasereturn.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     purchasereturn.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     await _context.AddAsync(purchasereturn);
                     await _context.SaveChangesAsync();
+
                     var stockValue = 0M;
+
                     foreach (var item in model.PurchaseItems)
                     {
                         var itemsToRemoveFromStock = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).OrderBy(x => x.CreatedOn).Take(item.ReturnQty).ToList();
-                        stockValue+=itemsToRemoveFromStock.Sum(x=>((x.PurchaseRate - x.DiscountPerItem) + x.AdditionalCostPerItem));
+                        stockValue += itemsToRemoveFromStock.Sum(x => ((x.PurchaseRate - x.DiscountPerItem) + x.AdditionalCostPerItem));
                         //stock check
                         var stockCount = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).Sum(x => x.Quantity);
                         var product = _context.Products.Find(item.ProductId);
+
                         if (item.ReturnQty > stockCount) throw new Exception(product?.Name + " " + product?.PackSize + " Exceeds Stock Limit !" + " Available Stock : " + stockCount);
                         _context.StockItems.RemoveRange(itemsToRemoveFromStock);
+
                         await _context.SaveChangesAsync();
+
                         if (item.ReturnQty > 0)
                         {
                             PurchaseReturnItem purchaseReturnItem = new PurchaseReturnItem();
@@ -217,8 +231,10 @@ namespace Application.Api.Controllers
                             await _context.SaveChangesAsync();
                         }
                     }
+
                     var dbSupplier = await _context.Suppliers.FindAsync(model.SupplierId);
                     var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
+
                     if (isAccountsActive)
                     {
                         //party a/c debit
@@ -234,13 +250,13 @@ namespace Application.Api.Controllers
                            AccountHeadConstants.InventoryAC, 0, (stockValue - purchasereturn.TotalValue), purchasereturn.CreatedOn);
                         //damage lost account debit
                         await _commonService.HitAccount(_context, purchasereturn.BranchId, purchasereturn.ReferenceNo, "Purchase Return",
-                           AccountHeadConstants.DamageLostGoods, (stockValue-purchasereturn.TotalValue), 0, purchasereturn.CreatedOn);
+                           AccountHeadConstants.DamageLostGoods, (stockValue - purchasereturn.TotalValue), 0, purchasereturn.CreatedOn);
                     }
                     else
                     {
                         //adjust Supplier balance
                         dbSupplier.Balance -= purchasereturn.TotalValue;
-                         _context.Update(dbSupplier);
+                        _context.Update(dbSupplier);
                     }
 
                     await _context.SaveChangesAsync();
