@@ -21,7 +21,6 @@ namespace Application.Services
         void PrintOutOfStockReportToPdf(Stream stream, Branch? branch, IList<StockModel> stockReportLines, string reportName);
         void PrintSaleReportToPdf(Stream stream, Branch? branch, IList<SaleViewModel> saleReportLines, string reportName, DateTime? fromDate, DateTime? toDatde);
         void PrintExpenseReportToPdf(Stream stream, Branch? branch, IList<ExpenseViewModel> expenseReportLines, string reportName, DateTime? fromDate, DateTime? toDatde);
-
         void PrintSaleInvoiceToPdf(Stream stream, Customer? customer, Branch branch, Sale sale, List<SaleItemModel> saleItems);
         void PrintSupplierBalanceReportToPdf(Stream stream, List<SupplierViewModel> suppliers, String message);
         void PrintSupplierPaymentReportToPdf(Stream stream, List<SupplierPaymentViewModel> supplierpayments, String message, Branch branch, DateTime? fromdate, DateTime? toDate);
