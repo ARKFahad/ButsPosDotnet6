@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Application.Api.Controllers
 {
@@ -437,9 +438,10 @@ namespace Application.Api.Controllers
         {
             try
             {
-                var queryable = _context.StockItems.Include(x => x.Supplier).Include(x => x.Product).ThenInclude(x => x.Category)
+                var list =await _context.StockItems
                     .Where(si => si.BranchId == branchId && (string.IsNullOrWhiteSpace(productName) || si.Product.Name.StartsWith(productName)))
                     .GroupBy(si => new { si.ProductId, si.SupplierId })
+                    .Take(15)
                     .Select(g => new StockModel
                     {
                         ProductId = g.Key.ProductId,
@@ -453,12 +455,8 @@ namespace Application.Api.Controllers
                         SupplierName = g.First().Supplier.Name,
                         Quantity = g.Sum(si => si.Quantity),
                         Value = (g.Sum(si => si.PurchaseRate) - g.Sum(si => si.DiscountPerItem)) + g.Sum(si => si.AdditionalCostPerItem)
-                    })
-                    .Take(15);
-
-                Tuple<List<StockModel>, int> content = new Tuple<List<StockModel>, int>(await queryable.ToListAsync(), 0);
-
-                return await Result<Tuple<List<StockModel>, int>>.SuccessAsync(content, "Stock Found");
+                    }).ToListAsync();
+                return await Result<Tuple<List<StockModel>, int>>.SuccessAsync(new Tuple<List<StockModel>, int>(list,0), "Stock Found");
             }
             catch (Exception exception)
             {
