@@ -463,6 +463,53 @@ namespace Application.Api.Controllers
                 return await Result<Tuple<List<StockModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+        [Authorize(Policy = Permissions.Stocks.View)]
+        [HttpGet]
+        [Route("product-search/{productName}")]
+        public virtual async Task<Result<Tuple<List<StockModel>, int>>> ProductSearch(string? productName = "napa")
+        {
+            try
+            {
+                var list = await _context.Products
+                    .Where(si => (string.IsNullOrWhiteSpace(productName) || si.Name.StartsWith(productName)))
+                    .GroupBy(si => new { si.Id, si.SupplierId })
+                    .Take(15)
+                    .Select(g => new StockModel
+                    {
+                        ProductId = g.Key.Id,
+                        ProductName = g.First().Name,
+                        ProductPackSize = g.First().PackSize,
+                        CategoryId = g.First().Category.Id,
+                        ProductCategory = g.First().Category.Name,
+                        Mrp = g.First().Mrp,
+                        SupplierId = g.Key.SupplierId,
+                        SupplierName = g.First().Supplier.Name,
+                    }).ToListAsync();
+                return await Result<Tuple<List<StockModel>, int>>.SuccessAsync(new Tuple<List<StockModel>, int>(list, 0), "Product Found");
+            }
+            catch (Exception exception)
+            {
+                return await Result<Tuple<List<StockModel>, int>>.FailAsync(exception.ToString(), exception.Message);
+            }
+        }
+
+        [Authorize(Policy = Permissions.Stocks.View)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost]
+        [Route("find-stock-quantity/{productId}/{supplierId}/{branchId}")]
+        public virtual async Task<Result<int>> FindStockQuantityAsync(string productId,string supplierId,string branchId)
+        {
+            try
+            {
+                var quantity =await _context.StockItems.Where(x=>x.ProductId==productId && x.SupplierId==supplierId 
+                     && x.BranchId==branchId).SumAsync(x=>x.Quantity);
+                return await Result<int>.SuccessAsync(quantity, "Stock Found");
+            }
+            catch (Exception exception)
+            {
+                 return await Result<int>.SuccessAsync(0, exception.Message);
+            }
+        }
     }
 }
 
