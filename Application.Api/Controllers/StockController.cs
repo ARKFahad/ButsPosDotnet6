@@ -495,7 +495,7 @@ namespace Application.Api.Controllers
 
         [Authorize(Policy = Permissions.Stocks.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpPost]
+        [HttpGet]
         [Route("find-stock-quantity/{productId}/{supplierId}/{branchId}")]
         public virtual async Task<Result<int>> FindStockQuantityAsync(string productId,string supplierId,string branchId)
         {
