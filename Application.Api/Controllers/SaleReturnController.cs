@@ -184,9 +184,19 @@ namespace Application.Api.Controllers
                         //  }
                         // else
                         //  {
-                        //cash a/c credit
-                        await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
-                           AccountHeadConstants.CashInHand, 0, saleReturn.TotalValue, saleReturn.CreatedOn);
+                        if (model.PaidAmount == 0m)
+                        {
+                            //customer a/c credit
+                            await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                               dbCustomer!.AccountId, 0, saleReturn.TotalValue, saleReturn.CreatedOn);
+                        }
+                        else
+                        {
+                            //cash a/c credit
+                            await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
+                               AccountHeadConstants.CashInHand, 0, saleReturn.TotalValue, saleReturn.CreatedOn);
+                        }
+                       
                         // }
                         //sale a/c debit
                         await _commonService.HitAccount(_context, saleReturn.BranchId, saleReturn.ReferenceNo, "Sale Return",
@@ -213,6 +223,7 @@ namespace Application.Api.Controllers
                 }
             }
         }
+    
 
     }
 }

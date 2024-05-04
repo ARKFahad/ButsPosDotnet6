@@ -26,7 +26,7 @@ namespace Application.RequestModel
         public decimal Subtotal { get; set; }
 
         public string? createdBy { get; set; }
-
+        public decimal PaidAmount { get; set; }
 
 
         public IList<SaleReturnitemModel> SaleItems { get; set; }
