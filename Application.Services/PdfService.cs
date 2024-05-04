@@ -820,7 +820,7 @@ namespace Application.Services
             var cellfooterInfo = GetPdfCell("", font);
             cellfooterInfo.Phrase.Add(new Phrase(Environment.NewLine));
             cellfooterInfo.Phrase.Add(new Phrase(Environment.NewLine));
-            cellfooterInfo.Phrase.Add(new Phrase("Sold goods are returnable with saleable condition", titleFont));
+            cellfooterInfo.Phrase.Add(new Phrase("Sold goods are returnable with saleable condition within 30 days.", titleFont));
             cellfooterInfo.HorizontalAlignment = Element.ALIGN_LEFT;
             cellfooterInfo.Border = Rectangle.NO_BORDER;
             footerInfoTable.AddCell(cellfooterInfo);
