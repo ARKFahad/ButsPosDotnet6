@@ -438,31 +438,28 @@ namespace Application.Api.Controllers
         {
             try
             {
-                var list =await _context.StockItems
+                var list = await _context.StockItems.Include(x => x.Supplier).Include(x => x.Product).ThenInclude(x => x.Category)
                     .Where(si => si.BranchId == branchId && (string.IsNullOrWhiteSpace(productName) || si.Product.Name.StartsWith(productName)))
-                    .GroupBy(si => new { si.ProductId, si.SupplierId })
+                    .GroupBy(si => si.ProductId)
                     .Take(15)
                     .Select(g => new StockModel
                     {
-                        ProductId = g.Key.ProductId,
+                        ProductId = g.Key,
                         ProductName = g.First().Product.Name,
                         ProductPackSize = g.First().Product.PackSize,
-                        CategoryId = g.First().Product.Category.Id,
                         ProductCategory = g.First().Product.Category.Name,
-                        ProductBarcode = g.First().Product.Barcode,
                         Mrp = g.First().Product.Mrp,
-                        SupplierId = g.Key.SupplierId,
                         SupplierName = g.First().Supplier.Name,
-                        Quantity = g.Sum(si => si.Quantity),
-                        Value = (g.Sum(si => si.PurchaseRate) - g.Sum(si => si.DiscountPerItem)) + g.Sum(si => si.AdditionalCostPerItem)
+                        Quantity = g.Sum(si => si.Quantity)
                     }).ToListAsync();
-                return await Result<Tuple<List<StockModel>, int>>.SuccessAsync(new Tuple<List<StockModel>, int>(list,0), "Stock Found");
+                return await Result<Tuple<List<StockModel>, int>>.SuccessAsync(new Tuple<List<StockModel>, int>(list, 0), "Stock Found");
             }
             catch (Exception exception)
             {
                 return await Result<Tuple<List<StockModel>, int>>.FailAsync(exception.ToString(), exception.Message);
             }
         }
+
         [Authorize(Policy = Permissions.Stocks.View)]
         [HttpGet]
         [Route("product-search/{productName}")]
