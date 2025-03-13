@@ -3763,9 +3763,9 @@ namespace Application.Services
 
 
             //SL
+            var company = _context.Companies.First();
 
-
-            var logo = Image.GetInstance(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", Path.GetFileName("logo.jpg")));
+            var logo = Image.GetInstance(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", Path.GetFileName(company.LogoPath)));
             logo.ScaleToFit(100f, 500f);
             logo.Alignment = iTextSharp.text.Image.ALIGN_CENTER;
             logo.IndentationLeft = 9f;
@@ -3779,7 +3779,7 @@ namespace Application.Services
             logocell.Colspan = 2;
             headerTable.AddCell(logocell);
 
-            var cellPurchaseReportItem = GetPdfCell("GREENHILL VET PHARMA", headerTitleFont);
+            var cellPurchaseReportItem = GetPdfCell(company.Name, headerTitleFont);
 
 
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
@@ -3990,9 +3990,9 @@ namespace Application.Services
 
 
             //SL
+            var company = _context.Companies.First();
 
-
-            var logo = Image.GetInstance(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", Path.GetFileName("logo.jpg")));
+            var logo = Image.GetInstance(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", Path.GetFileName(company.LogoPath)));
             logo.ScaleToFit(100f, 500f);
             logo.Alignment = iTextSharp.text.Image.ALIGN_CENTER;
             logo.IndentationLeft = 9f;
@@ -4006,7 +4006,7 @@ namespace Application.Services
             logocell.Colspan = 2;
             headerTable.AddCell(logocell);
 
-            var cellPurchaseReportItem = GetPdfCell("GREENHILL VET PHARMA", headerTitleFont);
+            var cellPurchaseReportItem = GetPdfCell(company.Name, headerTitleFont);
 
 
             cellPurchaseReportItem.HorizontalAlignment = Element.ALIGN_CENTER;
