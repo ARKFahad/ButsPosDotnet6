@@ -820,8 +820,8 @@ namespace Application.Services
             var cellfooterInfo = GetPdfCell("", font);
             cellfooterInfo.Phrase.Add(new Phrase(Environment.NewLine));
             cellfooterInfo.Phrase.Add(new Phrase(Environment.NewLine));
-            cellfooterInfo.Phrase.Add(new Phrase("Sold goods are returnable with saleable condition within 30 days.", titleFont));
-            cellfooterInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellfooterInfo.Phrase.Add(new Phrase("N.B: Goods sold for more than 30 days, frozen products, injection items, and cut-strip medicines are not returnable. Cash memo must be presented for product exchange. No cash refunds will be issued.", titleFont));
+            cellfooterInfo.HorizontalAlignment = Element.ALIGN_CENTER;
             cellfooterInfo.Border = Rectangle.NO_BORDER;
             footerInfoTable.AddCell(cellfooterInfo);
 
