@@ -820,8 +820,8 @@ namespace Application.Services
             var cellfooterInfo = GetPdfCell("", font);
             cellfooterInfo.Phrase.Add(new Phrase(Environment.NewLine));
             cellfooterInfo.Phrase.Add(new Phrase(Environment.NewLine));
-            cellfooterInfo.Phrase.Add(new Phrase("Sold goods are returnable with saleable condition within 30 days.", titleFont));
-            cellfooterInfo.HorizontalAlignment = Element.ALIGN_LEFT;
+            cellfooterInfo.Phrase.Add(new Phrase("N.B: Goods sold for more than 30 days, frozen products, injection items, and cut-strip medicines are not returnable. Cash memo must be presented for product exchange. No cash refunds will be issued.", titleFont));
+            cellfooterInfo.HorizontalAlignment = Element.ALIGN_CENTER;
             cellfooterInfo.Border = Rectangle.NO_BORDER;
             footerInfoTable.AddCell(cellfooterInfo);
 
@@ -3527,22 +3527,22 @@ namespace Application.Services
                 itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(r.ToString(), font)) { HorizontalAlignment = Element.ALIGN_CENTER });
                 itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(pl.ProductName, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
                 itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(pl.SupplierName, font)) { HorizontalAlignment = Element.ALIGN_LEFT });
-                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(pl.SaleQuantity.ToString("#,##0"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
-                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(pl.Subtotal.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
-                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(pl.Discount.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
-                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(pl.NetAmount.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
-                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(pl.Cogs.ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
-                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase((pl.NetAmount - pl.Cogs).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase((pl.SaleQuantity - pl.ReturnQuantity).ToString("#,##0"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase((pl.Subtotal - pl.ReturnAmount).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase((pl.Discount - pl.ReturnDiscount).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase((pl.NetAmount - pl.ReturnAmount + pl.ReturnDiscount).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase((pl.Cogs - pl.ReturnCOGS).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+                itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase((pl.NetAmount - pl.ReturnAmount + pl.ReturnDiscount - pl.Cogs + pl.ReturnCOGS).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
             }
 
             //..................total..................................
             itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase("Total", font)) { Colspan = 3, HorizontalAlignment = Element.ALIGN_RIGHT });
-            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.SaleQuantity).ToString("#,##0"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
-            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.Subtotal).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
-            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.Discount).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
-            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.NetAmount).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
-            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.Cogs).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
-            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.NetAmount - x.Cogs).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.SaleQuantity - x.ReturnQuantity).ToString("#,##0"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.Subtotal - x.ReturnAmount).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.Discount - x.ReturnDiscount).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.NetAmount - x.ReturnAmount + x.ReturnDiscount).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.Cogs - x.ReturnCOGS).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
+            itemWiseSaleProfitLossReportTable.AddCell(new PdfPCell(new Phrase(saleReportLines.Sum(x => x.NetAmount - x.ReturnAmount + x.ReturnDiscount - x.Cogs + x.ReturnCOGS).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
 
             doc.Add(itemWiseSaleProfitLossReportTable);
         }

@@ -308,10 +308,13 @@ namespace Application.Api.Controllers
                           SupplierId = y.Key.SupplierId,
                           SaleQuantity = y.Sum(x => x.Quantity),
                           ReturnQuantity = y.Sum(x => x.ReturnQuantity),
+                          ReturnAmount = y.Sum(x => x.ReturnQuantity * x.Price),
                           Subtotal = y.Sum(x => x.Amount),
                           Discount = y.Sum(x => x.DiscountOnAmount),
+                          ReturnDiscount = y.Sum(x => (x.DiscountOnAmount / x.Quantity) * x.ReturnQuantity),
                           NetAmount = y.Sum(x => x.Amount) - y.Sum(x => x.DiscountOnAmount),
-                          COGS = y.Sum(x => x.CogsPerItem * x.Quantity)
+                          COGS = y.Sum(x => x.CogsPerItem * x.Quantity),
+                          ReturnCOGS = y.Sum(x => x.ReturnQuantity * x.CogsPerItem)
                       });
             if (!string.IsNullOrWhiteSpace(request.SupplierId))
                 queryable = queryable.Where(x => x.SupplierId == request.SupplierId);
@@ -328,8 +331,11 @@ namespace Application.Api.Controllers
                                   SupplierName = supplier.Name,
                                   SaleQuantity = saleItem.SaleQuantity,
                                   ReturnQuantity = saleItem.ReturnQuantity,
+                                  ReturnAmount = saleItem.ReturnAmount,
+                                  ReturnCOGS = saleItem.ReturnCOGS,
                                   Subtotal = saleItem.Subtotal,
                                   Discount = saleItem.Discount,
+                                  ReturnDiscount = saleItem.ReturnDiscount,
                                   NetAmount = saleItem.NetAmount,
                                   Cogs = saleItem.COGS,
                               };

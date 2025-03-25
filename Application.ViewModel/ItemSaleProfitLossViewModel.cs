@@ -14,8 +14,11 @@ namespace Application.ViewModel
         public string? SupplierName { get; set; }
         public int SaleQuantity { get; set; }
         public int ReturnQuantity { get; set; }
+        public decimal ReturnAmount { get; set; }
+        public decimal ReturnCOGS { get; set; }
         public decimal Subtotal { get; set; }
         public decimal Discount { get; set; }
+        public decimal ReturnDiscount { get; set; }
         public decimal NetAmount { get; set; }
         public decimal Cogs { get; set; }
 
