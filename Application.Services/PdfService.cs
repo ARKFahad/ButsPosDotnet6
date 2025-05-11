@@ -125,9 +125,9 @@ namespace Application.Services
 
         protected virtual Font GetFont()
         {
-            //var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "pdf", Path.GetFileName("RobotoRegular.ttf"));
+            //var fontFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Pdf", Path.GetFileName("RobotoRegular.ttf"));
             // Set the path to the Roboto Regular font file
-            var fontFilePath = Path.Combine(Directory.GetCurrentDirectory(), "pdf", "RobotoRegular.ttf");
+            var fontFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Pdf", Path.GetFileName("RobotoRegular.ttf"));
 
             // Create a BaseFont using the specified font file
             var baseFont = BaseFont.CreateFont(fontFilePath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
@@ -502,7 +502,7 @@ namespace Application.Services
             reportTitleFont.Color = BaseColor.Black;
 
             //titleFont
-            var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "pdf", Path.GetFileName("RobotoRegular.ttf"));
+            var fontPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Pdf", Path.GetFileName("RobotoRegular.ttf"));
             var baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
             var font = new Font(baseFont, 8, Font.NORMAL);
 
