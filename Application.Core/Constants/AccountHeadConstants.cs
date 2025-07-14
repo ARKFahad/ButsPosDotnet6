@@ -15,6 +15,7 @@
         public const string COGS = "9796ab59-F9fb-44ff-A0b3-575b44c5d4b8";
         public const string CashInHand = "4";
         public const string CashAtEximBank = "F8ae06c0-392f-47c3-Bc49-Bc77d365a863";
+        public const string CashAtPubaliBank = "aad6c0e5-2422-45ae-9938-892126c4a41d";
         public const string DamageLostGoods = "81a34b03-12f9-447e-86bc-C0984cbf40c8";
 
     }

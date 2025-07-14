@@ -107,6 +107,7 @@ namespace Application.Api.Controllers
                     sale.Id = Guid.NewGuid().ToString();
                     sale.SaleNo = "S" + count.ToString().PadLeft(7, '0');
                     sale.CustomerId = model.CustomerId;
+                    sale.PaymentMethodId = model.PaymentMethodId;
                     sale.BranchId = branchId;
                     sale.Subtotal = model.Total;
                     sale.Discount = model.Discount;
@@ -173,18 +174,36 @@ namespace Application.Api.Controllers
                         }
                         else
                         {
-                            //sale a/c credit
-                            await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
-                                AccountHeadConstants.Sales, 0, sale.PaidAmount, sale.CreatedOn);
-                            //cash a/c debit
-                            await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
-                              AccountHeadConstants.CashInHand, sale.PaidAmount, 0, sale.CreatedOn);
-                            //inventory a/c credit
-                            await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
-                                AccountHeadConstants.InventoryAC, 0, sale.Cogs, sale.CreatedOn);
-                            //cogs a/c debit
-                            await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
-                               AccountHeadConstants.COGS, sale.Cogs, 0, sale.CreatedOn);
+                            if (sale.PaymentMethodId == PaymentMethodConstants.Cash)
+                            {
+                                //sale a/c credit
+                                await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
+                                    AccountHeadConstants.Sales, 0, sale.PaidAmount, sale.CreatedOn);
+                                //cash a/c debit
+                                await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
+                                  AccountHeadConstants.CashInHand, sale.PaidAmount, 0, sale.CreatedOn);
+                                //inventory a/c credit
+                                await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
+                                    AccountHeadConstants.InventoryAC, 0, sale.Cogs, sale.CreatedOn);
+                                //cogs a/c debit
+                                await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
+                                   AccountHeadConstants.COGS, sale.Cogs, 0, sale.CreatedOn);
+                            }
+                            else
+                            {
+                                //sale a/c credit
+                                await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Card Sale",
+                                    AccountHeadConstants.Sales, 0, sale.PaidAmount, sale.CreatedOn);
+                                //pubali bank a/c debit
+                                await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Card Sale",
+                                  AccountHeadConstants.CashAtPubaliBank, sale.PaidAmount, 0, sale.CreatedOn);
+                                //inventory a/c credit
+                                await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Card Sale",
+                                    AccountHeadConstants.InventoryAC, 0, sale.Cogs, sale.CreatedOn);
+                                //cogs a/c debit
+                                await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Card Sale",
+                                   AccountHeadConstants.COGS, sale.Cogs, 0, sale.CreatedOn);
+                            }
                         }
                     }
                     else

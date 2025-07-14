@@ -15,6 +15,7 @@ namespace Application.ViewModel
             SaleNo = sale.SaleNo;
             CustomerId = sale.CustomerId;
             CustomerName = sale.Customer?.Name;
+            PaymentMethodId = sale.PaymentMethodId;
             SaleDate = sale.CreatedOn;
             BranchId = sale.BranchId;
             BranchName = sale.Branch?.Name;
@@ -44,6 +45,7 @@ namespace Application.ViewModel
         public string SaleNo { get; set; }
         public string CustomerId { get; set; }
         public string? CustomerName { get; set; }
+        public string? PaymentMethodId { get; set; }
         public DateTime SaleDate { get; set; }
         public string BranchId { get; set; }
         public string? BranchName { get; set; }

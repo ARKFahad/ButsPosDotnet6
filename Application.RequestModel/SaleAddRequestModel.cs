@@ -13,6 +13,7 @@ namespace Application.RequestModel
             CartItems = new List<SaleItemRequestModel>();
         }
         public string? CustomerId { get; set; }
+        public string? PaymentMethodId { get; set; }
         public decimal Total { get; set; }
         public decimal Discount { get; set; }
         public decimal DiscountInPercentage { get; set; }

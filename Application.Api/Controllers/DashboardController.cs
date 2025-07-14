@@ -43,6 +43,7 @@ namespace Application.Api.Controllers
                 //todays cash info
                 TodaysCashInHand = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.CashInHand, AccType.Asset,fiscalYear.Id, fiscalYear.StartDate, DateTime.Now.Date, dashboardRequestModel.BranchId),
                 TodaysCashInEximBank = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.CashAtEximBank, AccType.Asset, fiscalYear.Id, fiscalYear.StartDate, DateTime.Now.Date, dashboardRequestModel.BranchId),
+                TodaysCashInPubaliBank = _accountService.CalculateBalanceByAccountId(AccountHeadConstants.CashAtPubaliBank, AccType.Asset, fiscalYear.Id, fiscalYear.StartDate, DateTime.Now.Date, dashboardRequestModel.BranchId),
                 //todays cash details
                 TodaysCashSale= _commonService.GetCashPaidSalesTotal(DateTime.Now.Date, DateTime.Now, dashboardRequestModel.BranchId),
                 TodaysReturn = _commonService.GetSaleReturnTotal(DateTime.Now.Date, DateTime.Now, dashboardRequestModel.BranchId),
