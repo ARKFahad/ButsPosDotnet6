@@ -78,7 +78,6 @@ namespace Application.Api.Controllers
                         CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId() ?? "me",
                         UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId() ?? "me"
                     };
-                    await _context.AddAsync(stockAdjustmentBatch);
 
                     var stockAdjustmentValue = 0M;
                     foreach (var item in model.StockAdjustmentBatchItems)
@@ -102,6 +101,7 @@ namespace Application.Api.Controllers
                             await _context.StockAdjustmentBatchItems.AddAsync(new StockAdjustmentBatchItem
                             {
                                 Id = Guid.NewGuid().ToString(),
+                                StockAdjustmentBatchId = stockAdjustmentBatch.Id,
                                 ProductId = item.ProductId,
                                 SupplierId = item.SupplierId,
                                 Quantity = item.Quantity,
@@ -134,6 +134,7 @@ namespace Application.Api.Controllers
                             await _context.StockAdjustmentBatchItems.AddAsync(new StockAdjustmentBatchItem
                             {
                                 Id = Guid.NewGuid().ToString(),
+                                StockAdjustmentBatchId = stockAdjustmentBatch.Id,
                                 ProductId = item.ProductId,
                                 SupplierId = item.SupplierId,
                                 Quantity = item.Quantity,
@@ -170,9 +171,10 @@ namespace Application.Api.Controllers
                         }
                     }
 
+                    await _context.StockAdjustmentBatches.AddAsync(stockAdjustmentBatch);
                     await _context.SaveChangesAsync();
                     await dbContextTransaction.CommitAsync();
-                    return Ok(new { Message = "Stock Adjusted Successfully", Succeeded = true });
+                    return Ok(new { Message = "Stock Adjustment Added Successfully", Succeeded = true });
                 }
                 catch (Exception exception)
                 {
