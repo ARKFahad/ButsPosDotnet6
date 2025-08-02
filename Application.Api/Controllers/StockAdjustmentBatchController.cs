@@ -37,7 +37,7 @@ namespace Application.Api.Controllers
             _configuration = configuration;
         }
 
-        [Authorize(Policy = Permissions.PurchaseReturns.View)]
+        [Authorize(Policy = Permissions.StockAdjustmentBatches.View)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
         [Route("search")]
@@ -54,7 +54,7 @@ namespace Application.Api.Controllers
             }
         }
 
-        [Authorize(Policy = Permissions.PurchaseReturns.Add)]
+        [Authorize(Policy = Permissions.StockAdjustmentBatches.Add)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
         public async Task<IActionResult> AddStockAdjustment([FromBody] StockAdjustmentBatchModel model)
@@ -106,6 +106,7 @@ namespace Application.Api.Controllers
                                 SupplierId = item.SupplierId,
                                 Quantity = item.Quantity,
                                 PurchaseRate = item.PurchaseRate,
+                                ExpiryDate = item.ExpiryDate,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = currentUserId ?? "me"
                             });
@@ -139,6 +140,7 @@ namespace Application.Api.Controllers
                                 SupplierId = item.SupplierId,
                                 Quantity = item.Quantity,
                                 PurchaseRate = stockValue / absoluteQuantity,
+                                ExpiryDate = item.ExpiryDate,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = currentUserId ?? "me"
                             });

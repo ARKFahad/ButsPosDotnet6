@@ -274,6 +274,14 @@ namespace Application.Core.Constants
             public const string Add = "Permissions.StockAdjustments.Add";
         }
 
+        [DisplayName("StockAdjustmentBatches")]
+        [Description("StockAdjustmentBatches Permissions")]
+        public static class StockAdjustmentBatches
+        {
+            public const string View = "Permissions.StockAdjustmentBatches.View";
+            public const string Add = "Permissions.StockAdjustmentBatches.Add";
+        }
+
         [DisplayName("Stocks")]
         [Description("Stocks Permissions")]
         public static class Stocks
