@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PbApp.Service;
-using static Application.Core.Constants.Permissions;
 
 namespace Application.Api.Controllers
 {
@@ -91,6 +90,7 @@ namespace Application.Api.Controllers
                                     Id = Guid.NewGuid().ToString(),
                                     ProductId = item.ProductId,
                                     SupplierId = item.SupplierId,
+                                    BranchId = model.BranchId,
                                     Quantity = 1,
                                     PurchaseRate = item.PurchaseRate,
                                     ExpiryDate = item.ExpiryDate,
@@ -121,17 +121,21 @@ namespace Application.Api.Controllers
                                 throw new BadRequestException($"0 can not be required quantity. Please add valid quantity for {product.Name}");
                             }
 
-                            var absoluteQuantity = Math.Abs(item.Quantity);
-                            var stockItems = await _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).OrderBy(x => x.CreatedOn).Take(absoluteQuantity).ToListAsync();
-                            if (!stockItems.Any())
-                                throw new NotFoundResultException("Required Stock Quantity not available In Selected Branch");
-                            decimal stockValue = 0M;
-                            foreach (var stockItem in stockItems)
+                            var requiredQuantity = Math.Abs(item.Quantity);
+                            var matchedStockItems = await _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == model.BranchId).OrderBy(x => x.CreatedOn).Take(requiredQuantity).ToListAsync();
+                            var totalMatchedQuantity = matchedStockItems.Sum(x => x.Quantity);
+                            if (!matchedStockItems.Any() || totalMatchedQuantity < requiredQuantity)
                             {
-                                stockValue += ((stockItem.PurchaseRate - stockItem.DiscountPerItem) + stockItem.AdditionalCostPerItem);
+                                var product = _context.Products.Where(x => x.Id == item.ProductId).First();
+                                throw new NotFoundResultException($"Only {totalMatchedQuantity} units of '{product.Name}' are available in the selected branch.");
                             }
-                            stockAdjustmentValue -= stockValue;
-                            _context.StockItems.RemoveRange(stockItems);
+                            decimal totalStockValue = 0M;
+                            foreach (var stockItem in matchedStockItems)
+                            {
+                                totalStockValue += ((stockItem.PurchaseRate - stockItem.DiscountPerItem) + stockItem.AdditionalCostPerItem);
+                            }
+                            stockAdjustmentValue -= totalStockValue;
+                            _context.StockItems.RemoveRange(matchedStockItems);
                             await _context.StockAdjustmentBatchItems.AddAsync(new StockAdjustmentBatchItem
                             {
                                 Id = Guid.NewGuid().ToString(),
@@ -139,7 +143,7 @@ namespace Application.Api.Controllers
                                 ProductId = item.ProductId,
                                 SupplierId = item.SupplierId,
                                 Quantity = item.Quantity,
-                                PurchaseRate = stockValue / absoluteQuantity,
+                                PurchaseRate = totalStockValue / requiredQuantity,
                                 ExpiryDate = item.ExpiryDate,
                                 CreatedOn = DateTime.Now,
                                 CreatedBy = currentUserId ?? "me"

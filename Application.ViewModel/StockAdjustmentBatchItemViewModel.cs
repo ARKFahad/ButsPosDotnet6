@@ -1,9 +1,4 @@
 ﻿using Application.Core.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.ViewModel
 {
@@ -14,7 +9,7 @@ namespace Application.ViewModel
             Id = stockAdjustmentBatchItem.Id;
             StockAdjustmentBatchId = stockAdjustmentBatchItem.StockAdjustmentBatchId;
             ProductId = stockAdjustmentBatchItem.ProductId;
-            ProductName = stockAdjustmentBatchItem.Product?.Name;
+            ProductName = stockAdjustmentBatchItem.Product?.Name + " " + stockAdjustmentBatchItem.Product?.PackSize + " " + stockAdjustmentBatchItem.Product?.Category.Name;
             SupplierId = stockAdjustmentBatchItem.SupplierId;
             SupplierName = stockAdjustmentBatchItem.Supplier?.Name;
             Quantity = stockAdjustmentBatchItem.Quantity;
