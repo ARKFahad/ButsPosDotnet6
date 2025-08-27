@@ -54,6 +54,8 @@ namespace Application.Core.Data
         public virtual DbSet<SaleReturn> SaleReturns { get; set; }
         public virtual DbSet<SaleReturnItem> SaleReturnItems { get; set; }
         public virtual DbSet<StockAdjustment> StockAdjustments { get; set; }
+        public virtual DbSet<StockAdjustmentBatch> StockAdjustmentBatches { get; set; }
+        public virtual DbSet<StockAdjustmentBatchItem> StockAdjustmentBatchItems { get; set; }
         public virtual DbSet<StockItem> StockItems { get; set; }
         public virtual DbSet<Supplier> Suppliers { get; set; }
         public virtual DbSet<SupplierPayment> SupplierPayments { get; set; }
@@ -69,46 +71,48 @@ namespace Application.Core.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfiguration(new Configurations.AccountEntryConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.AccountHeadConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.AccountTypeConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.BranchConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.BrandConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.CategoryConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.CompanyConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.CountryConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.CustomerConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.CustomerPaymentConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.DamageLostConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.ExpenseConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.ExpenseTypeConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.FiscalYearConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.GenericNameConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.GifItemConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.JournalEntryConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.JournalEntryLineConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.MeasurementUnitConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.PayReceiveConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.PaymentMethodConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.ProductConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.PurchaseConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.PurchaseItemConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.PurchaseReturnConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.PurchaseReturnItemConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.RoleConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.RoleClaimConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.SaleConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.SaleItemConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.SaleReturnConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.SaleReturnItemConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.StockAdjustmentConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.StockItemConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.SupplierConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.SupplierPaymentConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.TransferDetailConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.TransferHistoryConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.TransferMultipleConfiguration());
-            modelBuilder.ApplyConfiguration(new Configurations.UserConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.AccountEntryConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.AccountHeadConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.AccountTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.BranchConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.BrandConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.CategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.CompanyConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.CountryConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.CustomerConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.CustomerPaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.DamageLostConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.ExpenseConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.ExpenseTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.FiscalYearConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.GenericNameConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.GifItemConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.JournalEntryConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.JournalEntryLineConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.MeasurementUnitConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.PayReceiveConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.PaymentMethodConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.ProductConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.PurchaseConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.PurchaseItemConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.PurchaseReturnConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.PurchaseReturnItemConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.RoleConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.RoleClaimConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.SaleConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.SaleItemConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.SaleReturnConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.SaleReturnItemConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.StockAdjustmentConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.StockAdjustmentBatchConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.StockAdjustmentBatchItemConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.StockItemConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.SupplierConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.SupplierPaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.TransferDetailConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.TransferHistoryConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.TransferMultipleConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.UserConfiguration());
 
             OnModelCreatingPartial(modelBuilder);
         }

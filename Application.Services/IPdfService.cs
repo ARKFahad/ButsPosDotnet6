@@ -43,5 +43,6 @@ namespace Application.Services
         void PrintStockAdjustmentReportToPdf(MemoryStream stream, List<StockAdjustmentViewModel> stockAdjustmentViewModels, string reportName, Branch? branch, DateTime? fromDate, DateTime? toDate);
         void PrintCustomerTransactionReportToPdf(MemoryStream stream, Branch? branch, IList<TransactionViewModel> customerTransactionViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
         void PrintSupplierTransactionReportToPdf(MemoryStream stream, Branch? branch, IList<TransactionViewModel> supplierTransactionViewModels, string reportName, DateTime? fromDate, DateTime? toDate);
+        Task PrintStockAdjustmentBatchReportToPdf(MemoryStream stream, List<StockAdjustmentBatchViewModel> stockAdjustmentBatchViewModels, string reportName, Branch? branch, DateTime? fromDate, DateTime? toDate);
     }
 }

@@ -5,6 +5,7 @@ using Application.Core.ReportModels;
 using Application.ViewModel;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services
 {
@@ -266,6 +267,43 @@ namespace Application.Services
             }
 
             doc.Add(headerTable);
+        }
+
+        public async Task<PdfPTable> PrintReportHeader2(string reportHeader, Branch? branch, Font headerTitleFont, Font font8, DateTime? fromDate, DateTime? toDatde)
+        {
+            PdfPTable headerTable = new(2);
+            float[] widthsCellsHeader = new float[] { 70f, 30f };
+            headerTable.SetWidths(widthsCellsHeader);
+            headerTable.WidthPercentage = 100;
+            //SL
+            var company = await _context.Companies.FirstAsync();
+
+            var logo = Image.GetInstance(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", Path.GetFileName(company.LogoPath)));
+            logo.ScaleToFit(100f, 500f);
+            logo.Alignment = iTextSharp.text.Image.ALIGN_CENTER;
+            logo.IndentationLeft = 9f;
+            logo.IndentationRight = 9f;
+            logo.SpacingBefore = 5f;
+            logo.SpacingAfter = 2f;
+            //Item
+
+            var logocell = new PdfPCell { Border = 0 };
+            logocell.AddElement(logo);
+            logocell.Colspan = 2;
+            headerTable.AddCell(logocell);
+
+            headerTable.AddCell(new PdfPCell(new Phrase(company.Name, headerTitleFont)) { Colspan = 2, Border = 0, HorizontalAlignment = Element.ALIGN_CENTER });
+            headerTable.AddCell(new PdfPCell(new Phrase(reportHeader, headerTitleFont)) { Colspan = 2, Border = 0, HorizontalAlignment = Element.ALIGN_CENTER });
+            if (branch != null) headerTable.AddCell(new PdfPCell(new Phrase("Branch Name: " + branch?.Name, font8)) { Border = 0, HorizontalAlignment = Element.ALIGN_LEFT });
+            else headerTable.AddCell(new PdfPCell(new Phrase("", font8)) { Border = 0, HorizontalAlignment = Element.ALIGN_LEFT });
+            if (fromDate.HasValue) headerTable.AddCell(new PdfPCell(new Phrase("From: " + fromDate?.ToString("dd/MM/yyyy"), font8)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
+            else headerTable.AddCell(new PdfPCell(new Phrase("", font8)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
+            if (branch != null) headerTable.AddCell(new PdfPCell(new Phrase("Branch Code: " + branch?.Code, font8)) { Border = 0, HorizontalAlignment = Element.ALIGN_LEFT });
+            else headerTable.AddCell(new PdfPCell(new Phrase("", font8)) { Border = 0, HorizontalAlignment = Element.ALIGN_LEFT });
+            if (toDatde.HasValue) headerTable.AddCell(new PdfPCell(new Phrase("To: " + toDatde?.ToString("dd/MM/yyyy"), font8)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
+            else headerTable.AddCell(new PdfPCell(new Phrase("", font8)) { Border = 0, HorizontalAlignment = Element.ALIGN_RIGHT });
+
+            return headerTable;
         }
 
 
@@ -7053,6 +7091,97 @@ namespace Application.Services
             customerTransactionReportTable.AddCell(new PdfPCell(new Phrase(customerTransactionViewModels.Sum(x => x.Balance).ToString("#,##0.00"), font)) { HorizontalAlignment = Element.ALIGN_RIGHT });
 
             doc.Add(customerTransactionReportTable);
+        }
+
+        public async Task PrintStockAdjustmentBatchReportToPdf(MemoryStream stream, List<StockAdjustmentBatchViewModel> stockAdjustmentBatchViewModels, string reportName, Branch? branch, DateTime? fromDate, DateTime? toDate)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (stockAdjustmentBatchViewModels == null)
+                throw new ArgumentNullException(nameof(stockAdjustmentBatchViewModels));
+
+            Rectangle rectangle = new(PageSize.A4);
+            Document document = new(rectangle, 72, 72, 72, 72);
+            document.SetMargins(20f, 20f, 20f, 20f);
+            var pdfWriter = PdfWriter.GetInstance(document, stream);
+            pdfWriter.CloseStream = false;
+            document.Open();
+
+            Font headerTitleFont = FontFactory.GetFont("Times New Roman", 12, Font.BOLD);
+            Font font7Gray = FontFactory.GetFont("Arial", 7, BaseColor.Gray);
+            Font font8Bold = FontFactory.GetFont("Times New Roman", 8, Font.BOLD);
+            Font font8 = FontFactory.GetFont("Times New Roman", 8);
+            Font attributesFont = FontFactory.GetFont("Times New Roman", 10, Font.ITALIC);
+
+            //headers
+            var headerTable = await PrintReportHeader2("Stock Adjustment Report", branch, headerTitleFont, font8, fromDate, toDate);
+            //Data
+            var stockAdjustmentBatchData = PrintStockAdjustmentBatchReport(stockAdjustmentBatchViewModels, font8Bold, font8, font7Gray);
+            document.Add(headerTable);
+            document.Add(stockAdjustmentBatchData);
+            document.Close();
+        }
+
+        private PdfPTable PrintStockAdjustmentBatchReport(List<StockAdjustmentBatchViewModel> stockAdjustmentBatchViewModels, Font font8Bold, Font font8, Font font7Gray)
+        {
+            PdfPTable stockAdjustmentData = new(5);
+            float[] widthCellsHeaderPage = new float[] { 10f, 20f, 20f, 30f, 20f };
+            stockAdjustmentData.SetWidths(widthCellsHeaderPage);
+            stockAdjustmentData.WidthPercentage = 100;
+            stockAdjustmentData.HeaderRows = 1;
+
+            stockAdjustmentData.AddCell(new PdfPCell(new Phrase("SL", font8Bold)) { PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1, BackgroundColor = BaseColor.LightGray });
+            stockAdjustmentData.AddCell(new PdfPCell(new Phrase("Code", font8Bold)) { PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1, BackgroundColor = BaseColor.LightGray });
+            stockAdjustmentData.AddCell(new PdfPCell(new Phrase("Adjustment Date", font8Bold)) { PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1, BackgroundColor = BaseColor.LightGray });
+            stockAdjustmentData.AddCell(new PdfPCell(new Phrase("Branch", font8Bold)) { PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1, BackgroundColor = BaseColor.LightGray });
+            stockAdjustmentData.AddCell(new PdfPCell(new Phrase("Remark", font8Bold)) { PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1, BackgroundColor = BaseColor.LightGray });
+
+            var sl = 0;
+            foreach (var item in stockAdjustmentBatchViewModels)
+            {
+                sl++;
+                stockAdjustmentData.AddCell(new PdfPCell(new Phrase(sl.ToString(), font8)) { PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+                stockAdjustmentData.AddCell(new PdfPCell(new Phrase(item?.Code, font8)) { PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+                stockAdjustmentData.AddCell(new PdfPCell(new Phrase(item?.CreatedOn.ToString("dd/MM/yyy"), font8)) { PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+                stockAdjustmentData.AddCell(new PdfPCell(new Phrase(item?.BranchName, font8)) { PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 0 });
+                stockAdjustmentData.AddCell(new PdfPCell(new Phrase(item?.Remark, font8)) { PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 2 });
+
+                PdfPTable productDetailsTable = new(6);
+                float[] widthsCellsProductDetailsTable = new float[] { 5f, 25f, 25f, 10f, 10f, 10f };
+                productDetailsTable.SetWidths(widthsCellsProductDetailsTable);
+                productDetailsTable.WidthPercentage = 100;
+                productDetailsTable.SpacingAfter = 0;
+                productDetailsTable.SpacingAfter = 0;
+                productDetailsTable.AddCell(new PdfPCell(new Phrase("SL", font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+                productDetailsTable.AddCell(new PdfPCell(new Phrase("Product", font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+                productDetailsTable.AddCell(new PdfPCell(new Phrase("Supplier", font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+                productDetailsTable.AddCell(new PdfPCell(new Phrase("Quantity", font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+                productDetailsTable.AddCell(new PdfPCell(new Phrase("Rate", font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+                productDetailsTable.AddCell(new PdfPCell(new Phrase("Amount", font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+
+                var miniSL = 0;
+                foreach (var miniItem in item?.StockAdjustmentBatchItems!)
+                {
+                    miniSL++;
+                    productDetailsTable.AddCell(new PdfPCell(new Phrase(miniSL.ToString(), font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+                    productDetailsTable.AddCell(new PdfPCell(new Phrase(miniItem?.ProductName, font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 0 });
+                    productDetailsTable.AddCell(new PdfPCell(new Phrase(miniItem?.SupplierName, font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 1 });
+                    productDetailsTable.AddCell(new PdfPCell(new Phrase(miniItem?.Quantity.ToString("#,##0.00"), font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 2 });
+                    productDetailsTable.AddCell(new PdfPCell(new Phrase(miniItem?.PurchaseRate.ToString("#,##0.00"), font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 2 });
+                    productDetailsTable.AddCell(new PdfPCell(new Phrase((miniItem?.Quantity * miniItem?.PurchaseRate)?.ToString("#,##0.00"), font7Gray)) { BorderColor = BaseColor.Gray, PaddingTop = 3, PaddingBottom = 3, HorizontalAlignment = 2 });
+                }
+
+                stockAdjustmentData.AddCell(new PdfPCell(new Phrase("Stock Adjustment Details", font7Gray)) { Colspan = 2, HorizontalAlignment = 1, VerticalAlignment = Element.ALIGN_MIDDLE });
+                var productDetailsCell2 = GetPdfCell("", font8);
+                productDetailsCell2.Colspan = 3;
+                productDetailsCell2.Padding = 0;
+                productDetailsCell2.AddElement(productDetailsTable);
+                stockAdjustmentData.AddCell(productDetailsCell2);
+
+            }
+
+            return stockAdjustmentData;
         }
     }
 
