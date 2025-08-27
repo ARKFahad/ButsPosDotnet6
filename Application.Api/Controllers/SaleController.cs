@@ -89,11 +89,153 @@ namespace Application.Api.Controllers
             }
         }
 
+        //[HttpPost]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        //[Authorize(Policy = Permissions.Sales.Add)]
+        //public async Task<IActionResult> AddSaleAsync([FromBody] SaleAddRequestModel model)
+
+        //{
+        //    var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
+        //    using (var dbContextTransaction = await _context.Database.BeginTransactionAsync())
+        //    {
+        //        try
+        //        {
+        //            var branchId = _contextAccessor.HttpContext?.User?.GetBranchId();
+        //            var dbCustomer = await _context.Customers.FindAsync(model.CustomerId);
+        //            Sale sale = new Sale();
+        //            var count = _context.Sales.Count() + 1;
+        //            sale.Id = Guid.NewGuid().ToString();
+        //            sale.SaleNo = "S" + count.ToString().PadLeft(7, '0');
+        //            sale.CustomerId = model.CustomerId;
+        //            sale.PaymentMethodId = model.PaymentMethodId;
+        //            sale.BranchId = branchId;
+        //            sale.Subtotal = model.Total;
+        //            sale.Discount = model.Discount;
+        //            sale.DiscountInPercentage = model.DiscountInPercentage;
+        //            sale.PayableAmount = model.NetTotal;
+        //            sale.RecievedAmount = model.ReceivedAmount;
+        //            sale.ReturnAmount = model.ReturnAmount;
+        //            sale.PaidAmount = model.PaymentAmount;
+        //            sale.DueAmount = model.DueAmount;
+        //            sale.CreatedOn = DateTime.Now;
+        //            sale.UpdatedOn = DateTime.Now;
+        //            sale.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+        //            sale.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+        //            foreach (var item in model.CartItems)
+        //            {
+        //                var saleItem = new SaleItem
+        //                {
+        //                    Id = Guid.NewGuid().ToString(),
+        //                    SaleId = sale.Id,
+        //                    ProductId = item.ProductId,
+        //                    Quantity = item.Quantity,
+        //                    Price = item.Price,
+        //                    ReturnQuantity = 0,
+        //                    Amount = item.Quantity * item.Price,
+        //                    CreatedOn = DateTime.Now,
+        //                    BranchId = branchId,
+        //                    DiscountOnAmount = (sale.DiscountInPercentage * (item.Quantity * item.Price)) / 100
+        //                };
+        //                var stockItems = await _context.StockItems.Where(x => x.ProductId == saleItem.ProductId && x.BranchId == branchId).OrderBy(x => x.CreatedOn).Take(saleItem.Quantity).ToListAsync();
+        //                decimal cogsItem = 0M;
+        //                foreach (var stockItem in stockItems)
+        //                {
+        //                    var cogsperItem = ((stockItem.PurchaseRate - stockItem.DiscountPerItem) + stockItem.AdditionalCostPerItem);
+        //                    cogsItem += cogsperItem;
+        //                    sale.Cogs += cogsperItem;
+        //                }
+        //                //cogs perItem
+        //                saleItem.CogsPerItem = cogsItem / saleItem.Quantity;
+        //                saleItem.SupplierId = stockItems[0].SupplierId;
+        //                sale.SaleItems.Add(saleItem);
+        //                //stock check
+        //                var stockCount = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == branchId).Sum(x => x.Quantity);
+        //                if (item.Quantity > stockCount) throw new Exception("Out of Stock");
+        //                _context.StockItems.RemoveRange(stockItems);
+        //                await _context.SaveChangesAsync();
+        //            }
+        //            if (isAccountsActive)
+        //            {
+        //                if (sale.DueAmount > 0)
+        //                {
+        //                    sale.CustomerBalance = _accountService.CalculateBalanceByAccountId(dbCustomer.AccountId, AccType.Asset, _context.FiscalYears.FirstOrDefault(x => x.IsActive)?.Id, null, null, branchId) + model.DueAmount;
+        //                    //sale a/c credit
+        //                    await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Credit Sale",
+        //                        AccountHeadConstants.Sales, 0, sale.DueAmount, sale.CreatedOn);
+        //                    //customer a/c debit
+        //                    await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Credit Sale",
+        //                       dbCustomer.AccountId, sale.DueAmount, 0, sale.CreatedOn);
+        //                    //inventory a/c credit
+        //                    await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Credit Sale",
+        //                        AccountHeadConstants.InventoryAC, 0, sale.Cogs, sale.CreatedOn);
+        //                    //cogs a/c debit
+        //                    await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Credit Sale",
+        //                       AccountHeadConstants.COGS, sale.Cogs, 0, sale.CreatedOn);
+        //                }
+        //                else
+        //                {
+        //                    if (sale.PaymentMethodId == PaymentMethodConstants.Cash)
+        //                    {
+        //                        //sale a/c credit
+        //                        await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
+        //                            AccountHeadConstants.Sales, 0, sale.PaidAmount, sale.CreatedOn);
+        //                        //cash a/c debit
+        //                        await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
+        //                          AccountHeadConstants.CashInHand, sale.PaidAmount, 0, sale.CreatedOn);
+        //                        //inventory a/c credit
+        //                        await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
+        //                            AccountHeadConstants.InventoryAC, 0, sale.Cogs, sale.CreatedOn);
+        //                        //cogs a/c debit
+        //                        await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Cash Sale",
+        //                           AccountHeadConstants.COGS, sale.Cogs, 0, sale.CreatedOn);
+        //                    }
+        //                    else
+        //                    {
+        //                        //sale a/c credit
+        //                        await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Card Sale",
+        //                            AccountHeadConstants.Sales, 0, sale.PaidAmount, sale.CreatedOn);
+        //                        //pubali bank a/c debit
+        //                        await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Card Sale",
+        //                          AccountHeadConstants.CashAtPubaliBank, sale.PaidAmount, 0, sale.CreatedOn);
+        //                        //inventory a/c credit
+        //                        await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Card Sale",
+        //                            AccountHeadConstants.InventoryAC, 0, sale.Cogs, sale.CreatedOn);
+        //                        //cogs a/c debit
+        //                        await _commonService.HitAccount(_context, sale.BranchId, sale.SaleNo, "Card Sale",
+        //                           AccountHeadConstants.COGS, sale.Cogs, 0, sale.CreatedOn);
+        //                    }
+        //                }
+        //            }
+        //            else
+        //            {
+        //                //Customer Balance Update
+        //                if (model.DueAmount > 0)
+        //                {
+        //                    sale.CustomerBalance = dbCustomer.Balance + model.DueAmount;
+        //                    dbCustomer.Balance += sale.DueAmount;
+        //                    _context.Customers.Update(dbCustomer);
+        //                }
+        //            }
+        //            await _context.Sales.AddAsync(sale);
+        //            await _context.SaveChangesAsync();
+        //            await dbContextTransaction.CommitAsync();
+        //            //integrate signalR
+        //            await _hubContext.Clients.All.BroadcastMessage();
+        //            return Ok(new { SaleId = sale.Id, Message = "Sale Added Successfully" });
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            await dbContextTransaction.RollbackAsync();
+        //            return Ok(new { SaleId = "", Message = e.Message });
+        //        }
+        //    }
+        //}
+
+
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [Authorize(Policy = Permissions.Sales.Add)]
         public async Task<IActionResult> AddSaleAsync([FromBody] SaleAddRequestModel model)
-
         {
             var isAccountsActive = _configuration.GetValue<bool>("AccountSettings:IsActive");
             using (var dbContextTransaction = await _context.Database.BeginTransactionAsync())
@@ -103,9 +245,22 @@ namespace Application.Api.Controllers
                     var branchId = _contextAccessor.HttpContext?.User?.GetBranchId();
                     var dbCustomer = await _context.Customers.FindAsync(model.CustomerId);
                     Sale sale = new Sale();
-                    var count = _context.Sales.Count() + 1;
+                    //var count = _context.Sales.Count() + 1;
+
+                    var lastSale = await _context.Sales
+                        .OrderByDescending(s => s.CreatedOn)
+                        .Select(s => s.SaleNo)
+                        .FirstOrDefaultAsync();
+
+                    int lastNumber = 0;
+                    if (!string.IsNullOrEmpty(lastSale))
+                    {
+                        lastNumber = int.Parse(lastSale.Substring(1));
+                    }
+
                     sale.Id = Guid.NewGuid().ToString();
-                    sale.SaleNo = "S" + count.ToString().PadLeft(7, '0');
+                    sale.SaleNo = "S" + (lastNumber + 1).ToString().PadLeft(7, '0');
+                    //sale.SaleNo = "S" + count.ToString().PadLeft(7, '0');
                     sale.CustomerId = model.CustomerId;
                     sale.PaymentMethodId = model.PaymentMethodId;
                     sale.BranchId = branchId;
@@ -121,8 +276,43 @@ namespace Application.Api.Controllers
                     sale.UpdatedOn = DateTime.Now;
                     sale.CreatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
                     sale.UpdatedBy = _contextAccessor.HttpContext?.User?.GetUserId();
+
+                    // সব ProductId একবারেই নিয়ে আসা
+                    var productIds = model.CartItems.Select(ci => ci.ProductId).Distinct().ToList();
+
+                    //Bulk fetch stock items(FIFO order)
+                    var stockLookup = await _context.StockItems
+                        .Where(x => productIds.Contains(x.ProductId) && x.BranchId == branchId)
+                        .OrderBy(x => x.CreatedOn) // FIFO handle করার জন্য
+                        .ToListAsync();
+
+                    // Group stock by ProductId : Dictionary<ProductId, List<StockItem>>
+                    var stockDict = stockLookup
+                        .GroupBy(x => x.ProductId)
+                        .ToDictionary(g => g.Key, g => g.ToList());
+
                     foreach (var item in model.CartItems)
                     {
+
+                        if (!stockDict.ContainsKey(item.ProductId))
+                            throw new Exception($"Product {item.ProductName} is Out of Stock");
+
+                        var stockItems = stockDict[item.ProductId];
+
+                        //মোট available quantity check
+                        if (stockItems.Sum(s => s.Quantity) < item.Quantity)
+                            throw new Exception($"Product {item.ProductName} has insufficient stock");
+
+                        // 2. এখন প্রয়োজনীয় stock rows নিন (FIFO)
+                        var requiredStock = stockItems.Take(item.Quantity).ToList();
+
+                        // COGS হিসাব
+                        decimal cogsItem = requiredStock.Sum(stockItem =>
+                            (stockItem.PurchaseRate - stockItem.DiscountPerItem) + stockItem.AdditionalCostPerItem);
+
+                        sale.Cogs += cogsItem;
+
+                        // SaleItem তৈরি
                         var saleItem = new SaleItem
                         {
                             Id = Guid.NewGuid().ToString(),
@@ -134,26 +324,19 @@ namespace Application.Api.Controllers
                             Amount = item.Quantity * item.Price,
                             CreatedOn = DateTime.Now,
                             BranchId = branchId,
-                            DiscountOnAmount = (sale.DiscountInPercentage * (item.Quantity * item.Price)) / 100
+                            DiscountOnAmount = (sale.DiscountInPercentage * (item.Quantity * item.Price)) / 100,
+                            //cogs perItem
+                            CogsPerItem = cogsItem / item.Quantity,
+                            SupplierId = stockItems[0].SupplierId,
                         };
-                        var stockItems = await _context.StockItems.Where(x => x.ProductId == saleItem.ProductId && x.BranchId == branchId).OrderBy(x => x.CreatedOn).Take(saleItem.Quantity).ToListAsync();
-                        decimal cogsItem = 0M;
-                        foreach (var stockItem in stockItems)
-                        {
-                            var cogsperItem = ((stockItem.PurchaseRate - stockItem.DiscountPerItem) + stockItem.AdditionalCostPerItem);
-                            cogsItem += cogsperItem;
-                            sale.Cogs += cogsperItem;
-                        }
-                        //cogs perItem
-                        saleItem.CogsPerItem = cogsItem / saleItem.Quantity;
-                        saleItem.SupplierId = stockItems[0].SupplierId;
+
                         sale.SaleItems.Add(saleItem);
-                        //stock check
-                        var stockCount = _context.StockItems.Where(x => x.ProductId == item.ProductId && x.BranchId == branchId).Sum(x => x.Quantity);
-                        if (item.Quantity > stockCount) throw new Exception("Out of Stock");
-                        _context.StockItems.RemoveRange(stockItems);
-                        await _context.SaveChangesAsync();
+
+                        // 4. Stock remove
+                        _context.StockItems.RemoveRange(requiredStock);
+
                     }
+
                     if (isAccountsActive)
                     {
                         if (sale.DueAmount > 0)
@@ -216,9 +399,15 @@ namespace Application.Api.Controllers
                             _context.Customers.Update(dbCustomer);
                         }
                     }
+
+                    // Sale add করা
                     await _context.Sales.AddAsync(sale);
+
+                    // সবকিছু একবারেই save
                     await _context.SaveChangesAsync();
+
                     await dbContextTransaction.CommitAsync();
+
                     //integrate signalR
                     await _hubContext.Clients.All.BroadcastMessage();
                     return Ok(new { SaleId = sale.Id, Message = "Sale Added Successfully" });
@@ -228,8 +417,13 @@ namespace Application.Api.Controllers
                     await dbContextTransaction.RollbackAsync();
                     return Ok(new { SaleId = "", Message = e.Message });
                 }
+                finally
+                {
+                    await dbContextTransaction.DisposeAsync();
+                }
             }
         }
+
         [HttpGet("/api/sale/invoice/{id}")]
         public IActionResult SaleInvoice(string id)
         {
