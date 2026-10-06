@@ -29,11 +29,9 @@ public static class RegisterStartupMiddlewares
         });
         app.UseAuthorization();
 
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-            endpoints.MapHub<BroadcastHub>("/notify");
-        });
+        app.MapControllers();
+        app.MapHub<BroadcastHub>("/notify");
+
         return app;
         }
     }
